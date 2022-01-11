@@ -91,11 +91,8 @@ public:
 
 public:
 	void Start(
-	  const std::string& baseUrl,
-	  bool enableAudio,
-	  bool useSimulcast,
-	  const nlohmann::json& routerRtpCapabilities,
-	  bool verifySsl , std::string name);
+	  const std::string& baseUrl, 
+	  const nlohmann::json& routerRtpCapabilities,  std::string name);
 	void Stop();
 
 	~Broadcaster();
@@ -117,7 +114,7 @@ private:
 	std::future<void> OnConnectSendTransport(const nlohmann::json& dtlsParameters);
 	std::future<void> OnConnectRecvTransport(const nlohmann::json& dtlsParameters);
 
-	void CreateSendTransport(bool enableAudio, bool useSimulcast);
+	void CreateSendTransport();
 	void CreateRecvTransport();
 	public:
 	void CreateDataConsumer(const json& body);

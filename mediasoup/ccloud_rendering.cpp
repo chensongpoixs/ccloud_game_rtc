@@ -1,0 +1,142 @@
+#include "ccloud_rendering.h"
+#include "ccfg.h"
+#include "httplib.h"
+namespace webrtc {
+	
+	ccloud_rendering::~ccloud_rendering() {}
+ 
+	bool ccloud_rendering::init(const char * config_name)
+	{
+		bool init =  g_cfg.init(config_name);
+		if (!init)
+		{
+			RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
+			return -1;
+		}
+		auto logLevel = mediasoupclient::Logger::LogLevel::LOG_DEBUG;
+		mediasoupclient::Logger::SetLogLevel(logLevel);
+		mediasoupclient::Logger::SetDefaultHandler();
+
+		// Initilize mediasoupclient.
+		mediasoupclient::Initialize();
+		std::string ws_url = "ws://" + webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) + ":" + std::to_string(webrtc::g_cfg.get_int32(webrtc::ECI_MediaSoup_Http_Port)) + "/?roomId=" + webrtc::g_cfg.get_string(webrtc::ECI_Room_Name) + "&peerId=" + webrtc::g_cfg.get_string(webrtc::ECI_Client_Name);//ws://127.0.0.1:8888/?roomId=chensong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
+		std::string origin = "http://" + webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) + ":" + std::to_string(webrtc::g_cfg.get_int32(webrtc::ECI_MediaSoup_Http_Port));
+		if (!webrtc::g_websocket_mgr.init(ws_url, origin))
+		{
+			RTC_LOG(LS_ERROR) << "weboscket connect failed !!! url = " << ws_url;
+			return false;
+		}
+		webrtc::g_websocket_mgr.start();
+
+
+		if (webrtc::g_websocket_mgr.get_status() != webrtc::CWEBSOCKET_MESSAGE)
+		{
+			RTC_LOG(LS_ERROR) << "weboscket mgr status = " << webrtc::g_websocket_mgr.get_status() << "failed !!! ";
+			return false;
+		}
+		return true;
+	}
+	bool ccloud_rendering::Loop()
+	{
+
+		std::string baseUrl = "http://" + g_cfg.get_string(webrtc::ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(webrtc::ECI_MediaSoup_Http_Port));
+		baseUrl.append("/rooms/").append(webrtc::g_cfg.get_string(webrtc::ECI_Room_Name)); 
+  
+		std::string host = webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host);
+		httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
+		std::string url =  baseUrl;
+		auto res = cli.Get(url.c_str());
+		if (!res)
+		{
+			RTC_LOG(LS_ERROR) << "[ERROR]Stop"; 
+			return false; 
+		}
+		if (res->status != 200)
+		{
+			RTC_LOG(LS_ERROR) << "[ERROR] Stop"
+				<< " [status code:" << res->status << ", body:\"" << res->body << "\"]"; 
+			return false; 
+		}
+
+		RTC_LOG(INFO) << __FUNCTION__ << __LINE__ << "[" << res->body << "]";
+		auto response = nlohmann::json::parse(res->body);
+		m_broadcaster.Start(baseUrl,  response,   g_cfg.get_string(webrtc::ECI_Client_Name));
+		std::string new_url = url + "/AllDataProducers";
+		std::set<std::string> dataProduceIds;
+		while (!m_stoped)
+		{
+			if (webrtc::g_websocket_mgr.get_status() != webrtc::CWEBSOCKET_MESSAGE)
+			{
+				RTC_LOG(LS_ERROR) << "websocket status = " << webrtc::g_websocket_mgr.get_status() << "failed !!!";
+				break;
+			}
+			//std::string url = baseUrl + "/broadcasters/" + this->id + "/transports";
+			//
+			res = cli.Get(new_url.c_str());
+			if (!res)
+			{
+				RTC_LOG(LS_ERROR) << "[ERROR]Stop";
+				break;
+				//	promise.set_exception(std::make_exception_ptr(res->body));
+				//return -1;// promise.get_future();
+			}
+			if (res->status != 200)
+			{
+				RTC_LOG(LS_ERROR) << "[ERROR] Stop"
+					<< " [status code:" << res->status << ", body:\"" << res->body << "\"]";
+				break;
+			}
+			else
+			{
+				//RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
+				auto response = nlohmann::json::parse(res->body);
+				std::set<std::string> temp_dataProducerIds;
+				if (response["peers"].is_array())
+				{
+					for (int i = 0; i < response["peers"].size(); ++i)
+					{
+						if (response["peers"][i]["displayName"] != webrtc::g_cfg.get_string(webrtc::ECI_Client_Name))
+						{
+							std::string displayName = response["peers"][i]["displayName"];
+							temp_dataProducerIds.insert(displayName);
+							auto iter = dataProduceIds.find(displayName);
+							if (iter != dataProduceIds.end())
+							{
+								continue;
+							}
+							
+
+							for (int j = 0; j < response["peers"][i]["dataProducers"].size(); ++j)
+							{
+								if ("chat" == response["peers"][i]["dataProducers"][j]["label"])
+								{
+									//dataProduceIds;
+									//std::string id = response["peers"][i]["dataProducers"][j]["id"];
+									std::string dataProducerId = response["peers"][i]["dataProducers"][j]["id"];
+									//uint32_t streamId = response["peers"][i]["dataConsumers"][j]["sctpStreamParameters"]["streamId"];
+									//json AppData = response["peers"][i]["dataConsumers"][j]["sctpStreamParameters"]["AppData"];;
+									json body =
+									{
+										{ "dataProducerId", dataProducerId }
+									};
+									m_broadcaster.CreateDataConsumer(body);
+									RTC_LOG(LS_INFO) << "  dataProducerId = " << dataProducerId;
+									//dataProduceIds.insert(displayName);
+								}
+							}
+						}
+					}
+					dataProduceIds.swap(temp_dataProducerIds);
+				}
+			}
+			std::this_thread::sleep_for(std::chrono::seconds(2));
+		}
+		return true;
+	}
+	void ccloud_rendering::Destroy()
+	{
+		m_broadcaster.Stop();
+		g_websocket_mgr.destroy();
+		mediasoupclient::Cleanup();
+	}
+}

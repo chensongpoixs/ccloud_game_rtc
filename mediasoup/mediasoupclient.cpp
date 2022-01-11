@@ -14,8 +14,6 @@ namespace mediasoupclient
 	{
 		MSC_TRACE();
 
-		MSC_DEBUG("mediasoupclient v%s", Version().c_str());
-
 		rtc::InitializeSSL();
 		rtc::InitRandom(rtc::Time());
 	}
@@ -27,13 +25,5 @@ namespace mediasoupclient
 		rtc::CleanupSSL();
 	}
 
-	std::string Version() // NOLINT(readability-identifier-naming)
-	{
-		std::stringstream ss;
-
-		ss << MEDIASOUPCLIENT_VERSION_MAJOR << "." << MEDIASOUPCLIENT_VERSION_MINOR << "."
-		   << MEDIASOUPCLIENT_VERSION_PATCH;
-
-		return ss.str();
-	}
+	 
 } // namespace mediasoupclient

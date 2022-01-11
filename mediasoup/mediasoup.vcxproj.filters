@@ -117,6 +117,12 @@
     <ClCompile Include="cosd_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ccloud_rendering.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cwindow_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Consumer.hpp">
@@ -222,6 +228,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cosd_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ccloud_rendering.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cwindow_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

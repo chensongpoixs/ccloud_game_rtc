@@ -132,6 +132,7 @@
     <ClCompile Include="Broadcaster.cpp" />
     <ClCompile Include="capture.cpp" />
     <ClCompile Include="ccfg.cpp" />
+    <ClCompile Include="ccloud_rendering.cpp" />
     <ClCompile Include="cconfig.cpp" />
     <ClCompile Include="cint2str.cpp" />
     <ClCompile Include="cnet_types.cpp" />
@@ -139,6 +140,7 @@
     <ClCompile Include="cosd_util.cpp" />
     <ClCompile Include="cwebsocket_mgr.cpp" />
     <ClCompile Include="cwebsocket_session.cpp" />
+    <ClCompile Include="cwindow_util.cpp" />
     <ClCompile Include="DataConsumer.cpp" />
     <ClCompile Include="DataProducer.cpp" />
     <ClCompile Include="desktop_capture.cc" />
@@ -167,6 +169,7 @@
     <ClInclude Include="Broadcaster.hpp" />
     <ClInclude Include="capture.h" />
     <ClInclude Include="ccfg.h" />
+    <ClInclude Include="ccloud_rendering.h" />
     <ClInclude Include="cconfig.h" />
     <ClInclude Include="cint2str.h" />
     <ClInclude Include="cnet_types.h" />
@@ -174,6 +177,7 @@
     <ClInclude Include="cosd_util.h" />
     <ClInclude Include="cwebsocket_mgr.h" />
     <ClInclude Include="cwebsocket_session.h" />
+    <ClInclude Include="cwindow_util.h" />
     <ClInclude Include="DataConsumer.hpp" />
     <ClInclude Include="DataProducer.hpp" />
     <ClInclude Include="desktop_capture.h" />

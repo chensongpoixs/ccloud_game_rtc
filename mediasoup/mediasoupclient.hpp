@@ -8,7 +8,7 @@ namespace mediasoupclient
 {
 	void Initialize();     // NOLINT(readability-identifier-naming)
 	void Cleanup();        // NOLINT(readability-identifier-naming)
-	std::string Version(); // NOLINT(readability-identifier-naming)
+	
 } // namespace mediasoupclient
 
 #endif

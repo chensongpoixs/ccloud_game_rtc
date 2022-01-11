@@ -14,6 +14,7 @@
 #include "ccfg.h"
 #include "peerConnectionUtils.hpp"
 #include "desktop_capture.h"
+#include "cwindow_util.h"
 using json = nlohmann::json;
 
 
@@ -384,19 +385,15 @@ std::future<std::string> Broadcaster::OnProduceData(
 }
 
 void Broadcaster::Start(
-  const std::string& baseUrl,
-  bool enableAudio,
-  bool useSimulcast,
-  const json& routerRtpCapabilities,
-  bool verifySsl, std::string name)
+  const std::string& baseUrl, 
+  const json& routerRtpCapabilities,  std::string name)
 {
 	std::cout << "[INFO] Broadcaster::Start()" << std::endl;
 
 	m_wight = GetSystemMetrics(SM_CXSCREEN);
 	m_height = GetSystemMetrics(SM_CYSCREEN);
 
-	this->baseUrl   = baseUrl;
-	this->verifySsl = verifySsl;
+	this->baseUrl   = baseUrl; 
 
 	// Load the device.
 	this->device.Load(routerRtpCapabilities);
@@ -410,8 +407,8 @@ void Broadcaster::Start(
 		{ "displayName", name     },
 		{ "device",
 			{
-				{ "name",    "chensong"       },
-				{ "version", mediasoupclient::Version() }
+				{ "name",    "version"       },
+				{ "version", "1.0" }
 			}
 		},
 		{ "rtpCapabilities", this->device.GetRtpCapabilities() }
@@ -424,21 +421,19 @@ void Broadcaster::Start(
 	if (!res)
 	{
 		RTC_LOG(LS_ERROR)  << "[ERROR] unable to create Broadcaster"
-			<< " [status code:" << 0 << ", body:\""  << "\"]";
-	//	promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
+			<< " [status code:" << 0 << ", body:\""  << "\"]"; 
+		return; 
 	}
 	if (res->status != 200)
 	{
 		RTC_LOG(LS_ERROR)  << "[ERROR] unable to create Broadcaster"
 			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-
-		//promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
+		 
+		return; 
 	}
 
 	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
-	this->CreateSendTransport(enableAudio, useSimulcast);
+	this->CreateSendTransport();
 	this->CreateRecvTransport();
 }
 
@@ -513,7 +508,7 @@ void Broadcaster::CreateDataConsumer(const json& body)
 //	this->recvTransport->ConsumeData(
 //		this, dataConsumerId, dataProducerId, "chat", "stcp", appData);
 //}
-void Broadcaster::CreateSendTransport(bool enableAudio, bool useSimulcast)
+void Broadcaster::CreateSendTransport( )
 {
 	std::cout << "[INFO] creating mediasoup send WebRtcTransport..." << std::endl;
 
@@ -663,43 +658,14 @@ void Broadcaster::CreateSendTransport(bool enableAudio, bool useSimulcast)
 	  response["dtlsParameters"],
 	  response["sctpParameters"]);
 
-
-	///////////////////////// Create Audio Producer //////////////////////////
-
-	if (enableAudio && this->device.CanProduce("audio"))
-	{
-		auto audioTrack = createAudioTrack(std::to_string(rtc::CreateRandomId()));
-
-		/* clang-format off */
-		json codecOptions = {
-			{ "opusStereo", true },
-		{ "opusDtx",		true }
-		};
-		/* clang-format on */
-
-		sendTransport->Produce(this, audioTrack, nullptr, &codecOptions);
-	}
-	else
-	{
-		RTC_LOG(WARNING)  <<"[WARN] cannot produce audio" ;
-	}
-
+ 
 	///////////////////////// Create Video Producer //////////////////////////
 
 	if (this->device.CanProduce("video"))
 	{
 		auto videoTrack = createVideoTrack(std::to_string(rtc::CreateRandomId()));
 
-		if (useSimulcast)
-		{
-			std::vector<webrtc::RtpEncodingParameters> encodings;
-			encodings.emplace_back(webrtc::RtpEncodingParameters());
-			encodings.emplace_back(webrtc::RtpEncodingParameters());
-			encodings.emplace_back(webrtc::RtpEncodingParameters());
-
-			sendTransport->Produce(this, videoTrack, &encodings, nullptr);
-		}
-		else
+		 
 		{
 			sendTransport->Produce(this, videoTrack, nullptr, nullptr);
 		}
@@ -890,80 +856,6 @@ void Broadcaster::CreateRecvTransport()
 
 
 
-#include <Windows.h>
-#include <stdio.h>
-#include <tchar.h>
-#include <string.h>
-
-
-int Pnum = 0, Cnum;//父窗口数量，每一级父窗口的子窗口数量
-
-				//---------------------------------------------------------
-				//EnumChildWindows回调函数，hwnd为指定的父窗口
-				//---------------------------------------------------------
-BOOL CALLBACK EnumChildWindowsProc(HWND hWnd, LPARAM lParam)
-{
-	wchar_t WindowTitle[100] = { 0 };
-	Cnum++;
-	::GetWindowText(hWnd, WindowTitle, 100);
-	printf("--|%d \n", Cnum);
-	return true;
-}
-//---------------------------------------------------------
-//EnumWindows回调函数，hwnd为发现的顶层窗口
-//---------------------------------------------------------
-BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam)
-{
-	if (GetParent(hWnd) == NULL && IsWindowVisible(hWnd))  //判断是否顶层窗口并且可见
-	{
-		Pnum++;
-		Cnum = 0;
-		wchar_t WindowTitle[100] = { 0 };
-		::GetWindowText(hWnd, WindowTitle, 100);
-		printf("-------------------------------------------\n");
-		printf("%d: \n", Pnum);
-		EnumChildWindows(hWnd, EnumChildWindowsProc, NULL); //获取父窗口的所有子窗口
-	}
-	return true;
-}
-//---------------------------------------------------------
-//main函数
-//---------------------------------------------------------
-
-//获取屏幕上所有的顶层窗口,每发现一个窗口就调用回调函数一次
-
-
-struct handle_data {
-	unsigned long process_id;
-	HWND best_handle;
-};
-
-BOOL IsMainWindow(HWND handle)
-{
-	return GetWindow(handle, GW_OWNER) == (HWND)0 && IsWindowVisible(handle);
-}
-BOOL CALLBACK EnumWindowsCallback(HWND handle, LPARAM lParam)
-{
-	handle_data& data = *(handle_data*)lParam;
-	unsigned long process_id = 0;
-	GetWindowThreadProcessId(handle, &process_id);
-	if (data.process_id != process_id || !IsMainWindow(handle)) {
-		return TRUE;
-	}
-	data.best_handle = handle;
-	return FALSE;
-}
-
-HWND FindMainWindow(unsigned long process_id)
-{
-	handle_data data;
-	data.process_id = process_id;
-	data.best_handle = 0;
-	EnumWindows(EnumWindowsCallback, (LPARAM)&data);
-	return data.best_handle;
-}
-
-
 
 
 
@@ -1033,10 +925,19 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 
 	UINT action_type = 0;
 
-
-	DWORD processid = ::GetCurrentProcessId();
-	HWND wnd = FindMainWindow(processid); // GetActiveWindow();;
-
+	static bool mainwidows = false;
+	std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
+	static HWND wnd;
+	//if (!mainwidows)
+	{
+		wnd =  webrtc::FindMainWindow(); // GetActiveWindow();;
+		//mainwidows = true;
+	}
+	
+	std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();				\
+		std::chrono::steady_clock::duration diff = end_time - start_time;								\
+		std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(diff);		
+	RTC_LOG(LS_INFO) << "findmainwindow " << ms.count() << " ms ";
 	//::PostMessage(wnd, WM_MOUSEWHEEL, MAKEWPARAM(0, 120) /* ascii码 */, MAKELPARAM(600, 300));
 	 
 
@@ -1046,12 +947,17 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	//::PostMessage(j2, WM_LBUTTONUP, NULL, 17 + 34 * 65536);
 	g_width = (int32_t)wight;
 	g_height = (int32_t)height;
+	static bool move = false;
 	//return;
 	if (event == EACTION_MOUSE_MOVE)
 	{
 		action = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
 		action_type = WM_MOUSEMOVE;
-		::PostMessage(wnd, action_type,    MAKEWPARAM(0, 0), MAKEWPARAM(wight, height));
+		if (move)
+		{
+			::PostMessage(wnd, action_type,    MAKEWPARAM(0, 0), MAKEWPARAM(wight, height));
+		}
+		
 		return;
 	}
 	else if (event == EACTION_MOUSE_DOWNUP)
@@ -1064,15 +970,23 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	{
 		action =MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTDOWN ;
 		action_type = WM_LBUTTONDOWN;
+		move = true;
+		::PostMessage(wnd, action_type,  MAKEWPARAM(0, 0), MAKEWPARAM(wight, height));
+		//std::this_thread::sleep_for(std::chrono::milliseconds(3));
+		return;
+		
 	}
 	else if (event == EACTION_MOUSE_UP)
 	{
 		action =MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE  | MOUSEEVENTF_LEFTUP;
 		action_type = WM_LBUTTONUP;
+		move = false;
+		::PostMessage(wnd, action_type,  MAKEWPARAM(0, 0), MAKEWPARAM(wight, height));
+		return;
 	}
 	else if (event == EACTION_MOUSE_BIG)
 	{
-		::PostMessage(wnd, WM_MOUSEWHEEL, MAKEWPARAM(0, 120) /* ascii码 */, MAKELPARAM(wight, height));
+		::PostMessage(wnd, WM_MOUSEWHEEL, MAKEWPARAM(0, 100) /* ascii码 */, MAKELPARAM(wight, height));
 		return;
 		action =MOUSEEVENTF_ABSOLUTE |MOUSEEVENTF_WHEEL;
 		if (wheel < 0)
@@ -1085,7 +999,7 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	}
 	else if (event == EACTION_MOUSE_SMALL)
 	{
-		::PostMessage(wnd, WM_MOUSEWHEEL, MAKEWPARAM(0, -120) /* ascii码 */, MAKELPARAM(wight, height));
+		::PostMessage(wnd, WM_MOUSEWHEEL, MAKEWPARAM(0, -100) /* ascii码 */, MAKELPARAM(wight, height));
 		/*action =MOUSEEVENTF_ABSOLUTE |MOUSEEVENTF_WHEEL;
 		if (wheel > 0)
 		{
@@ -1125,7 +1039,6 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	RTC_LOG(LS_INFO) << "wx = " << wx << ", hy = " << hy <<"x = " << x << ", y = " << y;
 	//mouse_event(action, x * 65535 / m_wight, y * 65535 / m_height, 0, 0 );
 	::PostMessage(wnd, action_type,  MAKEWPARAM(0, 0), MAKEWPARAM(wight, height));
-
 
 }
 
