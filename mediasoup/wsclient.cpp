@@ -86,26 +86,38 @@ socket_t hostname_connect(const std::string& hostname, int port) {
     int ret;
     socket_t sockfd = INVALID_SOCKET;
     char sport[16];
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
+    ::memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET; // AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+	hints.ai_protocol = 0;
+	/*
+	hints.ai_family = AF_INET;     /* Allow IPv4 */
+	//hints.ai_flags = AI_PASSIVE;/* For wildcard IP address */
+	//hints.ai_protocol = 0;         /* Any protocol */
+	//hints.ai_socktype = SOCK_STREAM;
+	//*/
     snprintf(sport, 16, "%d", port);
     if ((ret = getaddrinfo(hostname.c_str(), sport, &hints, &result)) != 0)
     {
-      fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ret));
+      ::fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ret));
       return 1;
     }
     for(p = result; p != NULL; p = p->ai_next)
     {
-        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (sockfd == INVALID_SOCKET) { continue; }
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) != SOCKET_ERROR) {
+        sockfd = ::socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+		if (sockfd == INVALID_SOCKET)
+		{ 
+			continue; 
+		}
+        if (::connect(sockfd, p->ai_addr, p->ai_addrlen) != SOCKET_ERROR) 
+		{
             break;
         }
-        closesocket(sockfd);
+        ::closesocket(sockfd);
         sockfd = INVALID_SOCKET;
     }
-    freeaddrinfo(result);
+    ::freeaddrinfo(result);
     return sockfd;
 }
 
@@ -122,7 +134,7 @@ class _DummyWebSocket : public wsclient::WebSocket
     void sendPing() { }
     void close() { } 
     readyStateValues getReadyState() const { return CLOSED; }
-    void dispatch(WebSocketCallback& callable) { }
+    void dispatch(WebSocketCallback* callable) { }
 };
 
 
@@ -221,18 +233,18 @@ class _RealWebSocket : public wsclient::WebSocket
                 rxbuf.resize(N + ret);
             }
 
-			std::ostringstream cmd;
-			std::ostringstream strcmd;
-			for (const  uint8_t& value : rxbuf)
-			{
-				//printf("%2X")
-				cmd <<", " << webrtc::hexmem(&value, sizeof(uint8_t)) ;
-				strcmd << value;
-				//std::hex(value);
-			}
+			//std::ostringstream cmd;
+			//std::ostringstream strcmd;
+			//for (const  uint8_t& value : rxbuf)
+			//{
+			//	//printf("%2X")
+			//	cmd <<", " << webrtc::hexmem(&value, sizeof(uint8_t)) ;
+			//	strcmd << value;
+			//	//std::hex(value);
+			//}
 
-			RTC_LOG(LS_INFO) << "websocket recv data = " << cmd.str().c_str() << ", recv data size = " << ret ;
-			RTC_LOG(LS_INFO) << "websocket [recv data = " << strcmd.str().c_str() << "]";
+			//RTC_LOG(LS_INFO) << "websocket recv data = " << cmd.str().c_str() << ", recv data size = " << ret ;
+			//RTC_LOG(LS_INFO) << "websocket [recv data = " << strcmd.str().c_str() << "]";
 
         }
         while (txbuf.size()) {
@@ -256,12 +268,12 @@ class _RealWebSocket : public wsclient::WebSocket
             readyState = CLOSED;
 			/*if (callable)
 			{
-				callable.OnClose();
+				callable->OnClose();
 			}*/
         }
     }
 
-    virtual void dispatch(WebSocketCallback& callable) {
+    virtual void dispatch(WebSocketCallback* callable) {
         // TODO: consider acquiring a lock on rxbuf...
         while (true) {
             wsheader_type ws;
@@ -324,11 +336,11 @@ class _RealWebSocket : public wsclient::WebSocket
 					if (ws.opcode == wsheader_type::TEXT_FRAME)
 					{
 						std::string stringMessage(receivedData.begin(), receivedData.end());
-						callable.OnMessage(stringMessage);
+						callable->OnMessage(stringMessage);
 					}
 					else
 					{
-						callable.OnMessage(receivedData);
+						callable->OnMessage(receivedData);
 					}
                     receivedData.erase(receivedData.begin(), receivedData.end());
                     std::vector<uint8_t> ().swap(receivedData);// free memory
@@ -490,38 +502,15 @@ wsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, cons
         fprintf(stderr, "Unable to connect to %s:%d\n", host, port);
         return NULL;
     }
-
-
-	/*
-	GET /?roomId=chensong&peerId=xiqhlyrn HTTP/1.1
-Host: 127.0.0.1:9000
-Connection: Upgrade
-Pragma: no-cache
-Cache-Control: no-cache
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36 Edg/95.0.1020.44
-Upgrade: websocket
-Origin: https://169.254.119.31:3000
-Sec-WebSocket-Version: 13
-Accept-Encoding: gzip, deflate, br
-Accept-Language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6
-Sec-WebSocket-Key: sloDVaAu6/ye7AgZlX1BJw==
-Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits
-Sec-WebSocket-Protocol: protoo
-	
-	*/
     {
-		FILE *out_log_file_ptr = fopen("websocket.log", "wb+");
+		 
         // XXX: this should be done non-blocking,
 		char line[256] = {0};
         int status;
         int i;
         snprintf(line, 256, "GET /%s HTTP/1.1\r\n", path); 
 		::send(sockfd, line, strlen(line), 0);
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "%s\n", std::string(line, ::strlen(line)).c_str() );
-			fflush(out_log_file_ptr);
-		}
+		 
         if (port == 80) {
             snprintf(line, 256, "Host: %s\r\n", host); 
 			::send(sockfd, line, strlen(line), 0);
@@ -531,75 +520,36 @@ Sec-WebSocket-Protocol: protoo
 			::send(sockfd, line, strlen(line), 0);
 
         }
-		
-		
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "%s\n", std::string(line, ::strlen(line)).c_str() );
-			fflush(out_log_file_ptr);
-		}
 		const char * user_agent = "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36\r\n";
 
 		::send(sockfd, user_agent, strlen(user_agent), 0);
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "%s\n", std::string(user_agent, ::strlen(user_agent)).c_str() );
-			fflush(out_log_file_ptr);
-		}
+		 
         snprintf(line, 256, "Upgrade: websocket\r\n"); 
 		::send(sockfd, line, strlen(line), 0);
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "%s\n", std::string(line, ::strlen(line)).c_str() );
-			fflush(out_log_file_ptr);
-		}
+		 
         snprintf(line, 256, "Connection: Upgrade\r\n"); 
 		::send(sockfd, line, strlen(line), 0);
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "%s\n", std::string(line, ::strlen(line)).c_str() );
-			fflush(out_log_file_ptr);
-		}
+		 
 
         if (!origin.empty()) {
             snprintf(line, 256, "Origin: %s\r\n", origin.c_str()); ::send(sockfd, line, strlen(line), 0);
-			if (out_log_file_ptr)
-			{
-				fprintf(out_log_file_ptr, "%s\n", std::string(line, ::strlen(line)).c_str() );
-				fflush(out_log_file_ptr);
-			}
+			 
         }
         snprintf(line, 256, "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n");
 		::send(sockfd, line, strlen(line), 0);
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "%s\n", std::string(line, ::strlen(line)).c_str() );
-			fflush(out_log_file_ptr);
-		}
+		 
         snprintf(line, 256, "Sec-WebSocket-Version: 13\r\n"); 
 		::send(sockfd, line, strlen(line), 0);
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "%s\n", std::string(line, ::strlen(line)).c_str() );
-			fflush(out_log_file_ptr);
-		}
+		 
       
 
 		const char * weocketproto = "Sec-WebSocket-Protocol: protoo\r\n";
 		::send(sockfd, weocketproto, strlen(weocketproto), 0);
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "%s\n", std::string(weocketproto, ::strlen(weocketproto)).c_str() );
-			fflush(out_log_file_ptr);
-		}
+		 
 
 		snprintf(line, 256, "\r\n"); 
 		::send(sockfd, line, strlen(line), 0);
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "%s\n", std::string(line, ::strlen(line)).c_str() );
-			fflush(out_log_file_ptr);
-		}
+		 
         for (i = 0; i < 2 || (i < 255 && line[i-2] != '\r' && line[i-1] != '\n'); ++i) 
 		{
 
@@ -611,11 +561,7 @@ Sec-WebSocket-Protocol: protoo
 			} 
 		}
         line[i] = 0;
-		if (out_log_file_ptr)
-		{
-			fprintf(out_log_file_ptr, "[recv]%s\n", std::string(line, ::strlen(line)).c_str() );
-			fflush(out_log_file_ptr);
-		}
+		 
         if (i == 255)
 		{
 			fprintf(stderr, "ERROR: Got invalid status line connecting to: %s\n", url.c_str()); 

@@ -22,8 +22,8 @@ void DesktopCaptureSource::RemoveSink(
 void DesktopCaptureSource::UpdateVideoAdapter() {
   //video_adapter_.OnSinkWants(broadcaster_.wants());
 	rtc::VideoSinkWants wants = broadcaster_.wants();
-	/*video_adapter_.OnResolutionFramerateRequest(
-		wants.target_pixel_count, wants.max_pixel_count, wants.max_framerate_fps);*/
+	video_adapter_.OnResolutionFramerateRequest(
+		wants.target_pixel_count, wants.max_pixel_count, wants.max_framerate_fps);
 }
 
 void DesktopCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {

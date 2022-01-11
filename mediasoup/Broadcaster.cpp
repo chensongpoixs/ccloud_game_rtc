@@ -13,6 +13,7 @@
 #include "httplib.h"
 #include "ccfg.h"
 #include "peerConnectionUtils.hpp"
+#include "desktop_capture.h"
 using json = nlohmann::json;
 
 
@@ -23,7 +24,8 @@ enum EACTION_MOUSE_TYPE
 	EACTION_MOUSE_DOWN,
 	EACTION_MOUSE_UP,
 	EACTION_MOUSE_BIG,
-	EACTION_MOUSE_SMALL
+	EACTION_MOUSE_SMALL,
+	EACTION_KEY
 };
 
 
@@ -758,7 +760,7 @@ void Broadcaster::CreateSendTransport(bool enableAudio, bool useSimulcast)
 
 	this->dataProducer = sendTransport->ProduceData(this, "chat", "stcp");
 
-	uint32_t intervalSeconds = 100;
+	/*uint32_t intervalSeconds = 100;
 	std::thread([this, intervalSeconds]() {
 		bool run = true;
 		while (run)
@@ -772,7 +774,7 @@ void Broadcaster::CreateSendTransport(bool enableAudio, bool useSimulcast)
 			run = timerKiller.WaitFor(std::chrono::seconds(intervalSeconds));
 		}
 	})
-	  .detach();
+	  .detach();*/
 }
 
 void Broadcaster::CreateRecvTransport()
@@ -884,6 +886,87 @@ void Broadcaster::CreateRecvTransport()
 	this->CreateDataConsumer(body_json);
 }
 
+
+
+
+
+#include <Windows.h>
+#include <stdio.h>
+#include <tchar.h>
+#include <string.h>
+
+
+int Pnum = 0, Cnum;//父窗口数量，每一级父窗口的子窗口数量
+
+				//---------------------------------------------------------
+				//EnumChildWindows回调函数，hwnd为指定的父窗口
+				//---------------------------------------------------------
+BOOL CALLBACK EnumChildWindowsProc(HWND hWnd, LPARAM lParam)
+{
+	wchar_t WindowTitle[100] = { 0 };
+	Cnum++;
+	::GetWindowText(hWnd, WindowTitle, 100);
+	printf("--|%d \n", Cnum);
+	return true;
+}
+//---------------------------------------------------------
+//EnumWindows回调函数，hwnd为发现的顶层窗口
+//---------------------------------------------------------
+BOOL CALLBACK EnumWindowsProc(HWND hWnd, LPARAM lParam)
+{
+	if (GetParent(hWnd) == NULL && IsWindowVisible(hWnd))  //判断是否顶层窗口并且可见
+	{
+		Pnum++;
+		Cnum = 0;
+		wchar_t WindowTitle[100] = { 0 };
+		::GetWindowText(hWnd, WindowTitle, 100);
+		printf("-------------------------------------------\n");
+		printf("%d: \n", Pnum);
+		EnumChildWindows(hWnd, EnumChildWindowsProc, NULL); //获取父窗口的所有子窗口
+	}
+	return true;
+}
+//---------------------------------------------------------
+//main函数
+//---------------------------------------------------------
+
+//获取屏幕上所有的顶层窗口,每发现一个窗口就调用回调函数一次
+
+
+struct handle_data {
+	unsigned long process_id;
+	HWND best_handle;
+};
+
+BOOL IsMainWindow(HWND handle)
+{
+	return GetWindow(handle, GW_OWNER) == (HWND)0 && IsWindowVisible(handle);
+}
+BOOL CALLBACK EnumWindowsCallback(HWND handle, LPARAM lParam)
+{
+	handle_data& data = *(handle_data*)lParam;
+	unsigned long process_id = 0;
+	GetWindowThreadProcessId(handle, &process_id);
+	if (data.process_id != process_id || !IsMainWindow(handle)) {
+		return TRUE;
+	}
+	data.best_handle = handle;
+	return FALSE;
+}
+
+HWND FindMainWindow(unsigned long process_id)
+{
+	handle_data data;
+	data.process_id = process_id;
+	data.best_handle = 0;
+	EnumWindows(EnumWindowsCallback, (LPARAM)&data);
+	return data.best_handle;
+}
+
+
+
+
+
 void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const webrtc::DataBuffer& buffer)
 {
 	std::string s = std::string(buffer.data.data<char>(), buffer.data.size());
@@ -892,10 +975,9 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	RTC_LOG(LS_INFO)<< "[INFO] Broadcaster::OnMessage()"  << "dataConsumer->GetLabel() = " << dataConsumer->GetLabel()<< "[s = " << s << "]";
 	if (dataConsumer->GetLabel() == "chat")
 	{
-
 		std::cout << "[INFO] received chat data: " + s << std::endl;
 	}
-	return;
+	 
 	json response;
 	try
 	{
@@ -949,26 +1031,49 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	static int wheel = 0;
 	DWORD action = 0;
 
+	UINT action_type = 0;
 
+
+	DWORD processid = ::GetCurrentProcessId();
+	HWND wnd = FindMainWindow(processid); // GetActiveWindow();;
+
+	//::PostMessage(wnd, WM_MOUSEWHEEL, MAKEWPARAM(0, 120) /* ascii码 */, MAKELPARAM(600, 300));
+	 
+
+	//::PostMessage(j2, WM_LBUTTONDOWN, 1, 17 + 34 * 65536);//坐标是用spy++看真是鼠标双击得出来的第一行某点的坐标
+	//::PostMessage(j2, WM_LBUTTONUP, NULL, 17 + 34 * 65536);
+	//::PostMessage(j2, WM_LBUTTONDOWN, 1, 17 + 34 * 65536);
+	//::PostMessage(j2, WM_LBUTTONUP, NULL, 17 + 34 * 65536);
+	g_width = (int32_t)wight;
+	g_height = (int32_t)height;
+	//return;
 	if (event == EACTION_MOUSE_MOVE)
 	{
 		action = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE;
+		action_type = WM_MOUSEMOVE;
+		::PostMessage(wnd, action_type,    MAKEWPARAM(0, 0), MAKEWPARAM(wight, height));
+		return;
 	}
 	else if (event == EACTION_MOUSE_DOWNUP)
 	{
 		return;
 		action = MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP;
+		action_type = WM_LBUTTONUP;
 	}
 	else if (event == EACTION_MOUSE_DOWN)
 	{
 		action =MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE | MOUSEEVENTF_LEFTDOWN ;
+		action_type = WM_LBUTTONDOWN;
 	}
 	else if (event == EACTION_MOUSE_UP)
 	{
 		action =MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE  | MOUSEEVENTF_LEFTUP;
+		action_type = WM_LBUTTONUP;
 	}
 	else if (event == EACTION_MOUSE_BIG)
 	{
+		::PostMessage(wnd, WM_MOUSEWHEEL, MAKEWPARAM(0, 120) /* ascii码 */, MAKELPARAM(wight, height));
+		return;
 		action =MOUSEEVENTF_ABSOLUTE |MOUSEEVENTF_WHEEL;
 		if (wheel < 0)
 		{
@@ -980,13 +1085,27 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	}
 	else if (event == EACTION_MOUSE_SMALL)
 	{
-		action =MOUSEEVENTF_ABSOLUTE |MOUSEEVENTF_WHEEL;
+		::PostMessage(wnd, WM_MOUSEWHEEL, MAKEWPARAM(0, -120) /* ascii码 */, MAKELPARAM(wight, height));
+		/*action =MOUSEEVENTF_ABSOLUTE |MOUSEEVENTF_WHEEL;
 		if (wheel > 0)
 		{
 			wheel = 0;
 		}
 		wheel -= 10;
-		mouse_event(action,0, 0, wheel, 0 );
+		mouse_event(action,0, 0, wheel, 0 );*/
+		return;
+	}
+	else if (event == EACTION_KEY)
+	{
+		// key down 
+		if (response.find("key") == response.end())
+		{
+			RTC_LOG(LS_ERROR) << "[ERROR] 'key' missing in response";
+
+			return;
+		}
+		int key = response["key"];
+		::PostMessage(wnd, action_type,  key, 0);
 		return;
 	}
 	else
@@ -1000,10 +1119,12 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	double hy = height / windowheight * HT;
 	double  x = (wx * m_wight)/HT;
 	double y = (hy * m_height)/HT;
+	double new_x = (wight / windowwidth)  ;;
+	double new_y =  (height / windowheight)  ;
 	RTC_LOG(LS_INFO) << "wight = " << wight << ", height = " << height << ", windowwidth = " << windowwidth << ", windowheight = " << windowheight;
 	RTC_LOG(LS_INFO) << "wx = " << wx << ", hy = " << hy <<"x = " << x << ", y = " << y;
-	mouse_event(action, x * 65535 / m_wight, y * 65535 / m_height, 0, 0 );
-
+	//mouse_event(action, x * 65535 / m_wight, y * 65535 / m_height, 0, 0 );
+	::PostMessage(wnd, action_type,  MAKEWPARAM(0, 0), MAKEWPARAM(wight, height));
 
 
 }
@@ -1012,7 +1133,7 @@ void Broadcaster::Stop()
 {
 	std::cout << "[INFO] Broadcaster::Stop()" << std::endl;
 
-	this->timerKiller.Kill();
+	//this->timerKiller.Kill();
 
 	stopTrack();
 	if (this->recvTransport)
@@ -1024,7 +1145,7 @@ void Broadcaster::Stop()
 	{
 		sendTransport->Close();
 	}
-
+	device.reset();
 	/*cpr::DeleteAsync(
 	  cpr::Url{ this->baseUrl + "/broadcasters/" + this->id }, cpr::VerifySsl{ verifySsl })
 	  .get();*/

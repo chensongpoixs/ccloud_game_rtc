@@ -36,7 +36,7 @@ class WebSocket {
     virtual void close() = 0;
     virtual readyStateValues getReadyState() const = 0;
 
-    virtual void dispatch(WebSocketCallback& callable) = 0;
+    virtual void dispatch(WebSocketCallback* callable) = 0;
 };
 
 } // namespace wsclient

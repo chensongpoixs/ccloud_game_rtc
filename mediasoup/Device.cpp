@@ -19,6 +19,25 @@ namespace mediasoupclient
 		return this->loaded;
 	}
 
+	void Device::reset()
+	{
+		if (!loaded)
+		{
+			RTC_LOG(LS_WARNING) << "device loaded failed !!!";
+			return;
+		}
+		loaded = false;
+		extendedRtpCapabilities.clear();
+		recvRtpCapabilities.clear();
+		sctpCapabilities.clear();
+		canProduceByKind =
+		{
+			{ "audio", false },
+		{ "video", false }
+		};
+		 
+	}
+
 	/**
 	 * RTP capabilities of the Device for receiving media.
 	 */
@@ -53,7 +72,9 @@ namespace mediasoupclient
 		MSC_TRACE();
 
 		if (this->loaded)
+		{
 			MSC_THROW_INVALID_STATE_ERROR("already loaded");
+		}
 
 		// This may throw.
 		ortc::validateRtpCapabilities(routerRtpCapabilities);
@@ -136,7 +157,9 @@ namespace mediasoupclient
 		ortc::validateDtlsParameters(const_cast<json&>(dtlsParameters));
 
 		if (!sctpParameters.is_null())
+		{
 			ortc::validateSctpParameters(const_cast<json&>(sctpParameters));
+		}
 
 		// Create a new Transport.
 		auto* transport = new SendTransport(

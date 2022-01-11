@@ -70,7 +70,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\Work\cmedia_server\webrtc_google\src;D:\Work\cmedia_server\webrtc_google\src\third_party\abseil-cpp;D:\Work\cmedia_server\webrtc_google\src\third_party\libyuv\include;$(IncludePath)</IncludePath>
+    <IncludePath>D:\dep\c_dep\osg\include\osg;D:\Work\cmedia_server\webrtc_google\src;D:\Work\cmedia_server\webrtc_google\src\third_party\abseil-cpp;D:\Work\cmedia_server\webrtc_google\src\third_party\libyuv\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\dep\c_dep\osg\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -89,11 +90,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;OATPP_DISABLE_ENV_OBJECT_COUNTERS;OATPP_DISABLE_POOL_ALLOCATIONS;OATPP_COMPAT_BUILD_NO_THREAD_LOCAL;OATPP_DISABLE_LOGV;OATPP_DISABLE_LOGD;OATPP_DISABLE_LOGI;OATPP_DISABLE_LOGW;OATPP_DISABLE_LOGE;WEBRTC_WIN=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;_UNICODE;UNICODE;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;_DEBUG;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;_HAS_ITERATOR_DEBUGGING=0;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=1;ABSL_ALLOCATOR_NOTHROW=1;GTEST_API_=;GTEST_HAS_POSIX_RE=0;GTEST_LANG_CXX11=1;GTEST_HAS_TR1_TUPLE=0;GTEST_HAS_ABSL=1;HAVE_WEBRTC_VIDEO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;OATPP_DISABLE_ENV_OBJECT_COUNTERS;OATPP_DISABLE_POOL_ALLOCATIONS;OATPP_COMPAT_BUILD_NO_THREAD_LOCAL;OATPP_DISABLE_LOGV;OATPP_DISABLE_LOGD;OATPP_DISABLE_LOGI;OATPP_DISABLE_LOGW;OATPP_DISABLE_LOGE;WEBRTC_WIN=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;WIN32_LEAN_AND_MEAN;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;_UNICODE;UNICODE;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;_DEBUG;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;_HAS_ITERATOR_DEBUGGING=0;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=1;ABSL_ALLOCATOR_NOTHROW=1;GTEST_API_=;GTEST_HAS_POSIX_RE=0;GTEST_LANG_CXX11=1;GTEST_HAS_TR1_TUPLE=0;GTEST_HAS_ABSL=1;HAVE_WEBRTC_VIDEO;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>D:\Work\cmedia_server\webrtc_google\src\out\test_vs2017_debug\obj\webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenThreads.lib;osg.lib;osgAnimation.lib;osgDB.lib;osgFX.lib;osgGA.lib;osgManipulator.lib;osgParticle.lib;osgPresentation.lib;osgShadow.lib;osgSim.lib;osgTerrain.lib;osgText.lib;osgUtil.lib;osgViewer.lib;osgVolume.lib;osgWidget.lib;osgEarth.lib;osgEarthUtil.lib;osgEarthSymbology.lib;osgEarthAnnotation.lib;osgEarthFeatures.lib;osgEarthSplat.lib;lilyTools.lib;gdiplus.lib;D:\Work\cmedia_server\webrtc_google\src\out\test_vs2017_debug\obj\webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -128,12 +130,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Broadcaster.cpp" />
+    <ClCompile Include="capture.cpp" />
     <ClCompile Include="ccfg.cpp" />
     <ClCompile Include="cconfig.cpp" />
     <ClCompile Include="cint2str.cpp" />
     <ClCompile Include="cnet_types.cpp" />
     <ClCompile Include="Consumer.cpp" />
+    <ClCompile Include="cosd_util.cpp" />
     <ClCompile Include="cwebsocket_mgr.cpp" />
+    <ClCompile Include="cwebsocket_session.cpp" />
     <ClCompile Include="DataConsumer.cpp" />
     <ClCompile Include="DataProducer.cpp" />
     <ClCompile Include="desktop_capture.cc" />
@@ -160,12 +165,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Broadcaster.hpp" />
+    <ClInclude Include="capture.h" />
     <ClInclude Include="ccfg.h" />
     <ClInclude Include="cconfig.h" />
     <ClInclude Include="cint2str.h" />
     <ClInclude Include="cnet_types.h" />
     <ClInclude Include="Consumer.hpp" />
+    <ClInclude Include="cosd_util.h" />
     <ClInclude Include="cwebsocket_mgr.h" />
+    <ClInclude Include="cwebsocket_session.h" />
     <ClInclude Include="DataConsumer.hpp" />
     <ClInclude Include="DataProducer.hpp" />
     <ClInclude Include="desktop_capture.h" />

@@ -24,7 +24,7 @@ namespace webrtc
 		CWEBSOCKET_MESSAGE,
 		CWEBSOCKET_CLOSE
 	};
-	class cwebsocket_mgr 
+	class cwebsocket_mgr : public wsclient::WebSocketCallback 
 	{
 	private:
 		typedef		std::lock_guard<std::mutex>			clock_guard;
@@ -40,6 +40,11 @@ namespace webrtc
 		void send(const std::string & message);
 
 		CWEBSOCKET_TYPE get_status() const { return m_status; }
+
+
+		virtual void OnMessage(const std::string& message);
+		virtual void OnMessage(const std::vector<uint8_t>& message);
+		virtual void OnClose();
 	private:
 		void _work_thread();
 	private:

@@ -52,6 +52,22 @@ void CaptureScreen::operator () (const osg::Camera& camera) const
 		std::lock_guard<std::mutex> lock(g_lock);
 		this->_image->readPixels(this->_ix, this->_iy, this->_iw, this->_ih, GL_BGRA, GL_UNSIGNED_BYTE);
 		_image->flipVertical(); // 进行RGBA翻转一下哈
+
+		//memcpy(m_rgba_ptr,  _image->data(), _iw * _ih * 4);
+		webrtc::DesktopCapturer::Result result = webrtc::DesktopCapturer::Result::SUCCESS;
+
+		if (m_callback)
+		{
+			m_callback->OnOsgCaptureResult(result, _image->data(), _iw, _ih);
+		}
+		//CaptureFrame();
+		/*int s, int t, int r,
+			GLint internalTextureformat,
+			GLenum pixelFormat, GLenum type,
+			unsigned char* data,
+			AllocationMode mode,
+			int packing = 1, int rowLength = 0*/
+		//_image->setImage();
 		/*char filename[128];
 		sprintf(filename, "./png/ScreenShot%d.png", cnt++);
 		osgDB::writeImageFile(*_image, filename);*/
@@ -99,7 +115,7 @@ void CaptureScreen::CaptureFrame()
 
 		std::chrono::steady_clock::time_point start_time1 = std::chrono::steady_clock::now();
 		
-		m_callback->OnOsgCaptureResult(result, _image->data(), _iw, _ih);
+		m_callback->OnOsgCaptureResult(result, m_rgba_ptr, _iw, _ih);
 		std::chrono::steady_clock::time_point end_time1 = std::chrono::steady_clock::now();
 		std::chrono::steady_clock::duration diff = start_time1 - end_time1 ;
 		std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(diff);

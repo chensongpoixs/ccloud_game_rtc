@@ -3,45 +3,8 @@
 namespace webrtc
 {
 
-	FILE * out_file_ptr = fopen("protoo_websocket.log", "wb+");
-	class WebSocketCallback :public wsclient::WebSocketCallback
-	{
-	public:
-		WebSocketCallback(wsclient::WebSocket*_ws)
-			:ws(_ws)
-		{
-		}
-		void OnMessage(const std::string& message) 
-		{
-			fprintf(out_file_ptr, "[%s]\n", message.c_str());
-			fflush(out_file_ptr);
-			RTC_LOG(LS_INFO) << "["<< __FUNCTION__ << "][" << __LINE__ <<"RX: " << message;
-			//printf("RX: %s\n",message.c_str());
-			//if (message == "world") 
-				//ws->close();
-		}
-
-		void OnMessage(const std::vector<uint8_t>& message) 
-		{
-			
-			std::ostringstream cmd;
-			for (const uint8_t& value : message)
-			{
-				cmd << ", " << value;
-			}
-			fprintf(out_file_ptr, "vec[%s]\n", cmd.str().c_str());
-			fflush(out_file_ptr);
-			RTC_LOG(LS_INFO) << "["<< __FUNCTION__ << "][" << __LINE__ <<"RX: " << cmd.str().c_str();
-			
-		}
-		void OnClose()
-		{
-			fprintf(out_file_ptr, "close()\n");
-			fflush(out_file_ptr);
-		}
-
-		wsclient::WebSocket* ws;
-	};
+	 
+	
 
 
 	cwebsocket_mgr g_websocket_mgr;
@@ -80,15 +43,18 @@ namespace webrtc
 		m_ws = wsclient::WebSocket::from_url(ws_url, origin);
 		//WebSocketCallback callback(m_ws);
 
-		assert(m_ws);
+		if (!m_ws)
+		{
+			RTC_LOG(LS_ERROR) << "ws connect failed !!! ws_url = " << ws_url;
+			return false;
+		}
 		if (m_ws)
 		{
 			m_status.store(CWEBSOCKET_CONNECTED);
 		}
 
 	
-		//ws->send("goodbye");
-		//ws->send("hello");
+		
 		
 
 
@@ -98,14 +64,15 @@ namespace webrtc
 	{
 		if (m_status != CWEBSOCKET_CONNECTED || m_stoped || !m_ws)
 		{
-			assert(-1);
+			//assert(-1);
 		}
-
-		m_thread = std::thread(&cwebsocket_mgr::_work_thread, this);
 		m_status.store(CWEBSOCKET_MESSAGE);
+		m_thread = std::thread(&cwebsocket_mgr::_work_thread, this);
+		
 	}
 	void cwebsocket_mgr::destroy()
 	{
+		RTC_LOG(LS_INFO) << "websocket destroy !!!";
 		m_stoped.store(true);
 		if (m_thread.joinable())
 		{
@@ -120,12 +87,12 @@ namespace webrtc
 	}
 	void cwebsocket_mgr::_work_thread()
 	{
-		WebSocketCallback callback(m_ws);
+		 
 		while (!m_stoped && m_ws->getReadyState() == wsclient::WebSocket::OPEN) 
 		{
 			
 			m_ws->poll();
-			m_ws->dispatch(callback);
+			m_ws->dispatch(this);
 			if (m_send_msgs.size())
 			{
 
@@ -142,6 +109,7 @@ namespace webrtc
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			}
 		}
+		m_status.store(CWEBSOCKET_CLOSE);
 		if (m_ws)
 		{
 			delete m_ws;
@@ -151,5 +119,19 @@ namespace webrtc
 #ifdef _WIN32
 		WSACleanup();
 #endif
+	}
+
+
+	 void cwebsocket_mgr::OnMessage(const std::string& message)
+	{
+
+	}
+	 void cwebsocket_mgr::OnMessage(const std::vector<uint8_t>& message)
+	{
+
+	}
+	void cwebsocket_mgr::OnClose()
+	{
+		m_status.store(CWEBSOCKET_CLOSE);
 	}
 }
