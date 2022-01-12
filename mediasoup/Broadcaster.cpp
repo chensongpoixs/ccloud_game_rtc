@@ -286,17 +286,13 @@ void Broadcaster::CreateDataConsumer(const json& body)
 		return;
 	}
 	
-	//uint16_t streamId = response["streamId"].get<uint16_t>();
+	uint16_t streamId = response["streamId"].get<uint16_t>();
 
 	//// Create client consumer.
-	//this->dataConsumer = this->recvTransport->ConsumeData(
-	//  this, dataConsumerId, body["dataProducerId"]/*dataProducerId*/, std::to_string(streamId), "chat", "stcp");
+	this->dataConsumer = this->recvTransport->ConsumeData(
+	  this, dataConsumerId, body["dataProducerId"]/*dataProducerId*/, std::to_string(streamId), "chat", "stcp");
 }
-//void Broadcaster::createDataConsumer(std::string dataConsumerId, std::string dataProducerId, std::string streamId, const nlohmann::json& appData)
-//{
-//	this->recvTransport->ConsumeData(
-//		this, dataConsumerId, dataProducerId, "chat", "stcp", appData);
-//}
+ 
 void Broadcaster::CreateSendTransport( )
 {
 	std::cout << "[INFO] creating mediasoup send WebRtcTransport..." << std::endl;
