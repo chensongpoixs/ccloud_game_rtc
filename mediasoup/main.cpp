@@ -18,18 +18,19 @@
 using json = nlohmann::json;
 Broadcaster *broadcaster;
 bool stoped = false;
-
+webrtc::ccloud_rendering ccloud_rendering_mgr;
 
 void stop()
 {
-	webrtc::g_websocket_mgr.destroy();
-	// Remove broadcaster from the server.
-	broadcaster->Stop();
-	RTC_LOG(LS_INFO) << "[INFO] leaving!";
-	delete broadcaster;
-	broadcaster = nullptr;
-	stoped = true;
-	//std::exit(signum);
+	ccloud_rendering_mgr.Destroy();
+	//webrtc::g_websocket_mgr.destroy();
+	//// Remove broadcaster from the server.
+	//broadcaster->Stop();
+	//RTC_LOG(LS_INFO) << "[INFO] leaving!";
+	//delete broadcaster;
+	//broadcaster = nullptr;
+	//stoped = true;
+	////std::exit(signum);
 }
 void signalHandler(int signum)
 {
@@ -42,14 +43,15 @@ void signalHandler(int signum)
 
 int main(int argc, char* argv[])
 {
-	//while (1);
+
 	const char* config_filename = "client.cfg";
 	if (argc > 1)
 	{
 		config_filename = argv[1];
 	}
-
-	webrtc::ccloud_rendering ccloud_rendering_mgr;
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+	
 
 	if (!ccloud_rendering_mgr.init(config_filename))
 	{

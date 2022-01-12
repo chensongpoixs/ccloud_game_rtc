@@ -123,6 +123,9 @@
     <ClCompile Include="cwindow_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="chttp_mgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Consumer.hpp">
@@ -234,6 +237,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cwindow_util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chttp_mgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

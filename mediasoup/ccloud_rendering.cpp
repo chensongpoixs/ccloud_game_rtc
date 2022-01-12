@@ -1,6 +1,7 @@
 #include "ccloud_rendering.h"
 #include "ccfg.h"
 #include "httplib.h"
+#include "chttp_mgr.h"
 namespace webrtc {
 	
 	ccloud_rendering::~ccloud_rendering() {}
@@ -11,8 +12,15 @@ namespace webrtc {
 		if (!init)
 		{
 			RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
-			return -1;
+			return false;
 		}
+		if (!g_http_mgr.init())
+		{
+			RTC_LOG(LS_ERROR) << " http_mgr init failed  !!!";
+			return false;
+		}
+
+
 		auto logLevel = mediasoupclient::Logger::LogLevel::LOG_DEBUG;
 		mediasoupclient::Logger::SetLogLevel(logLevel);
 		mediasoupclient::Logger::SetDefaultHandler();
@@ -38,30 +46,23 @@ namespace webrtc {
 	}
 	bool ccloud_rendering::Loop()
 	{
-
-		std::string baseUrl = "http://" + g_cfg.get_string(webrtc::ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(webrtc::ECI_MediaSoup_Http_Port));
-		baseUrl.append("/rooms/").append(webrtc::g_cfg.get_string(webrtc::ECI_Room_Name)); 
-  
-		std::string host = webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host);
-		httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-		std::string url =  baseUrl;
-		auto res = cli.Get(url.c_str());
-		if (!res)
+		std::string result;
+		if (!g_http_mgr.sync_mediasoup_router_rtpcapabilities(result))
 		{
-			RTC_LOG(LS_ERROR) << "[ERROR]Stop"; 
-			return false; 
+			RTC_LOG(LS_ERROR) << "http router rtpcapabilities failed !!!";
+			return false;
 		}
-		if (res->status != 200)
-		{
-			RTC_LOG(LS_ERROR) << "[ERROR] Stop"
-				<< " [status code:" << res->status << ", body:\"" << res->body << "\"]"; 
-			return false; 
-		}
+		
 
-		RTC_LOG(INFO) << __FUNCTION__ << __LINE__ << "[" << res->body << "]";
-		auto response = nlohmann::json::parse(res->body);
-		m_broadcaster.Start(baseUrl,  response,   g_cfg.get_string(webrtc::ECI_Client_Name));
-		std::string new_url = url + "/AllDataProducers";
+
+		RTC_LOG(INFO) << __FUNCTION__ << __LINE__ << "[" <<result << "]";
+		json response = nlohmann::json::parse(result);
+		if (!m_broadcaster.Start(response))
+		{
+			RTC_LOG(LS_ERROR) << "broadcaster start failed !!!";
+			return false;
+		}
+		 
 		std::set<std::string> dataProduceIds;
 		while (!m_stoped)
 		{
@@ -72,24 +73,15 @@ namespace webrtc {
 			}
 			//std::string url = baseUrl + "/broadcasters/" + this->id + "/transports";
 			//
-			res = cli.Get(new_url.c_str());
-			if (!res)
+			if (!g_http_mgr. sync_mediasoup_all_dataproducers(result))
 			{
-				RTC_LOG(LS_ERROR) << "[ERROR]Stop";
-				break;
-				//	promise.set_exception(std::make_exception_ptr(res->body));
-				//return -1;// promise.get_future();
-			}
-			if (res->status != 200)
-			{
-				RTC_LOG(LS_ERROR) << "[ERROR] Stop"
-					<< " [status code:" << res->status << ", body:\"" << res->body << "\"]";
+				RTC_LOG(LS_ERROR) << "[ERROR]sync_mediasoup_all_dataproducers failed !!!";
 				break;
 			}
-			else
+			 
 			{
 				//RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
-				auto response = nlohmann::json::parse(res->body);
+				json response = nlohmann::json::parse(result);
 				std::set<std::string> temp_dataProducerIds;
 				if (response["peers"].is_array())
 				{

@@ -15,6 +15,7 @@
 #include "peerConnectionUtils.hpp"
 #include "desktop_capture.h"
 #include "cwindow_util.h"
+#include "chttp_mgr.h"
 using json = nlohmann::json;
 
 
@@ -83,48 +84,13 @@ std::future<void> Broadcaster::OnConnectSendTransport(const json& dtlsParameters
 		{ "dtlsParameters", dtlsParameters }
 	};
 	/* clang-format on */
-
-	/*auto r = cpr::PostAsync(
-	           cpr::Url{ this->baseUrl + "/broadcasters/" + this->id + "/transports/" +
-	                     this->sendTransport->GetId() + "/connect" },
-	           cpr::Body{ body.dump() },
-	           cpr::Header{ { "Content-Type", "application/json" } },
-	           cpr::VerifySsl{ verifySsl })
-	           .get();
-
-	if (r.status_code == 200)
+	std::string result;
+	if (!webrtc::g_http_mgr.sync_mediasoup_connect_transport(id, sendTransport->GetId() , body.dump(), result))
 	{
+		RTC_LOG(LS_ERROR) << "mediasoup create transport failed !!!";
 		promise.set_value();
-	}
-	else
-	{
-		std::cerr << "[ERROR] unable to connect transport"
-		          << " [status code:" << r.status_code << ", body:\"" << r.text << "\"]" << std::endl;
-
-		promise.set_exception(std::make_exception_ptr(r.text));
-	}*/
-
-
-	std::string host =webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) ;
-	httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-	std::string url = baseUrl + "/broadcasters/" + this->id + "/transports/" +
-		this->sendTransport->GetId() + "/connect";
-	auto res = cli.Post(url.c_str(), body.dump(), "application/json");
-	if (!res)
-	{
-		RTC_LOG(LS_ERROR)  <<"[error] !!!!\n";
 		return promise.get_future();
 	}
-	if (res->status != 200)
-	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] unable to connect transport"
-			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-
-		promise.set_exception(std::make_exception_ptr(res->body));
-		return promise.get_future();
-	}
-
-	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
 	promise.set_value();
 	return promise.get_future();
 }
@@ -139,49 +105,13 @@ std::future<void> Broadcaster::OnConnectRecvTransport(const json& dtlsParameters
 		{ "dtlsParameters", dtlsParameters }
 	};
 	/* clang-format on */
-
-	/*auto r = cpr::PostAsync(
-	           cpr::Url{ this->baseUrl + "/broadcasters/" + this->id + "/transports/" +
-	                     this->recvTransport->GetId() + "/connect" },
-	           cpr::Body{ body.dump() },
-	           cpr::Header{ { "Content-Type", "application/json" } },
-	           cpr::VerifySsl{ verifySsl })
-	           .get();
-
-	if (r.status_code == 200)
+	std::string result;
+	if (!webrtc::g_http_mgr.sync_mediasoup_connect_transport(id, recvTransport->GetId(), body.dump(), result))
 	{
-		promise.set_value();
-	}
-	else
-	{
-		std::cerr << "[ERROR] unable to connect transport"
-		          << " [status code:" << r.status_code << ", body:\"" << r.text << "\"]" << std::endl;
-
-		promise.set_exception(std::make_exception_ptr(r.text));
-	}
-*/
-
-	std::string host =webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) ;
-	httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-	std::string url = baseUrl +"/broadcasters/" + this->id + "/transports/" +
-		this->recvTransport->GetId() + "/connect" ;
-	auto res = cli.Post(url.c_str(), body.dump(), "application/json");
-	if (!res)
-	{
-		RTC_LOG(LS_ERROR)  <<"[error] !!!!\n";
+		RTC_LOG(LS_ERROR) << "mediasoup connect transport failed !!!";
 		return promise.get_future();
-	}
-	if (res->status != 200)
-	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] unable to connect transport"
-			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-
-		promise.set_exception(std::make_exception_ptr(res->body));
-		return promise.get_future();
-	}
-
-	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
-
+		
+	} 
 	promise.set_value();
 	return promise.get_future();
 }
@@ -198,7 +128,7 @@ void Broadcaster::OnConnectionStateChange(
 	if (connectionState == "failed")
 	{
 		Stop();
-		std::exit(0);
+		//std::exit(0);
 	}
 }
 
@@ -225,60 +155,14 @@ std::future<std::string> Broadcaster::OnProduce(
 		{ "rtpParameters", rtpParameters }
 	};
 	/* clang-format on */
-
-	/*auto r = cpr::PostAsync(
-	           cpr::Url{ this->baseUrl + "/broadcasters/" + this->id + "/transports/" +
-	                     this->sendTransport->GetId() + "/producers" },
-	           cpr::Body{ body.dump() },
-	           cpr::Header{ { "Content-Type", "application/json" } },
-	           cpr::VerifySsl{ verifySsl })
-	           .get();
-
-	if (r.status_code == 200)
+	std::string result;
+	if (!webrtc::g_http_mgr.sync_mediasoup_producers_transport(id, sendTransport->GetId(), body.dump(), result))
 	{
-		auto response = json::parse(r.text);
-
-		auto it = response.find("id");
-		if (it == response.end() || !it->is_string())
-		{
-			promise.set_exception(std::make_exception_ptr("'id' missing in response"));
-		}
-
-		promise.set_value((*it).get<std::string>());
-	}
-	else
-	{
-		std::cerr << "[ERROR] unable to create producer"
-		          << " [status code:" << r.status_code << ", body:\"" << r.text << "\"]" << std::endl;
-
-		promise.set_exception(std::make_exception_ptr(r.text));
-	}
-*/
-	RTC_LOG(INFO) << "[INFO] body.dump() = " << body.dump();
-
-	std::string host =webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) ;
-	httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-	std::string url = baseUrl + "/broadcasters/" + this->id + "/transports/" +
-		this->sendTransport->GetId() + "/producers"  ;
-	auto res = cli.Post(url.c_str(), body.dump(), "application/json");
-	if (!res)
-	{
-		RTC_LOG(LS_ERROR)  <<"[error] !!!!\n";
+		RTC_LOG(LS_ERROR) << "mediasoup create transport failed !!!";
 		return promise.get_future();
 	}
-	if (res->status != 200)
-	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] unable to connect transport"
-			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-
-		promise.set_exception(std::make_exception_ptr(res->body));
-		return promise.get_future();
-	}
-
-	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
-
-
-	auto response = json::parse(res->body);
+	  
+	json response = json::parse(result);
 
 	auto it = response.find("id");
 	if (it == response.end() || !it->is_string())
@@ -317,59 +201,15 @@ std::future<std::string> Broadcaster::OnProduceData(
 		// { "appData"				 , "someAppData" }
 	};
 	/* clang-format on */
-
-	/*auto r = cpr::PostAsync(
-	           cpr::Url{ this->baseUrl + "/broadcasters/" + this->id + "/transports/" +
-	                     this->sendTransport->GetId() + "/produce/data" },
-	           cpr::Body{ body.dump() },
-	           cpr::Header{ { "Content-Type", "application/json" } },
-	           cpr::VerifySsl{ verifySsl })
-	           .get();
-
-	if (r.status_code == 200)
+	std::string result;
+	if (!webrtc::g_http_mgr.sync_mediasoup_produce_data_transport(id, sendTransport->GetId(), body.dump(), result))
 	{
-		auto response = json::parse(r.text);
-
-		auto it = response.find("id");
-		if (it == response.end() || !it->is_string())
-		{
-			promise.set_exception(std::make_exception_ptr("'id' missing in response"));
-		}
-		else
-		{
-			auto dataProducerId = (*it).get<std::string>();
-			promise.set_value(dataProducerId);
-		}
-	}
-	else
-	{
-		std::cerr << "[ERROR] unable to create data producer"
-		          << " [status code:" << r.status_code << ", body:\"" << r.text << "\"]" << std::endl;
-
-		promise.set_exception(std::make_exception_ptr(r.text));
-	}*/
-	std::string host =webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) ;
-	httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-	std::string url = baseUrl + "/broadcasters/" + this->id + "/transports/" +
-		this->sendTransport->GetId() + "/produce/data" ;
-	auto res = cli.Post(url.c_str(), body.dump(), "application/json");
-	if (!res)
-	{
-		RTC_LOG(LS_ERROR)  <<"[error] !!!!\n";
-		//promise.set_exception(std::make_exception_ptr(res->body));
+		RTC_LOG(LS_ERROR) << "mediasoup producers transport failed !!!";
 		return promise.get_future();
 	}
-	if (res->status != 200)
-	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] unable to connect transport"
-			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-
-		//promise.set_exception(std::make_exception_ptr(res->body));
-		return promise.get_future();
-	}
-
-	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
-	auto response = json::parse(res->body);
+	
+	
+	json response = json::parse(result);
 
 	auto it = response.find("id");
 	if (it == response.end() || !it->is_string())
@@ -384,16 +224,14 @@ std::future<std::string> Broadcaster::OnProduceData(
 	return promise.get_future();
 }
 
-void Broadcaster::Start(
-  const std::string& baseUrl, 
-  const json& routerRtpCapabilities,  std::string name)
+bool Broadcaster::Start(const json& routerRtpCapabilities)
 {
 	std::cout << "[INFO] Broadcaster::Start()" << std::endl;
 
 	m_wight = GetSystemMetrics(SM_CXSCREEN);
 	m_height = GetSystemMetrics(SM_CYSCREEN);
 
-	this->baseUrl   = baseUrl; 
+	  
 
 	// Load the device.
 	this->device.Load(routerRtpCapabilities);
@@ -403,8 +241,8 @@ void Broadcaster::Start(
 	/* clang-format off */
 	json body =
 	{
-		{ "id",          this->id          },
-		{ "displayName", name     },
+		{ "id",           id          },
+		{ "displayName", webrtc:: g_cfg.get_string(webrtc::ECI_Client_Name)     },
 		{ "device",
 			{
 				{ "name",    "version"       },
@@ -414,76 +252,27 @@ void Broadcaster::Start(
 		{ "rtpCapabilities", this->device.GetRtpCapabilities() }
 	};
 
-	std::string host =webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) ;
-	httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-	std::string url = baseUrl +  "/broadcasters"  ;
-	auto res = cli.Post(url.c_str(), body.dump(), "application/json");
-	if (!res)
+	 
+	if (!webrtc::g_http_mgr.sync_mediasoup_broadcasters(body.dump()))
 	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] unable to create Broadcaster"
-			<< " [status code:" << 0 << ", body:\""  << "\"]"; 
-		return; 
-	}
-	if (res->status != 200)
-	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] unable to create Broadcaster"
-			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-		 
-		return; 
-	}
-
-	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
+		RTC_LOG(LS_ERROR) << " mediasoup broadcasters failed !!!";
+		return false;
+	} 
 	this->CreateSendTransport();
 	this->CreateRecvTransport();
 }
 
 void Broadcaster::CreateDataConsumer(const json& body)
 {
-	//const std::string& dataProducerId = this->dataProducer->GetId();
-
-	/* clang-format off */
-	/*json body =
+	
+	std::string result;
+	if (!webrtc::g_http_mgr.sync_mediasoup_consume_data_transport(id, recvTransport->GetId(), body.dump(), result))
 	{
-		{ "dataProducerId", dataProducerId }
-	};*/
-	/* clang-format on */
-	// create server data consumer
-	/*auto r = cpr::PostAsync(
-	           cpr::Url{ this->baseUrl + "/broadcasters/" + this->id + "/transports/" +
-	                     this->recvTransport->GetId() + "/consume/data" },
-	           cpr::Body{ body.dump() },
-	           cpr::Header{ { "Content-Type", "application/json" } },
-	           cpr::VerifySsl{ verifySsl })
-	           .get();
-	if (r.status_code != 200)
-	{
-		std::cerr << "[ERROR] server unable to consume mediasoup recv WebRtcTransport"
-		          << " [status code:" << r.status_code << ", body:\"" << r.text << "\"]" << std::endl;
+		RTC_LOG(LS_ERROR) << "mediasoup consume data transport failed !!!";
 		return;
-	}*/
-	std::string host =webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) ;
-	httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-	std::string url = baseUrl +"/broadcasters/" + this->id + "/transports/" +
-		this->recvTransport->GetId() + "/consume/data";
-	auto res = cli.Post(url.c_str(), body.dump(), "application/json");
-	if (!res)
-	{
-		RTC_LOG(LS_ERROR) << "[ERROR] server unable to consume mediasoup recv WebRtcTransport";
-			
-		//	promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
 	}
-	if (res->status != 200)
-	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] server unable to consume mediasoup recv WebRtcTransport"
-			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-
-		//promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
-	}
-
-	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
-	auto response = json::parse(res->body);
+	
+	auto response = json::parse(result);
 	if (response.find("id") == response.end())
 	{
 		std::cerr << "[ERROR] 'id' missing in response" << std::endl;
@@ -496,12 +285,12 @@ void Broadcaster::CreateDataConsumer(const json& body)
 		std::cerr << "[ERROR] 'streamId' missing in response" << std::endl;
 		return;
 	}
-	RTC_LOG(LS_INFO) << " consume mediasoup recv  url = " << url << ", body = " << body.dump();
-	uint16_t streamId = response["streamId"].get<uint16_t>();
-	auto json_value = nlohmann::json();
-	// Create client consumer.
-	this->dataConsumer = this->recvTransport->ConsumeData(
-	  this, dataConsumerId, body["dataProducerId"]/*dataProducerId*/, std::to_string(streamId), "chat", "stcp");
+	
+	//uint16_t streamId = response["streamId"].get<uint16_t>();
+
+	//// Create client consumer.
+	//this->dataConsumer = this->recvTransport->ConsumeData(
+	//  this, dataConsumerId, body["dataProducerId"]/*dataProducerId*/, std::to_string(streamId), "chat", "stcp");
 }
 //void Broadcaster::createDataConsumer(std::string dataConsumerId, std::string dataProducerId, std::string streamId, const nlohmann::json& appData)
 //{
@@ -513,51 +302,23 @@ void Broadcaster::CreateSendTransport( )
 	std::cout << "[INFO] creating mediasoup send WebRtcTransport..." << std::endl;
 
 	json sctpCapabilities = this->device.GetSctpCapabilities();
-	/* clang-format off */
+	 
 	json body =
 	{
 		{ "type",    "webrtc" },
 		{ "rtcpMux", true     },
 		{ "sctpCapabilities", sctpCapabilities }
 	};
-	/* clang-format on */
-
-	/*auto r = cpr::PostAsync(
-	           cpr::Url{ this->baseUrl + "/broadcasters/" + this->id + "/transports" },
-	           cpr::Body{ body.dump() },
-	           cpr::Header{ { "Content-Type", "application/json" } },
-	           cpr::VerifySsl{ verifySsl })
-	           .get();
-
-	if (r.status_code != 200)
+	 
+	std::string result;
+	if (!webrtc::g_http_mgr.sync_mediasoup_create_transport(id, body.dump(), result))
 	{
-		std::cerr << "[ERROR] unable to create send mediasoup WebRtcTransport"
-		          << " [status code:" << r.status_code << ", body:\"" << r.text << "\"]" << std::endl;
-
+		RTC_LOG(LS_ERROR) << "mediasoup create transport failed !!!";
 		return;
-	}*/
-	std::string host =webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) ;
-	httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-	std::string url = baseUrl + "/broadcasters/" + this->id + "/transports" ;
-	auto res = cli.Post(url.c_str(), body.dump(), "application/json");
-	if (!res)
-	{
-		RTC_LOG(LS_ERROR) << "[ERROR] unable to create send mediasoup WebRtcTransport";
-
-		//	promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
-	}
-	if (res->status != 200)
-	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] unable to create send mediasoup WebRtcTransport"
-			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-
-		//promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
 	}
 
-	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
-	auto response = json::parse(res->body);
+	 
+	json response = json::parse(result);
 
 	if (response.find("id") == response.end())
 	{
@@ -664,83 +425,17 @@ void Broadcaster::CreateSendTransport( )
 	if (this->device.CanProduce("video"))
 	{
 		auto videoTrack = createVideoTrack(std::to_string(rtc::CreateRandomId()));
-
-		 
-		{
-			sendTransport->Produce(this, videoTrack, nullptr, nullptr);
-		}
+		sendTransport->Produce(this, videoTrack, nullptr, nullptr);
 	}
 	else
 	{
 		RTC_LOG(WARNING)  << "[WARN] cannot produce video" ;
 	}
 
-	/////////////////////////// Create Audio Producer //////////////////////////
-
-	//if (enableAudio && this->device.CanProduce("audio"))
-	//{
-	//	auto audioTrack = createAudioTrack(std::to_string(rtc::CreateRandomId()));
-
-	//	/* clang-format off */
-	//	json codecOptions = {
-	//		{ "opusStereo", true },
-	//		{ "opusDtx",		true }
-	//	};
-	//	/* clang-format on */
-
-	//	this->sendTransport->Produce(this, audioTrack, nullptr, &codecOptions);
-	//}
-	//else
-	//{
-	//	std::cerr << "[WARN] cannot produce audio" << std::endl;
-	//}
-
-	/////////////////////////// Create Video Producer //////////////////////////
-
-	//if (this->device.CanProduce("video"))
-	//{
-	//	auto videoTrack = createSquaresVideoTrack(std::to_string(rtc::CreateRandomId()));
-
-	//	if (useSimulcast)
-	//	{
-	//		std::vector<webrtc::RtpEncodingParameters> encodings;
-	//		encodings.emplace_back(webrtc::RtpEncodingParameters());
-	//		encodings.emplace_back(webrtc::RtpEncodingParameters());
-	//		encodings.emplace_back(webrtc::RtpEncodingParameters());
-
-	//		this->sendTransport->Produce(this, videoTrack, &encodings, nullptr);
-	//	}
-	//	else
-	//	{
-	//		this->sendTransport->Produce(this, videoTrack, nullptr, nullptr);
-	//	}
-	//}
-	//else
-	//{
-	//	std::cerr << "[WARN] cannot produce video" << std::endl;
-
-	//	return;
-	//}
-
+	
 	///////////////////////// Create Data Producer //////////////////////////
 
 	this->dataProducer = sendTransport->ProduceData(this, "chat", "stcp");
-
-	/*uint32_t intervalSeconds = 100;
-	std::thread([this, intervalSeconds]() {
-		bool run = true;
-		while (run)
-		{
-			std::chrono::system_clock::time_point p = std::chrono::system_clock::now();
-			std::time_t t                           = std::chrono::system_clock::to_time_t(p);
-			std::string s                           = std::ctime(&t);
-			auto dataBuffer                         = webrtc::DataBuffer(s);
-			std::cout << "[INFO] sending chat data: " << s << std::endl;
-			this->dataProducer->Send(dataBuffer);
-			run = timerKiller.WaitFor(std::chrono::seconds(intervalSeconds));
-		}
-	})
-	  .detach();*/
 }
 
 void Broadcaster::CreateRecvTransport()
@@ -756,47 +451,16 @@ void Broadcaster::CreateRecvTransport()
 		{ "sctpCapabilities", sctpCapabilities }
 	};
 	/* clang-format on */
-
-	// create server transport
-	/*auto r = cpr::PostAsync(
-	           cpr::Url{ this->baseUrl + "/broadcasters/" + this->id + "/transports" },
-	           cpr::Body{ body.dump() },
-	           cpr::Header{ { "Content-Type", "application/json" } },
-	           cpr::VerifySsl{ verifySsl })
-	           .get();
-
-	if (r.status_code != 200)
+	std::string result;
+	if (!webrtc::g_http_mgr.sync_mediasoup_create_transport(id, body.dump(), result))
 	{
-		std::cerr << "[ERROR] unable to create mediasoup recv WebRtcTransport"
-		          << " [status code:" << r.status_code << ", body:\"" << r.text << "\"]" << std::endl;
-
+		RTC_LOG(LS_ERROR) << "mediasoup create recv transport failed !!!";
 		return;
-	}*/
-
-
-	std::string host =webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) ;
-	httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-	std::string url = baseUrl + "/broadcasters/" + this->id + "/transports" ;
-	auto res = cli.Post(url.c_str(), body.dump(), "application/json");
-	if (!res)
-	{
-		RTC_LOG(LS_ERROR) << "[ERROR] unable to create mediasoup recv WebRtcTransport";
-
-		//	promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
-	}
-	if (res->status != 200)
-	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] unable to create mediasoup recv WebRtcTransport"
-			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-
-		//promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
 	}
 
-	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
+	  
 
-	auto response = json::parse(res->body);
+	json response = json::parse(result);
 
 	if (response.find("id") == response.end())
 	{
@@ -829,11 +493,11 @@ void Broadcaster::CreateRecvTransport()
 		return;
 	}
 
-	auto recvTransportId = response["id"].get<std::string>();
+	std::string recvTransportId = response["id"].get<std::string>();
 
 	std::cout << "[INFO] creating RecvTransport..." << std::endl;
 
-	auto sctpParameters = response["sctpParameters"];
+	json sctpParameters = response["sctpParameters"];
 
 	this->recvTransport = this->device.CreateRecvTransport(
 	  this,
@@ -847,7 +511,7 @@ void Broadcaster::CreateRecvTransport()
 	/* clang-format off */
  	json body_json =
 	{
-	{ "dataProducerId", dataProducerId }
+		{ "dataProducerId", dataProducerId }
 	};
 	this->CreateDataConsumer(body_json);
 }
@@ -1049,7 +713,7 @@ void Broadcaster::Stop()
 	//this->timerKiller.Kill();
 
 	stopTrack();
-	if (this->recvTransport)
+	/*if (this->recvTransport)
 	{
 		recvTransport->Close();
 	}
@@ -1057,33 +721,14 @@ void Broadcaster::Stop()
 	if (this->sendTransport)
 	{
 		sendTransport->Close();
-	}
+	}*/
 	device.reset();
-	/*cpr::DeleteAsync(
-	  cpr::Url{ this->baseUrl + "/broadcasters/" + this->id }, cpr::VerifySsl{ verifySsl })
-	  .get();*/
-
-	std::string host =webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) ;
-	httplib::Client cli(host, webrtc::g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port));
-	std::string url = baseUrl +"/broadcasters/" + this->id ;
-	auto res = cli.Get(url.c_str());
-	if (!res)
+	 
+	if (!webrtc::g_http_mgr.sync_mediasoup_exit(id))
 	{
-		RTC_LOG(LS_ERROR) << "[ERROR]Stop";
-
-		//	promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
-	}
-	if (res->status != 200)
-	{
-		RTC_LOG(LS_ERROR)  << "[ERROR] Stop"
-			<< " [status code:" << res->status << ", body:\"" << res->body << "\"]" ;
-
-		//promise.set_exception(std::make_exception_ptr(res->body));
-		return;// promise.get_future();
-	}
-
-	RTC_LOG(INFO)  << __FUNCTION__ << __LINE__ <<"[" << res->body << "]" ;
+		RTC_LOG(LS_ERROR) << "mediasoup exit failed !!!";
+		return;
+	} 
 }
 
 void Broadcaster::OnOpen(mediasoupclient::DataProducer* /*dataProducer*/)

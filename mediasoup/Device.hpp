@@ -75,6 +75,7 @@ namespace mediasoupclient
 		// clang-format on
 		// Local SCTP capabilities.
 		nlohmann::json sctpCapabilities;
+		 
 	};
 } // namespace mediasoupclient
 

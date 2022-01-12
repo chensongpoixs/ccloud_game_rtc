@@ -23,26 +23,25 @@ static void fillJsonRtpEncodingParameters(
 namespace mediasoupclient
 {
 	/* Handler static methods. */
-
+	std::unique_ptr<PeerConnection> handler_pc;
 	json Handler::GetNativeRtpCapabilities(const PeerConnection::Options* peerConnectionOptions)
 	{
 		MSC_TRACE();
 
 		std::unique_ptr<PeerConnection::PrivateListener> privateListener(
 		  new PeerConnection::PrivateListener());
-		std::unique_ptr<PeerConnection> pc(
-		  new PeerConnection(privateListener.get(), peerConnectionOptions));
+		handler_pc.reset ( new PeerConnection(privateListener.get(), peerConnectionOptions));
 
-		(void)pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_AUDIO);
-		(void)pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_VIDEO);
+		(void)handler_pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_AUDIO);
+		(void)handler_pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_VIDEO);
 
 		webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 
 		// May throw.
-		auto offer                 = pc->CreateOffer(options);
+		auto offer                 = handler_pc->CreateOffer(options);
 		auto sdpObject             = sdptransform::parse(offer);
 		auto nativeRtpCapabilities = Sdp::Utils::extractRtpCapabilities(sdpObject);
-
+		//pc->Close();
 		return nativeRtpCapabilities;
 	}
 
@@ -78,6 +77,7 @@ namespace mediasoupclient
 	{
 		MSC_TRACE();
 
+		
 		this->pc->Close();
 	};
 
@@ -173,7 +173,9 @@ namespace mediasoupclient
 
 		// Check if the track is a null pointer.
 		if (!track)
+		{
 			MSC_THROW_TYPE_ERROR("missing track");
+		}
 
 		MSC_DEBUG("[kind:%s, track->id():%s]", track->kind().c_str(), track->id().c_str());
 
@@ -191,12 +193,16 @@ namespace mediasoupclient
 		webrtc::RtpTransceiverInit transceiverInit;
 
 		if (encodings && !encodings->empty())
+		{
 			transceiverInit.send_encodings = *encodings;
+		}
 
 		webrtc::RtpTransceiverInterface* transceiver = this->pc->AddTransceiver(track, transceiverInit);
 
 		if (!transceiver)
+		{
 			MSC_THROW_ERROR("error creating transceiver");
+		}
 
 		transceiver->SetDirection(webrtc::RtpTransceiverDirection::kSendRecv);
 
@@ -209,11 +215,13 @@ namespace mediasoupclient
 			webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 
 			offer               = this->pc->CreateOffer(options);
-			auto localSdpObject = sdptransform::parse(offer);
+			json localSdpObject = sdptransform::parse(offer);
 
 			// Transport is not ready.
 			if (!this->transportReady)
+			{
 				this->SetupTransport("server", localSdpObject);
+			}
 
 			MSC_DEBUG("calling pc->SetLocalDescription():\n%s", offer.c_str());
 
@@ -231,11 +239,11 @@ namespace mediasoupclient
 			transceiver->SetDirection(webrtc::RtpTransceiverDirection::kInactive);
 			transceiver->sender()->SetTrack(nullptr);
 
-			throw;
+			//throw;
 		}
 
-		auto localSdp       = this->pc->GetLocalDescription();
-		auto localSdpObject = sdptransform::parse(localSdp);
+		std::string localSdp       = this->pc->GetLocalDescription();
+		json localSdpObject = sdptransform::parse(localSdp);
 
 		json& offerMediaObject = localSdpObject["media"][mediaSectionIdx.idx];
 

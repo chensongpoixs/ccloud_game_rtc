@@ -90,9 +90,7 @@ public:
 	void OnTransportClose(mediasoupclient::DataProducer* dataProducer) override;
 
 public:
-	void Start(
-	  const std::string& baseUrl, 
-	  const nlohmann::json& routerRtpCapabilities,  std::string name);
+	bool Start(const nlohmann::json& routerRtpCapabilities);
 	void Stop();
 
 	~Broadcaster();

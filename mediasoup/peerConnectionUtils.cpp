@@ -102,8 +102,8 @@ static void createPeerConnectionFactory()
 	  workerThread,
 	  signalingThread,
 	  nullptr /*default_adm*/,
-	  webrtc::CreateBuiltinAudioEncoderFactory(),
-	  webrtc::CreateBuiltinAudioDecoderFactory(),
+		 webrtc::CreateBuiltinAudioEncoderFactory() ,
+	 webrtc::CreateBuiltinAudioDecoderFactory() ,
 	  webrtc::CreateBuiltinVideoEncoderFactory(),
 	  webrtc::CreateBuiltinVideoDecoderFactory(),
 	  nullptr /*audio_mixer*/,
@@ -118,7 +118,9 @@ static void createAudioSource()
 	cricket::AudioOptions options;
 
 	if (peerConnectionFactory == nullptr)
+	{
 		createPeerConnectionFactory();
+	}
 
 	audioSource = peerConnectionFactory->CreateAudioSource(options);
 }
@@ -159,11 +161,28 @@ void stopTrack()
 {
 	RTC_LOG(LS_INFO) << "stop Track ....";
 	//CapturerTrackSource* capturer = videoDevice.release();
+	
 	if (videoDevice)
 	{
 		videoDevice->stop();
+		 
 		RTC_LOG(LS_INFO) << "stop video ok !!!";
+		
+		videoDevice = nullptr;
+		
 	}
-
+	/*
+	if (signalingThread)
+	{
+		signalingThread->Stop();
+	}
+	if (workerThread)
+	{
+		workerThread->Stop();
+	}
+	if (peerConnectionFactory)
+	{
+		peerConnectionFactory = nullptr;
+	}*/
 	RTC_LOG(LS_INFO) << "stop Track ok !!!";
 }

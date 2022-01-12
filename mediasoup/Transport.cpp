@@ -217,7 +217,7 @@ namespace mediasoupclient
 		}
 		// 创建offer 的流程鸭
 		// May throw.
-		auto sendResult = this->sendHandler->Send(track, &normalizedEncodings, codecOptions);
+		SendHandler::SendResult sendResult = this->sendHandler->Send(track, &normalizedEncodings, codecOptions);
 
 		try
 		{

@@ -95,8 +95,8 @@ namespace mediasoupclient
 			  this->workerThread.get(),
 			  this->signalingThread.get(),
 			  nullptr /*default_adm*/,
-			  webrtc::CreateBuiltinAudioEncoderFactory(),
-			  webrtc::CreateBuiltinAudioDecoderFactory(),
+				 webrtc::CreateBuiltinAudioEncoderFactory() ,
+				  webrtc::CreateBuiltinAudioDecoderFactory() ,
 			  webrtc::CreateBuiltinVideoEncoderFactory(),
 			  webrtc::CreateBuiltinVideoDecoderFactory(),
 			  nullptr /*audio_mixer*/,
@@ -115,8 +115,30 @@ namespace mediasoupclient
 	void PeerConnection::Close()
 	{
 		MSC_TRACE();
+		if (pc)
+		{
+			pc->Close();
+		}
+		
+		 
+		/*if (networkThread)
+		{
+			networkThread->Stop();
+		}
+		if (signalingThread)
+		{
+			signalingThread->Stop();
+		}
+		if (workerThread)
+		{
+			workerThread->Stop();
+		}
+		if (peerConnectionFactory)
+		{
+			peerConnectionFactory = NULL;
+		}
+		pc = nullptr;*/
 
-		this->pc->Close();
 	}
 
 	webrtc::PeerConnectionInterface::RTCConfiguration PeerConnection::GetConfiguration() const

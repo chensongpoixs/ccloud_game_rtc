@@ -281,10 +281,20 @@ void DesktopCapture::StartCapture() {
 
 void DesktopCapture::StopCapture() {
   start_flag_ = false;
-
-  if (capture_thread_ && capture_thread_->joinable()) {
+  if (viewer)
+  {
+	  viewer->setDone(true);
+	   
+  }
+  if (m_work_thread.joinable())
+  {
+	  m_work_thread.join();
+  }
+  if (capture_thread_ && capture_thread_->joinable()) 
+  {
     capture_thread_->join();
   }
+
 }
 
 

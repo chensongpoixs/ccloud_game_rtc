@@ -72,6 +72,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>D:\dep\c_dep\osg\include\osg;D:\Work\cmedia_server\webrtc_google\src;D:\Work\cmedia_server\webrtc_google\src\third_party\abseil-cpp;D:\Work\cmedia_server\webrtc_google\src\third_party\libyuv\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\dep\c_dep\osg\lib;$(LibraryPath)</LibraryPath>
+    <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -134,6 +135,7 @@
     <ClCompile Include="ccfg.cpp" />
     <ClCompile Include="ccloud_rendering.cpp" />
     <ClCompile Include="cconfig.cpp" />
+    <ClCompile Include="chttp_mgr.cpp" />
     <ClCompile Include="cint2str.cpp" />
     <ClCompile Include="cnet_types.cpp" />
     <ClCompile Include="Consumer.cpp" />
@@ -171,6 +173,7 @@
     <ClInclude Include="ccfg.h" />
     <ClInclude Include="ccloud_rendering.h" />
     <ClInclude Include="cconfig.h" />
+    <ClInclude Include="chttp_mgr.h" />
     <ClInclude Include="cint2str.h" />
     <ClInclude Include="cnet_types.h" />
     <ClInclude Include="Consumer.hpp" />
