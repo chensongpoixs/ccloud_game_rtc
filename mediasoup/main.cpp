@@ -14,6 +14,7 @@
 #include "cwebsocket_mgr.h"
 #include "ccfg.h"
 #include "httplib.h"
+#include "peerConnectionUtils.hpp"
 #include "ccloud_rendering.h"
 using json = nlohmann::json;
 Broadcaster *broadcaster;
@@ -43,7 +44,7 @@ void signalHandler(int signum)
 
 int main(int argc, char* argv[])
 {
-
+	
 	const char* config_filename = "client.cfg";
 	if (argc > 1)
 	{
@@ -59,7 +60,7 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 	printf("init ok  2... \n");
-	while (true)
+	//while (true)
 	{
 		printf("main loop ........ \n");
 		m_thread = std::thread(
@@ -69,19 +70,31 @@ int main(int argc, char* argv[])
 			printf("child ->  loop exit ........ \n");
 		}
 		);
-		printf("main loop min 2... \n");
-		std::this_thread::sleep_for(std::chrono::minutes(2));
+		printf("main [g_thread_count = %d] loop min 2... \n", g_thread_count);
+		std::this_thread::sleep_for(std::chrono::minutes(1));
+		printf("main [g_thread_count = %d][] loop min 2... \n", g_thread_count);
 		ccloud_rendering_mgr.Destroy();
+		
+		
 		if (m_thread.joinable())
 		{
 			m_thread.join();
 		}
 	}
+	printf("all stop\n");
+	all_stop();
+	printf("+++++++++++++++++all stop ok !!! \n");
+	//std::this_thread::sleep_for(std::chrono::seconds(5));
+	std::this_thread::sleep_for(std::chrono::minutes(1));
+
+	mediasoupclient::Handler::all_close();
+	std::this_thread::sleep_for(std::chrono::minutes(1));
 	
-	ccloud_rendering_mgr.Destroy();
-	while (true)
+	//while (true)
 	{
+		printf("main [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
 		std::this_thread::sleep_for(std::chrono::seconds(10));
+		printf("main exit [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
 	}
 	
 

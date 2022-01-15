@@ -27,6 +27,7 @@ class DesktopCapture : public DesktopCaptureSource,
 
   void StartCapture();
   void StopCapture();
+  void stop_osg();
   void OnOsgCaptureResult(webrtc::DesktopCapturer::Result result, unsigned char * rgba, int32_t width, int32_t height);
 
  private:

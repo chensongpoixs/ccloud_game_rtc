@@ -17,6 +17,7 @@ namespace mediasoupclient
 
 		bool IsLoaded() const;
 		void reset();
+		void close();
 		const nlohmann::json& GetRtpCapabilities() const;
 		const nlohmann::json& GetSctpCapabilities() const;
 		void Load(

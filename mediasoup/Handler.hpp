@@ -38,6 +38,7 @@ namespace mediasoupclient
 		static nlohmann::json GetNativeRtpCapabilities(
 		  const PeerConnection::Options* peerConnectionOptions = nullptr);
 		static nlohmann::json GetNativeSctpCapabilities();
+		static void all_close();
 
 	public:
 		explicit Handler(

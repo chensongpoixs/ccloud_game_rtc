@@ -10,6 +10,8 @@
 #include "api/video_codecs/builtin_video_encoder_factory.h"
 #include <iostream>
 #include "desktop_capture.h"
+#include "PeerConnection.hpp"
+#include "Handler.hpp"
 #include "ccfg.h"
 static rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peerConnectionFactory{ nullptr };
 
@@ -21,8 +23,11 @@ static rtc::scoped_refptr<webrtc::VideoCaptureModule> videoCaptureModule;
 //static rtc::scoped_refptr<CapturerTrackSource> videoDevice{ nullptr };
 class CapturerTrackSource;
 static rtc::scoped_refptr<CapturerTrackSource> videoDevice{ nullptr };
-static rtc::Thread* signalingThread{ nullptr };
-static rtc::Thread* workerThread{ nullptr };
+//static rtc::Thread* signalingThread{ nullptr };
+//static rtc::Thread* workerThread{ nullptr };
+
+
+
 
 
 
@@ -65,6 +70,10 @@ public:
 	{
 		capturer->StopCapture();
 	}
+	void stop_osg()
+	{
+		capturer->stop_osg();
+	}
 protected:
 	explicit CapturerTrackSource(std::unique_ptr<DesktopCapture> capturer)
 	  : VideoTrackSource(/*remote=*/false), capturer(std::move(capturer))
@@ -86,7 +95,7 @@ static void createPeerConnectionFactory()
 
 	webrtc::PeerConnectionInterface::RTCConfiguration config;
 
-	signalingThread = new rtc::Thread();
+	/*signalingThread = new rtc::Thread();
 	workerThread    = new rtc::Thread();
 
 	signalingThread->SetName("signaling_thread", nullptr);
@@ -95,12 +104,12 @@ static void createPeerConnectionFactory()
 	if (!signalingThread->Start() || !workerThread->Start())
 	{
 		throw std::runtime_error("Thread start errored");
-	}
+	}*/
 
 	peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
-	  workerThread,
-	  workerThread,
-	  signalingThread,
+		networkThread.get(),
+		workerThread.get(),
+		signalingThread.get(),
 	  nullptr /*default_adm*/,
 		 webrtc::CreateBuiltinAudioEncoderFactory() ,
 	 webrtc::CreateBuiltinAudioDecoderFactory() ,
@@ -185,4 +194,20 @@ void stopTrack()
 		peerConnectionFactory = nullptr;
 	}*/
 	RTC_LOG(LS_INFO) << "stop Track ok !!!";
+}
+void all_stop()
+{
+	if (videoDevice)
+	{
+		videoDevice->stop_osg();
+		videoDevice = nullptr;
+	}
+	if (signalingThread)
+	{
+		signalingThread->Stop();
+	}
+	if (workerThread)
+	{
+		workerThread->Stop();
+	}
 }

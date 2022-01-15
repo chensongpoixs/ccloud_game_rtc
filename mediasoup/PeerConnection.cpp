@@ -11,6 +11,14 @@
 #include <api/video_codecs/builtin_video_encoder_factory.h>
 #include <rtc_base/ssl_adapter.h>
 #include "pc/peer_connection.h"
+
+uint64_t  g_thread_count = 0;
+
+std::unique_ptr< rtc::Thread > networkThread =  nullptr;
+std::unique_ptr<rtc::Thread >signalingThread = nullptr;
+std::unique_ptr<rtc::Thread > workerThread = nullptr;
+
+
 using json = nlohmann::json;
 
 namespace mediasoupclient
@@ -77,23 +85,28 @@ namespace mediasoupclient
 		}
 		else
 		{
-			this->networkThread   = rtc::Thread::CreateWithSocketServer();
-			this->signalingThread = rtc::Thread::Create();
-			this->workerThread    = rtc::Thread::Create();
-
+			if (!networkThread || !signalingThread || !workerThread)
+			{
+				networkThread = rtc::Thread::CreateWithSocketServer();
+				signalingThread = rtc::Thread::Create();
+				workerThread = rtc::Thread::Create();
+			}
+			g_thread_count += 3;
 			/*this->networkThread->SetName("network_thread", nullptr);
 			this->signalingThread->SetName("signaling_thread", nullptr);
 			this->workerThread->SetName("worker_thread", nullptr);*/
-
-			if (!this->networkThread->Start() || !this->signalingThread->Start() || !this->workerThread->Start())
+			static bool load = false;
+			if (! load)
 			{
-				MSC_THROW_INVALID_STATE_ERROR("thread start errored");
+				load = true;
+				networkThread->Start(); signalingThread->Start(); workerThread->Start();
+				//MSC_THROW_INVALID_STATE_ERROR("thread start errored");
 			}
 
 			this->peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
-			  this->networkThread.get(),
-			  this->workerThread.get(),
-			  this->signalingThread.get(),
+			  networkThread.get(),
+			  workerThread.get(),
+			  signalingThread.get(),
 			  nullptr /*default_adm*/,
 				 webrtc::CreateBuiltinAudioEncoderFactory() ,
 				  webrtc::CreateBuiltinAudioDecoderFactory() ,
@@ -105,13 +118,17 @@ namespace mediasoupclient
 		 
 		// Set SDP semantics to Unified Plan.
 		config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
-
+		
 		// Create the webrtc::Peerconnection.
 		this->pc =
 		  this->peerConnectionFactory->CreatePeerConnection(config, nullptr, nullptr, privateListener);
 
 	}
-
+	void PeerConnection::webrtc_threads()
+	{
+		peerConnectionFactory = nullptr;
+		pc = nullptr;
+	}
 	void PeerConnection::Close()
 	{
 		MSC_TRACE();
@@ -120,7 +137,7 @@ namespace mediasoupclient
 			pc->Close();
 		}
 		
-		 
+		peerConnectionFactory = nullptr;
 		/*if (networkThread)
 		{
 			networkThread->Stop();
@@ -132,8 +149,8 @@ namespace mediasoupclient
 		if (workerThread)
 		{
 			workerThread->Stop();
-		}
-		if (peerConnectionFactory)
+		}*/
+		/*if (peerConnectionFactory)
 		{
 			peerConnectionFactory = NULL;
 		}

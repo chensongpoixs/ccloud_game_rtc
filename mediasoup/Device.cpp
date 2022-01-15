@@ -38,6 +38,10 @@ namespace mediasoupclient
 		 
 	}
 
+	void Device::close()
+	{
+	}
+
 	/**
 	 * RTP capabilities of the Device for receiving media.
 	 */

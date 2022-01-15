@@ -304,7 +304,18 @@ void DesktopCapture::StopCapture() {
   }
 
 }
+void DesktopCapture::stop_osg()
+{
+	if (viewer)
+	{
+		viewer->setDone(true);
+	}
 
+	if (m_work_thread.joinable())
+	{
+		m_work_thread.join();
+	}
+}
 
 void DesktopCapture::_work_thread()
 {

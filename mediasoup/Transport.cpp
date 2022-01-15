@@ -307,7 +307,7 @@ namespace mediasoupclient
 			return;
 
 		Transport::Close();
-
+		
 		// Close all Producers.
 		for (auto& kv : this->producers)
 		{
@@ -323,6 +323,7 @@ namespace mediasoupclient
 
 			dataProducer->TransportClosed();
 		}
+		
 	}
 
 	void SendTransport::OnClose(Producer* producer)

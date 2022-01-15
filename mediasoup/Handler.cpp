@@ -44,7 +44,13 @@ namespace mediasoupclient
 		//pc->Close();
 		return nativeRtpCapabilities;
 	}
-
+	void Handler::all_close()
+	{
+		if (handler_pc)
+		{
+			handler_pc->webrtc_threads();
+		}
+	}
 	json Handler::GetNativeSctpCapabilities()
 	{
 		MSC_TRACE();

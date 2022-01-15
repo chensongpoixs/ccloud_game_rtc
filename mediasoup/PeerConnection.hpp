@@ -5,7 +5,11 @@
 #include <api/peer_connection_interface.h> // webrtc::PeerConnectionInterface
 #include <future>                          // std::promise, std::future
 #include <memory>                          // std::unique_ptr
+extern uint64_t g_thread_count;
 
+extern std::unique_ptr< rtc::Thread > networkThread ;
+extern std::unique_ptr<rtc::Thread >signalingThread ;
+extern std::unique_ptr<rtc::Thread > workerThread ;
 namespace mediasoupclient
 {
 	class PeerConnection
@@ -111,6 +115,7 @@ namespace mediasoupclient
 		PeerConnection(PrivateListener* privateListener, const Options* options);
 		~PeerConnection() = default;
 
+		void webrtc_threads();
 		void Close();
 		webrtc::PeerConnectionInterface::RTCConfiguration GetConfiguration() const;
 		bool SetConfiguration(const webrtc::PeerConnectionInterface::RTCConfiguration& config);
@@ -135,9 +140,9 @@ namespace mediasoupclient
 
 	private:
 		// Signaling and worker threads.
-		std::unique_ptr<rtc::Thread> networkThread;
+		/*std::unique_ptr<rtc::Thread> networkThread;
 		std::unique_ptr<rtc::Thread> signalingThread;
-		std::unique_ptr<rtc::Thread> workerThread;
+		std::unique_ptr<rtc::Thread> workerThread;*/
 
 		// PeerConnection factory.
 		rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> peerConnectionFactory;
