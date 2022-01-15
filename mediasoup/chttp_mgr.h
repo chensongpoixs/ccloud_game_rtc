@@ -26,13 +26,12 @@ namespace webrtc {
 
 
 		bool sync_mediasoup_broadcasters(std::string data);
-		bool sync_mediasoup_create_transport(const std::string & broadcasters_id, std::string data, std::string & result);
-
 		//////////////////////////////////////////////////////////////////////////
+		bool sync_mediasoup_create_transport(const std::string & broadcasters_id, std::string data, std::string & result);
+		
 		bool sync_mediasoup_connect_transport(const std::string & broadcasters_id, const std::string &  transport_id, std::string data, std::string & result);
 
 		///////////////////////////////////////
-		
 		bool sync_mediasoup_producers_transport(const std::string & broadcasters_id, const std::string &  transport_id,  std::string data, std::string & result);
 		bool sync_mediasoup_produce_data_transport(const std::string & broadcasters_id, const std::string &  transport_id, std::string data, std::string & result);
 		bool sync_mediasoup_consume_data_transport(const std::string & broadcasters_id, const std::string &  transport_id, std::string data, std::string & result);

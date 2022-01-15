@@ -1,7 +1,9 @@
-#include "ccloud_rendering.h"
+﻿#include "ccloud_rendering.h"
 #include "ccfg.h"
 #include "httplib.h"
 #include "chttp_mgr.h"
+#include "rtc_base/logging.h"
+#include "rtc_base/log_sinks.h"
 namespace webrtc {
 	
 	ccloud_rendering::~ccloud_rendering() {}
@@ -24,9 +26,24 @@ namespace webrtc {
 		auto logLevel = mediasoupclient::Logger::LogLevel::LOG_DEBUG;
 		mediasoupclient::Logger::SetLogLevel(logLevel);
 		mediasoupclient::Logger::SetDefaultHandler();
+		/*日志默认是输出到标准错误的，不调用也是可以的。*/
+		rtc::LogMessage::SetLogToStderr(true);
+		//rtc::LogMessage::LogToDebug(rtc::LS_NONE);
+		/*创建日志文件*/
+		 static rtc::FileRotatingLogSink m_frls("./log", "webrtc_log", 1024, 2);
+		m_frls.Init();
 
+		/*将日志输出到日志文件中，接收WARNING及以上级别的日志。*/
+		rtc::LogMessage::AddLogToStream(&m_frls, rtc::WARNING);
+	
 		// Initilize mediasoupclient.
 		mediasoupclient::Initialize();
+		
+		return true;
+	}
+	bool ccloud_rendering::Loop()
+	{
+
 		std::string ws_url = "ws://" + webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) + ":" + std::to_string(webrtc::g_cfg.get_int32(webrtc::ECI_MediaSoup_Http_Port)) + "/?roomId=" + webrtc::g_cfg.get_string(webrtc::ECI_Room_Name) + "&peerId=" + webrtc::g_cfg.get_string(webrtc::ECI_Client_Name);//ws://127.0.0.1:8888/?roomId=chensong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
 		std::string origin = "http://" + webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) + ":" + std::to_string(webrtc::g_cfg.get_int32(webrtc::ECI_MediaSoup_Http_Port));
 		if (!webrtc::g_websocket_mgr.init(ws_url, origin))
@@ -42,10 +59,7 @@ namespace webrtc {
 			RTC_LOG(LS_ERROR) << "weboscket mgr status = " << webrtc::g_websocket_mgr.get_status() << "failed !!! ";
 			return false;
 		}
-		return true;
-	}
-	bool ccloud_rendering::Loop()
-	{
+
 		std::string result;
 		if (!g_http_mgr.sync_mediasoup_router_rtpcapabilities(result))
 		{

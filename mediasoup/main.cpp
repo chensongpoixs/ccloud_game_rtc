@@ -36,7 +36,7 @@ void signalHandler(int signum)
 {
 	RTC_LOG(LS_INFO) << "[INFO] interrupt signal (" << signum << ") received";
 
-	stop();
+	//stop();
 	
 }
 
@@ -51,16 +51,39 @@ int main(int argc, char* argv[])
 	}
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
-	
+	std::thread m_thread;
 
 	if (!ccloud_rendering_mgr.init(config_filename))
 	{
 		// error
 		return -1;
 	}
-	ccloud_rendering_mgr.Loop();
-
+	printf("init ok  2... \n");
+	while (true)
+	{
+		printf("main loop ........ \n");
+		m_thread = std::thread(
+			[=]() {
+			printf("child ->  loop ........ \n");
+			ccloud_rendering_mgr.Loop();
+			printf("child ->  loop exit ........ \n");
+		}
+		);
+		printf("main loop min 2... \n");
+		std::this_thread::sleep_for(std::chrono::minutes(2));
+		ccloud_rendering_mgr.Destroy();
+		if (m_thread.joinable())
+		{
+			m_thread.join();
+		}
+	}
+	
 	ccloud_rendering_mgr.Destroy();
+	while (true)
+	{
+		std::this_thread::sleep_for(std::chrono::seconds(10));
+	}
+	
 
 	return 0;
 	

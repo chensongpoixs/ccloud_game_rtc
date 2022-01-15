@@ -227,7 +227,7 @@ std::future<std::string> Broadcaster::OnProduceData(
 bool Broadcaster::Start(const json& routerRtpCapabilities)
 {
 	std::cout << "[INFO] Broadcaster::Start()" << std::endl;
-
+	id = std::to_string(rtc::CreateRandomId());
 	m_wight = GetSystemMetrics(SM_CXSCREEN);
 	m_height = GetSystemMetrics(SM_CYSCREEN);
 
@@ -709,7 +709,7 @@ void Broadcaster::Stop()
 	//this->timerKiller.Kill();
 
 	stopTrack();
-	/*if (this->recvTransport)
+	if (this->recvTransport)
 	{
 		recvTransport->Close();
 	}
@@ -717,7 +717,15 @@ void Broadcaster::Stop()
 	if (this->sendTransport)
 	{
 		sendTransport->Close();
-	}*/
+	}
+	if (dataConsumer)
+	{
+		dataConsumer->Close();
+	}
+	if (dataProducer)
+	{
+		dataProducer->Close();
+	}
 	device.reset();
 	 
 	if (!webrtc::g_http_mgr.sync_mediasoup_exit(id))

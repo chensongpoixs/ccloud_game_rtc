@@ -105,7 +105,7 @@ bool DesktopCapture::Init(size_t target_fps, size_t capture_screen_index)
   //window_title_ = sources[capture_screen_index].title;
   fps_ = target_fps;
 
-  RTC_LOG(LS_INFO) << "Init DesktopCapture finish window_title = " << window_title_ << " , fps = " << fps_ <<"";
+  //RTC_LOG(LS_INFO) << "Init DesktopCapture finish window_title = " << window_title_ << " , fps = " << fps_ <<"";
   // Start new thread to capture
   return true;
 }
@@ -192,8 +192,8 @@ void DesktopCapture::OnOsgCaptureResult(webrtc::DesktopCapturer::Result result, 
 		std::chrono::system_clock::now().time_since_epoch())
 		.count();
 	if (timestamp_curr - timestamp > 1000) {
-		RTC_LOG(LS_INFO) << "FPS: " << cnt << ", " <<  width  << ", " <<  height ;
-		RTC_LOG(LS_INFO) << "[width = " <<  width << "][height = " <<  height << "]";
+	//	RTC_LOG(LS_INFO) << "FPS: " << cnt << ", " <<  width  << ", " <<  height ;
+	//	RTC_LOG(LS_INFO) << "[width = " <<  width << "][height = " <<  height << "]";
 		cnt = 0;
 		timestamp = timestamp_curr;
 	}
@@ -246,12 +246,19 @@ void DesktopCapture::StartCapture() {
 
   //if (chen::g_cfg.get_int32(chen::ECI_Capture_Type) == 0)
   {
-	  if (m_work_thread.joinable())
+	  /*if (m_work_thread.joinable())
 	  {
 		  m_work_thread.join();
+	  }*/
+	  static bool work_thread = false;
+	 
+	  if (!work_thread)
+	  {
+		  work_thread = true;
+		  CaptureScreen::Get()->setCallback(this);
+		  m_work_thread = std::thread(&DesktopCapture::_work_thread, this);
 	  }
-	  CaptureScreen::Get()->setCallback(this);
-	  m_work_thread = std::thread(&DesktopCapture::_work_thread, this);
+	  CaptureScreen::Get()->set_m_data_callback(true);
   }
  
   // Start new thread to capture
@@ -281,15 +288,16 @@ void DesktopCapture::StartCapture() {
 
 void DesktopCapture::StopCapture() {
   start_flag_ = false;
-  if (viewer)
-  {
-	  viewer->setDone(true);
-	   
-  }
-  if (m_work_thread.joinable())
-  {
-	  m_work_thread.join();
-  }
+  //if (viewer)
+  //{
+	 // viewer->setDone(true);
+	 //  
+  //}
+  //if (m_work_thread.joinable())
+  //{
+	 // m_work_thread.join();
+  //}
+  CaptureScreen::Get()->set_m_data_callback(false);
   if (capture_thread_ && capture_thread_->joinable()) 
   {
     capture_thread_->join();
@@ -345,16 +353,26 @@ void DesktopCapture::_work_thread()
 
 
 	osg::DisplaySettings::instance()->setNumMultiSamples(16);
-	
-	viewer = new osgViewer::Viewer;
-	
+	//if (!viewer)
+	{
+		viewer = new osgViewer::Viewer;
+
+		
+		//osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+		//geode->addDrawable(osg::createTexturedQuadGeometry(osg::Vec3(-150.0, 1.0, -130.0), osg::Vec3(300.0, 0.0, 0.0), osg::Vec3(0.0, 0.0, 200.0), 1.0, 1.0));//创建一个写字板
+		//viewer->setSceneData(geode.get());
+
+
+		viewer->setSceneData(osgDB::readNodeFile("D:/Work/cmedia_server/webrtc_google/lib/test/mediasoup/mediasoup/cow.ive"));
+		
+	}
 	viewer->getCamera()->addPreDrawCallback(CaptureScreen::Get());
-	//osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-	//geode->addDrawable(osg::createTexturedQuadGeometry(osg::Vec3(-150.0, 1.0, -130.0), osg::Vec3(300.0, 0.0, 0.0), osg::Vec3(0.0, 0.0, 200.0), 1.0, 1.0));//创建一个写字板
-	//viewer->setSceneData(geode.get());
-
-
-	viewer->setSceneData(osgDB::readNodeFile("D:/Work/cmedia_server/webrtc_google/lib/test/mediasoup/mediasoup/cow.ive"));
-	viewer->addEventHandler(new osgViewer::WindowSizeHandler);
+	osgGA::EventHandler* event_ptr = new osgViewer::WindowSizeHandler;
+	viewer->addEventHandler(event_ptr);
+	
 	viewer->run();
+	viewer = nullptr;
+	//viewer->removeEventHandler(event_ptr);
+	//delete event_ptr;
+	//event_ptr = nullptr;
 }

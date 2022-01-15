@@ -235,7 +235,7 @@ namespace mediasoupclient
 			throw;
 		}
 
-		auto* producer = new Producer(
+		Producer* producer = new Producer(
 		  this,
 		  producerListener,
 		  producerId,

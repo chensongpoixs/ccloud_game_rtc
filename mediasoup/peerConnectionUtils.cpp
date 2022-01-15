@@ -168,7 +168,7 @@ void stopTrack()
 		 
 		RTC_LOG(LS_INFO) << "stop video ok !!!";
 		
-		videoDevice = nullptr;
+		//videoDevice = nullptr;
 		
 	}
 	/*

@@ -23,6 +23,7 @@ CaptureScreen*CaptureScreen::Get()
 
 CaptureScreen::CaptureScreen()
 	: m_callback(nullptr)
+	, m_data_callback(true)
 {
 	this->_image = new osg::Image;
 	m_rgba_ptr = new unsigned char[sizeof(unsigned char) * (1920 * 1080 * 60)];
@@ -56,7 +57,7 @@ void CaptureScreen::operator () (const osg::Camera& camera) const
 		//memcpy(m_rgba_ptr,  _image->data(), _iw * _ih * 4);
 		webrtc::DesktopCapturer::Result result = webrtc::DesktopCapturer::Result::SUCCESS;
 
-		if (m_callback)
+		if (m_callback && m_callback)
 		{
 			m_callback->OnOsgCaptureResult(result, _image->data(), _iw, _ih);
 		}

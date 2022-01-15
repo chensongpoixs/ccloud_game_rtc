@@ -214,7 +214,7 @@ namespace webrtc {
 				<< " [status code:" << res->status << ", body:\"" << res->body << "\"]";
 			return false;
 		}
-		RTC_LOG(INFO) << __FUNCTION__ << __LINE__ << "[" << res->body << "]";
+		//RTC_LOG(INFO) << __FUNCTION__ << __LINE__ << "[" << res->body << "]";
 		result = res->body;
 		return true;
 	}

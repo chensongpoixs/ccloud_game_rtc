@@ -12,7 +12,8 @@ namespace webrtc {
 		ccloud_rendering()
 			: m_broadcaster()
 			, m_websocket_mgr()
-			, m_stoped(false){}
+			, m_stoped(false)
+			/*, m_frls("./log", "webrtc_log", 1024, 2)*/{}
 		~ccloud_rendering();
 
 	public:
@@ -29,6 +30,7 @@ namespace webrtc {
 		Broadcaster		m_broadcaster;
 		cwebsocket_mgr	m_websocket_mgr;
 		bool			m_stoped;
+		//rtc::FileRotatingLogSink m_frls;
 	};
 
 }
