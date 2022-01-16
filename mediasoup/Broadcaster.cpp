@@ -712,6 +712,7 @@ void Broadcaster::Stop()
 	if (this->recvTransport)
 	{
 		recvTransport->Close();
+		//recvTransport->all_close();
 	}
 
 	if (this->sendTransport)

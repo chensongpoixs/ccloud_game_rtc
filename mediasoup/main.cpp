@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 	 //{
 		// printf("sleep  2 seconds ....\n");
 
-		// std::this_thread::sleep_for(std::chrono::seconds(2));
+		// std::this_thread::sleep_for(std::chrono::seconds(50));
 	 //}
 	 //return 0;
  
@@ -67,14 +67,14 @@ int main(int argc, char* argv[])
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
 	std::thread m_thread;
-
+	int32_t  count = 0;
 	if (!ccloud_rendering_mgr.init(config_filename))
 	{
 		// error
 		return -1;
 	}
 	printf("init ok  2... \n");
-	//while (true)
+	while (true)
 	{
 		printf("main loop ........ \n");
 		m_thread = std::thread(
@@ -89,18 +89,22 @@ int main(int argc, char* argv[])
 		printf("main [g_thread_count = %d][] loop min 2... \n", g_thread_count);
 		ccloud_rendering_mgr.Destroy();
 		
-		
+		++count;
 		if (m_thread.joinable())
 		{
 			m_thread.join();
 		}
+		if (count < 10)
+		{
+			break;
+		}
 	}
-	mediasoupclient::Handler::all_close();
+	//mediasoupclient::Handler::all_close();
 	printf("all stop\n");
-	std::this_thread::sleep_for(std::chrono::seconds(10));
+	//std::this_thread::sleep_for(std::chrono::seconds(10));
 
 	all_stop();
-	printf("+++++++++++++++++all stop ok !!! \n");
+	printf("+++++++++++++++++ all stop ok !!! \n");
 	//std::this_thread::sleep_for(std::chrono::seconds(5));
 	
 	
@@ -111,6 +115,7 @@ int main(int argc, char* argv[])
 		printf("main [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
 		std::this_thread::sleep_for(std::chrono::seconds(10));
 		printf("main exit [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
+		//exit(0);
 	}
 	
 

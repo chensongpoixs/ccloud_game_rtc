@@ -170,6 +170,10 @@ void stopTrack()
 {
 	RTC_LOG(LS_INFO) << "stop Track ....";
 	//CapturerTrackSource* capturer = videoDevice.release();
+	if (peerConnectionFactory)
+	{
+		peerConnectionFactory->StopAecDump();
+	}
 	
 	if (videoDevice)
 	{
@@ -202,6 +206,10 @@ void all_stop()
 		videoDevice->stop_osg();
 		videoDevice = nullptr;
 	}
+	
+	peerConnectionFactory = nullptr;
+
+
 	if (signalingThread)
 	{
 		signalingThread->Stop();
@@ -215,4 +223,7 @@ void all_stop()
 	{
 		networkThread->Stop();
 	}
+
+	
+
 }

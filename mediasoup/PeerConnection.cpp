@@ -90,6 +90,9 @@ namespace mediasoupclient
 				networkThread = rtc::Thread::CreateWithSocketServer();
 				signalingThread = rtc::Thread::Create();
 				workerThread = rtc::Thread::Create();
+				networkThread->SetName("network_thread", nullptr);
+				signalingThread->SetName("signaling_thread", nullptr);
+				workerThread->SetName("worker_thread", nullptr);
 			}
 			g_thread_count += 3;
 			/*this->networkThread->SetName("network_thread", nullptr);
@@ -128,6 +131,10 @@ namespace mediasoupclient
 	}
 	void PeerConnection::webrtc_threads()
 	{
+		if (peerConnectionFactory)
+		{
+			peerConnectionFactory->StopAecDump();
+		}
 		pc = nullptr;
 		peerConnectionFactory = nullptr;
 		
@@ -135,12 +142,17 @@ namespace mediasoupclient
 	void PeerConnection::Close()
 	{
 		MSC_TRACE();
+		
 		if (pc)
 		{
 			pc->Close();
 		}
-		
+		if (peerConnectionFactory)
+		{
+			peerConnectionFactory->StopAecDump();
+		}
 		peerConnectionFactory = nullptr;
+		pc = nullptr;
 		/*if (networkThread)
 		{
 			networkThread->Stop();
