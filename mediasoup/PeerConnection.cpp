@@ -99,14 +99,16 @@ namespace mediasoupclient
 			if (! load)
 			{
 				load = true;
-				networkThread->Start(); signalingThread->Start(); workerThread->Start();
+				networkThread->Start(); 
+				signalingThread->Start();
+				workerThread->Start();
 				//MSC_THROW_INVALID_STATE_ERROR("thread start errored");
 			}
 
 			this->peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
-			  networkThread.get(),
-			  workerThread.get(),
-			  signalingThread.get(),
+				networkThread.get(),               
+				workerThread.get(),				  
+				signalingThread.get(),			  
 			  nullptr /*default_adm*/,
 				 webrtc::CreateBuiltinAudioEncoderFactory() ,
 				  webrtc::CreateBuiltinAudioDecoderFactory() ,
@@ -126,8 +128,9 @@ namespace mediasoupclient
 	}
 	void PeerConnection::webrtc_threads()
 	{
-		peerConnectionFactory = nullptr;
 		pc = nullptr;
+		peerConnectionFactory = nullptr;
+		
 	}
 	void PeerConnection::Close()
 	{

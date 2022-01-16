@@ -27,14 +27,14 @@ namespace webrtc {
 		mediasoupclient::Logger::SetLogLevel(logLevel);
 		mediasoupclient::Logger::SetDefaultHandler();
 		/*日志默认是输出到标准错误的，不调用也是可以的。*/
-		rtc::LogMessage::SetLogToStderr(true);
+		//rtc::LogMessage::SetLogToStderr(true);
 		//rtc::LogMessage::LogToDebug(rtc::LS_NONE);
 		/*创建日志文件*/
-		 static rtc::FileRotatingLogSink m_frls("./log", "webrtc_log", 1024, 2);
-		m_frls.Init();
+		// static rtc::FileRotatingLogSink m_frls("./log", "webrtc_log", 10240, 1);
+		//m_frls.Init();
 
-		/*将日志输出到日志文件中，接收WARNING及以上级别的日志。*/
-		rtc::LogMessage::AddLogToStream(&m_frls, rtc::WARNING);
+		///*将日志输出到日志文件中，接收WARNING及以上级别的日志。*/
+		//rtc::LogMessage::AddLogToStream(&m_frls, rtc::WARNING);
 	
 		// Initilize mediasoupclient.
 		mediasoupclient::Initialize();
@@ -141,8 +141,9 @@ namespace webrtc {
 	}
 	void ccloud_rendering::Destroy()
 	{
-		m_broadcaster.Stop();
 		g_websocket_mgr.destroy();
+		m_broadcaster.Stop();
+		
 		mediasoupclient::Cleanup();
 	}
 }

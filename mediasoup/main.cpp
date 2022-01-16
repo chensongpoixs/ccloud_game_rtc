@@ -16,6 +16,7 @@
 #include "httplib.h"
 #include "peerConnectionUtils.hpp"
 #include "ccloud_rendering.h"
+#include <api/task_queue/global_task_queue_factory.h>
 using json = nlohmann::json;
 Broadcaster *broadcaster;
 bool stoped = false;
@@ -44,6 +45,19 @@ void signalHandler(int signum)
 
 int main(int argc, char* argv[])
 {
+	 //mediasoupclient::Handler::GetNativeRtpCapabilities(nullptr);
+	 //workerThread->Stop();
+	 //signalingThread->Stop();
+	 //networkThread->Stop();
+	 ////while (true)
+	 //{
+		// printf("sleep  2 seconds ....\n");
+
+		// std::this_thread::sleep_for(std::chrono::seconds(2));
+	 //}
+	 //return 0;
+ 
+
 	
 	const char* config_filename = "client.cfg";
 	if (argc > 1)
@@ -71,7 +85,7 @@ int main(int argc, char* argv[])
 		}
 		);
 		printf("main [g_thread_count = %d] loop min 2... \n", g_thread_count);
-		std::this_thread::sleep_for(std::chrono::minutes(1));
+		std::this_thread::sleep_for(std::chrono::seconds(30));
 		printf("main [g_thread_count = %d][] loop min 2... \n", g_thread_count);
 		ccloud_rendering_mgr.Destroy();
 		
@@ -81,15 +95,17 @@ int main(int argc, char* argv[])
 			m_thread.join();
 		}
 	}
+	mediasoupclient::Handler::all_close();
 	printf("all stop\n");
+	std::this_thread::sleep_for(std::chrono::seconds(10));
+
 	all_stop();
 	printf("+++++++++++++++++all stop ok !!! \n");
 	//std::this_thread::sleep_for(std::chrono::seconds(5));
-	std::this_thread::sleep_for(std::chrono::minutes(1));
-
-	mediasoupclient::Handler::all_close();
-	std::this_thread::sleep_for(std::chrono::minutes(1));
 	
+	
+	//std::this_thread::sleep_for(std::chrono::minutes(1));
+	//webrtc::GlobalTaskQueueFactory()
 	//while (true)
 	{
 		printf("main [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);

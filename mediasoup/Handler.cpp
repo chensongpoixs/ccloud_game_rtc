@@ -32,7 +32,7 @@ namespace mediasoupclient
 		  new PeerConnection::PrivateListener());
 		handler_pc.reset ( new PeerConnection(privateListener.get(), peerConnectionOptions));
 
-		(void)handler_pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_AUDIO);
+		//(void)handler_pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_AUDIO);
 		(void)handler_pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_VIDEO);
 
 		webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
@@ -41,7 +41,7 @@ namespace mediasoupclient
 		auto offer                 = handler_pc->CreateOffer(options);
 		auto sdpObject             = sdptransform::parse(offer);
 		auto nativeRtpCapabilities = Sdp::Utils::extractRtpCapabilities(sdpObject);
-		//pc->Close();
+		handler_pc->webrtc_threads();
 		return nativeRtpCapabilities;
 	}
 	void Handler::all_close()

@@ -1,4 +1,4 @@
-#include "peerConnectionUtils.hpp"
+﻿#include "peerConnectionUtils.hpp"
 //#include "VcmCapturer.hpp"
 #include "modules/video_capture/video_capture.h"
 #include "modules/video_capture/video_capture_factory.h"
@@ -205,9 +205,14 @@ void all_stop()
 	if (signalingThread)
 	{
 		signalingThread->Stop();
+
 	}
 	if (workerThread)
 	{
 		workerThread->Stop();
+	}
+	if (networkThread)
+	{
+		networkThread->Stop();
 	}
 }
