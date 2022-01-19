@@ -16,6 +16,7 @@
 #include "desktop_capture.h"
 #include "cwindow_util.h"
 #include "chttp_mgr.h"
+#include "cinput_device.h"
 using json = nlohmann::json;
 
 
@@ -570,6 +571,7 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 
 		return;
 	}
+
 	EACTION_MOUSE_TYPE event = static_cast<EACTION_MOUSE_TYPE>(response["event"]);
 	double wight = response["wight"];
 	double height = response["height"];
@@ -599,7 +601,11 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 		std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds>(diff);		
 	RTC_LOG(LS_INFO) << "findmainwindow " << ms.count() << " ms ";
 	//::PostMessage(wnd, WM_MOUSEWHEEL, MAKEWPARAM(0, 120) /* ascii码 */, MAKELPARAM(600, 300));
-	 
+	//SetForegroundWindow ：设置某窗口为当前活动窗口
+
+	//	GetForegroundWindow : 获取当前活动窗口
+
+	//	ShowWindow ：设置窗口，parm2：0 : close, 1 : normal, 2 : min, 3 : max
 
 	//::PostMessage(j2, WM_LBUTTONDOWN, 1, 17 + 34 * 65536);//坐标是用spy++看真是鼠标双击得出来的第一行某点的坐标
 	//::PostMessage(j2, WM_LBUTTONUP, NULL, 17 + 34 * 65536);
@@ -608,6 +614,11 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	g_width = (int32_t)wight;
 	g_height = (int32_t)height;
 	static bool move = false;
+	webrtc::cvector vec;
+	vec.x = wight;
+	vec.y = height;
+	webrtc::cinput_device::OnMouseUp(vec);
+	
 	//return;
 	if (event == EACTION_MOUSE_MOVE)
 	{
