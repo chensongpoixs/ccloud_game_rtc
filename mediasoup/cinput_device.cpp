@@ -11,7 +11,7 @@ purpose:		input_device
 #include "cprotocol.h"
 #include "cinput_device_event.h"
 #include "rtc_base/logging.h"
-
+#include "clog.h"
 namespace chen {
 	using FKeyCodeType = uint8;
 	using FCharacterType = TCHAR;
@@ -74,7 +74,7 @@ namespace chen {
 							 														 \
 			break;																	 \
 	}
-#define REGISTER_INPUT_DEVICE(type, handler_ptr) if (false == m_input_device.insert(std::make_pair(type, handler_ptr)).second){	/*  error long */	return false;}
+#define REGISTER_INPUT_DEVICE(type, handler_ptr) if (false == m_input_device.insert(std::make_pair(type, handler_ptr)).second){	 ERROR_EX_LOG("[type = %s][handler_ptr = %s]", #type, #handler_ptr);	return false;}
 	
 	
 	cinput_device   g_input_device_mgr;
@@ -122,13 +122,14 @@ namespace chen {
 		M_INPUT_DEVICE_MAP::iterator iter =  m_input_device.find(MsgType);
 		if (iter == m_input_device.end())
 		{
-			RTC_LOG(LS_ERROR) << "input_device not find id = " << MsgType;
+			//RTC_LOG(LS_ERROR) << "input_device not find id = " << MsgType;
 			//log --->  not find type 
+			ERROR_EX_LOG("input_device msg_type = %d not find failed !!!", MsgType);
 			return false;
 		}
 		 
-		(this->*(iter->second))(Data, Size);
-		return true;
+		return (this->*(iter->second))(Data, Size);
+		//return true;
 	}
 	/**
 	* 输入字符
@@ -176,6 +177,7 @@ namespace chen {
 		}
 		else
 		{
+			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
 		//KeyDownEvent.GetKeyDown();
@@ -217,6 +219,7 @@ namespace chen {
 		}
 		else
 		{
+			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
 		//ProcessEvent(KeyUpEvent);
@@ -283,7 +286,7 @@ namespace chen {
 		checkf(Size == 0, TEXT("%d"), Size);
 		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseDown at (%d, %d), button %d"), PosX, PosY, Button);
 		// log mousedown -> log posX , poxY -> Button 
-
+		NORMAL_EX_LOG("Button = %d, PosX = %d, PoxY = %d", Button, PosX, PosY );
 		_UnquantizeAndDenormalize(PosX, PosY);
 
 		FEvent MouseDownEvent(EventType::MOUSE_DOWN);
@@ -292,7 +295,7 @@ namespace chen {
 
 		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
 		//ProcessEvent(MouseDownEvent);
-		 
+		NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
 
 		WINDOW_MAIN();
 		//WINDOW_BNTTON_DOWN(vec);
@@ -302,6 +305,7 @@ namespace chen {
 		}
 		else
 		{
+			WARNING_EX_LOG("not find main window failed !!!");
 			// log -> error 
 			return false;
 		}
@@ -321,12 +325,14 @@ namespace chen {
 		checkf(Size == 0, TEXT("%d"), Size);
 		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseUp at (%d, %d), button %d"), PosX, PosY, Button);
 		// log mouseup posx, posy, button 
+		NORMAL_EX_LOG("Button = %u, PosX = %d, PoxY = %d ", Button, PosX, PosY );
 		_UnquantizeAndDenormalize(PosX, PosY);
-
+		NORMAL_EX_LOG("PosX = %d, PoxY = %d", PosX, PosY );
 		FEvent MouseDownEvent(EventType::MOUSE_UP);
 		MouseDownEvent.SetMouseClick(Button, PosX, PosY);
 		uint32  active_type;
 		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
+		NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
 		//ProcessEvent(MouseDownEvent);
 		WINDOW_MAIN();
 		//WINDOW_BNTTON_UP(vec);
@@ -336,6 +342,7 @@ namespace chen {
 		}
 		else
 		{
+			WARNING_EX_LOG("not find main window failed !!!");
 			// log -> error 
 			return false;
 		} 
@@ -354,10 +361,12 @@ namespace chen {
 		checkf(Size == 0, TEXT("%d"), Size);
 		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseMove to (%d, %d), delta (%d, %d)"), PosX, PosY, DeltaX, DeltaY);
 		// log mousemove to posx, posy, [DeltaX, DeltaY]
-		RTC_LOG(LS_INFO) << "mousemove -->  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
+		NORMAL_EX_LOG("PosX = %d, PoxY = %d, DeltaY = %d", PosX, PosY, DeltaY);
+		//RTC_LOG(LS_INFO) << "mousemove -->  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
 		_UnquantizeAndDenormalize(PosX, PosY);
 		_UnquantizeAndDenormalize(DeltaX, DeltaY);
-		RTC_LOG(LS_INFO) << "mousemove <==>  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
+		//RTC_LOG(LS_INFO) << "mousemove <==>  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
+		NORMAL_EX_LOG("---> PosX = %d, PoxY = %d, DeltaY = %d", PosX, PosY, DeltaY);
 		FEvent MouseMoveEvent(EventType::MOUSE_MOVE);
 		MouseMoveEvent.SetMouseDelta(PosX, PosY, DeltaX, DeltaY);
 		WINDOW_MAIN();
@@ -369,6 +378,7 @@ namespace chen {
 		else
 		{
 			// log -> error 
+			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
 		//ProcessEvent(MouseMoveEvent);
@@ -407,6 +417,7 @@ namespace chen {
 		}
 		else
 		{
+			WARNING_EX_LOG("not find main window failed !!!");
 			// log error 
 			return false;
 		}

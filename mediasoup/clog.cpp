@@ -42,7 +42,7 @@ namespace chen {
 		}
 		if (!g_log_ptr->init(storage_type, host, port ))
 		{
-			printf( "log init error ");
+			printf( "log init error \n");
 			return false;
 		}
 		return true;
@@ -52,7 +52,7 @@ namespace chen {
 	{
 		if (!g_log_ptr)
 		{
-			printf("g_log_ptr == null");
+			printf("g_log_ptr == null\n");
 			return;
 		}
 		//return;

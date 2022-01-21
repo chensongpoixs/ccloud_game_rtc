@@ -19,7 +19,7 @@
 #include "cwindow_util.h"
 #include <api/task_queue/global_task_queue_factory.h>
 using json = nlohmann::json;
-Broadcaster *broadcaster;
+
 bool stoped = false;
 chen::ccloud_rendering ccloud_rendering_mgr;
 

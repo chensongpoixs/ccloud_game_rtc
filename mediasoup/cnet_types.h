@@ -43,6 +43,17 @@ namespace chen
 #pragma error "unknow platform!!!"
 
 #endif
+
+
+
+#if defined(_MSC_VER)
+#define FUNCTION __FUNCTION__
+#elif defined(__linux__) ||  defined(__APPLE__)
+#define FUNCTION __PRETTY_FUNCTION__
+#else
+#pragma error "unknow platform!!!"
+
+#endif
 }
 
 

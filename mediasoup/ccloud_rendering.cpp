@@ -6,33 +6,43 @@
 #include "rtc_base/log_sinks.h"
 #include "peerConnectionUtils.hpp"
 #include "cinput_device.h"
+#include "clog.h"
 namespace chen {
 	
 	ccloud_rendering::~ccloud_rendering() {}
  
 	bool ccloud_rendering::init(const char * config_name)
 	{
+
+		if (!LOG::init(ELogStorageScreenFile))
+		{
+			std::cerr << " log init failed !!!";
+			return false;
+		}
 		bool init =  g_cfg.init(config_name);
 		if (!init)
 		{
-			RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
+			//RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
+			ERROR_EX_LOG("config init failed !!! config_name = %s", config_name);
 			return false;
 		}
 		if (!g_http_mgr.init())
 		{
-			RTC_LOG(LS_ERROR) << " http_mgr init failed  !!!";
+			//RTC_LOG(LS_ERROR) << " http_mgr init failed  !!!";
+			ERROR_EX_LOG("http_mgr init failed !!! ");
 			return false;
 		}
 
 		if (!chen::g_input_device_mgr.init())
 		{
-			RTC_LOG(LS_ERROR) << "input_device mgr init failed !!!";
+			//RTC_LOG(LS_ERROR) << "input_device mgr init failed !!!";
+			ERROR_EX_LOG("input_device_mgr init failed !!!");
 			return false;
 		}
 
-		auto logLevel = mediasoupclient::Logger::LogLevel::LOG_DEBUG;
+		/*auto logLevel = mediasoupclient::Logger::LogLevel::LOG_DEBUG;
 		mediasoupclient::Logger::SetLogLevel(logLevel);
-		mediasoupclient::Logger::SetDefaultHandler();
+		mediasoupclient::Logger::SetDefaultHandler();*/
 		/*日志默认是输出到标准错误的，不调用也是可以的。*/
 		//rtc::LogMessage::SetLogToStderr(true);
 		//rtc::LogMessage::LogToDebug(rtc::LS_NONE);
@@ -55,7 +65,8 @@ namespace chen {
 		std::string origin = "http://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port));
 		if (!g_websocket_mgr.init(ws_url, origin))
 		{
-			RTC_LOG(LS_ERROR) << "weboscket connect failed !!! url = " << ws_url;
+			//RTC_LOG(LS_ERROR) << "weboscket connect failed !!! url = " << ws_url;
+			ERROR_EX_LOG("weboscket connect url = %s failed !!! ", ws_url.c_str());
 			return false;
 		}
 		g_websocket_mgr.start();
@@ -63,40 +74,45 @@ namespace chen {
 
 		if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
 		{
-			RTC_LOG(LS_ERROR) << "weboscket mgr status = " << g_websocket_mgr.get_status() << "failed !!! ";
+			//RTC_LOG(LS_ERROR) << "weboscket mgr status = " << g_websocket_mgr.get_status() << "failed !!! ";
+			ERROR_EX_LOG("websocket mgr status = %d, failed !!!", g_websocket_mgr.get_status());
 			return false;
 		}
 
 		std::string result;
 		if (!g_http_mgr.sync_mediasoup_router_rtpcapabilities(result))
 		{
-			RTC_LOG(LS_ERROR) << "http router rtpcapabilities failed !!!";
+			//RTC_LOG(LS_ERROR) << "http router rtpcapabilities failed !!!";
+			ERROR_EX_LOG("http router rtpcapabilities failed !!!");
 			return false;
 		}
 		
 
-
-		RTC_LOG(INFO) << __FUNCTION__ << __LINE__ << "[" <<result << "]";
+		//NORMAL_LOG("");
+		//RTC_LOG(INFO) << __FUNCTION__ << __LINE__ << "[" <<result << "]";
 		json response = nlohmann::json::parse(result);
 		if (!m_broadcaster.Start(response))
 		{
-			RTC_LOG(LS_ERROR) << "broadcaster start failed !!!";
+			//RTC_LOG(LS_ERROR) << "broadcaster start failed !!!";
+			ERROR_EX_LOG("broadcaster start failed !!!!");
 			return false;
 		}
-		 
+		 // TODO@chensong 2022-01-21  获取鼠标和键盘事件的数据 ---->>>> 
 		std::set<std::string> dataProduceIds;
 		while (!m_stoped)
 		{
 			if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
 			{
-				RTC_LOG(LS_ERROR) << "websocket status = " << g_websocket_mgr.get_status() << "failed !!!";
+				//RTC_LOG(LS_ERROR) << "websocket status = " << g_websocket_mgr.get_status() << "failed !!!";
+				ERROR_EX_LOG("websocket status = %d, failed !!!", g_websocket_mgr.get_status());
 				break;
 			}
 			//std::string url = baseUrl + "/broadcasters/" + this->id + "/transports";
 			//
 			if (!g_http_mgr. sync_mediasoup_all_dataproducers(result))
 			{
-				RTC_LOG(LS_ERROR) << "[ERROR]sync_mediasoup_all_dataproducers failed !!!";
+				//RTC_LOG(LS_ERROR) << "[ERROR]sync_mediasoup_all_dataproducers failed !!!";
+				ERROR_EX_LOG("sync_mediasoup_all_dataproducers failed !!!");
 				break;
 			}
 			 
@@ -133,7 +149,8 @@ namespace chen {
 										{ "dataProducerId", dataProducerId }
 									};
 									m_broadcaster.CreateDataConsumer(body);
-									RTC_LOG(LS_INFO) << "  dataProducerId = " << dataProducerId;
+									//RTC_LOG(LS_INFO) << "  dataProducerId = " << dataProducerId;
+									NORMAL_LOG(" dataProducerId = %s", dataProducerId.c_str());
 									//dataProduceIds.insert(displayName);
 								}
 							}
@@ -152,5 +169,6 @@ namespace chen {
 		m_broadcaster.Stop();
 		all_stop();
 		mediasoupclient::Cleanup();
+		LOG::destroy();
 	}
 }
