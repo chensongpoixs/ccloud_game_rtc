@@ -126,6 +126,12 @@
     <ClCompile Include="chttp_mgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cinput_device.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cinput_device_event.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Consumer.hpp">
@@ -240,6 +246,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="chttp_mgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cinput_device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cprotocol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cassertion_macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cinput_device_event.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cint_point.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

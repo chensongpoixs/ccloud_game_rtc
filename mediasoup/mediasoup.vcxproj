@@ -136,6 +136,8 @@
     <ClCompile Include="ccloud_rendering.cpp" />
     <ClCompile Include="cconfig.cpp" />
     <ClCompile Include="chttp_mgr.cpp" />
+    <ClCompile Include="cinput_device.cpp" />
+    <ClCompile Include="cinput_device_event.cpp" />
     <ClCompile Include="cint2str.cpp" />
     <ClCompile Include="cnet_types.cpp" />
     <ClCompile Include="Consumer.cpp" />
@@ -170,14 +172,19 @@
   <ItemGroup>
     <ClInclude Include="Broadcaster.hpp" />
     <ClInclude Include="capture.h" />
+    <ClInclude Include="cassertion_macros.h" />
     <ClInclude Include="ccfg.h" />
     <ClInclude Include="ccloud_rendering.h" />
     <ClInclude Include="cconfig.h" />
     <ClInclude Include="chttp_mgr.h" />
+    <ClInclude Include="cinput_device.h" />
+    <ClInclude Include="cinput_device_event.h" />
     <ClInclude Include="cint2str.h" />
+    <ClInclude Include="cint_point.h" />
     <ClInclude Include="cnet_types.h" />
     <ClInclude Include="Consumer.hpp" />
     <ClInclude Include="cosd_util.h" />
+    <ClInclude Include="cprotocol.h" />
     <ClInclude Include="cwebsocket_mgr.h" />
     <ClInclude Include="cwebsocket_session.h" />
     <ClInclude Include="cwindow_util.h" />

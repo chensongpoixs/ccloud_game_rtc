@@ -17,6 +17,7 @@
 #include "cwindow_util.h"
 #include "chttp_mgr.h"
 #include "cinput_device.h"
+
 using json = nlohmann::json;
 
 
@@ -526,10 +527,16 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 
 
 	RTC_LOG(LS_INFO)<< "[INFO] Broadcaster::OnMessage()"  << "dataConsumer->GetLabel() = " << dataConsumer->GetLabel()<< "[s = " << s << "]";
-	if (dataConsumer->GetLabel() == "chat")
+	/*if (dataConsumer->GetLabel() == "chat")
 	{
 		std::cout << "[INFO] received chat data: " + s << std::endl;
+	
+		webrtc::g_input_device_mgr.OnMessage(buffer);
 	}
+*/
+	webrtc::g_input_device_mgr.OnMessage(buffer);
+	
+	return;
 	 
 	json response;
 	try
@@ -614,10 +621,10 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	g_width = (int32_t)wight;
 	g_height = (int32_t)height;
 	static bool move = false;
-	webrtc::cvector vec;
+	/*webrtc::cvector vec;
 	vec.x = wight;
-	vec.y = height;
-	webrtc::cinput_device::OnMouseUp(vec);
+	vec.y = height;*/
+	//webrtc::cinput_device::OnMouseUp(vec);
 	
 	//return;
 	if (event == EACTION_MOUSE_MOVE)

@@ -4,6 +4,8 @@
 #include "chttp_mgr.h"
 #include "rtc_base/logging.h"
 #include "rtc_base/log_sinks.h"
+#include "peerConnectionUtils.hpp"
+#include "cinput_device.h"
 namespace webrtc {
 	
 	ccloud_rendering::~ccloud_rendering() {}
@@ -22,6 +24,11 @@ namespace webrtc {
 			return false;
 		}
 
+		if (!webrtc::g_input_device_mgr.init())
+		{
+			RTC_LOG(LS_ERROR) << "input_device mgr init failed !!!";
+			return false;
+		}
 
 		auto logLevel = mediasoupclient::Logger::LogLevel::LOG_DEBUG;
 		mediasoupclient::Logger::SetLogLevel(logLevel);
@@ -143,7 +150,7 @@ namespace webrtc {
 	{
 		g_websocket_mgr.destroy();
 		m_broadcaster.Stop();
-		
+		all_stop();
 		mediasoupclient::Cleanup();
 	}
 }

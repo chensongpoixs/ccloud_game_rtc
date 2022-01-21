@@ -34,94 +34,19 @@ void stop()
 	//broadcaster = nullptr;
 	//stoped = true;
 	////std::exit(signum);
+	
 }
 void signalHandler(int signum)
 {
 	RTC_LOG(LS_INFO) << "[INFO] interrupt signal (" << signum << ") received";
 
-	//stop();
+	stop();
 	
 }
 
 
-int test_main(int argc, char* argv[])
-{
-
-	
-	std::cout << "Welcome!\n Let me AFK honor for you while you relax\n";
-	HWND wowhandle = webrtc::FindMainWindow(3720);;// FindWindow(TEXT("new 1 notepad++.exe"), NULL);
-
-	if (!wowhandle)
-	{
-		std::cout << "WoW window was not found!\n";
-	}
-	else
-	{
-
-
-		while (1)
-		{
-
-
-			
-
-
-			char ch = 'b';
-			short vkCode = LOBYTE(VkKeyScan(ch));
-			VK_RETURN;
-			//::SendInput();
-			auto lParam = MapVirtualKey(vkCode, MAPVK_VK_TO_CHAR);
-
-			int ret = PostMessage(wowhandle, WM_KEYDOWN, vkCode, lParam);
-
-			Sleep(100);
-			//ERROR_ACCESS_DENIED
-			ret = PostMessage(wowhandle, WM_KEYUP, vkCode, lParam);
-			int time = rand() % 78000 + 80000;
-
-			Sleep(100);
-			std::cout << "ANTI-AFK sent to the game\n";
-			std::cout << "Randomized time\n  " << time;
-
-
-		}
-	}
-	
-
-	printf("-----\n");
-	int key = 79;
-	//::PostMessage(wnd, WM_KEYDOWN, VK_LSHIFT, 0);
-	while (true)
-	{
-		HWND wnd = webrtc::FindMainWindow(3720);
-		//GetForegroundWindow();//获得当前激活的窗口句柄
-		DWORD SelfThreadId = GetCurrentThreadId(); // GetCurrentThreadId();//获取本身的线程ID
-		DWORD ForeThreadId = GetWindowThreadProcessId(wnd, NULL);//根据窗口句柄获取线程ID
-		AttachThreadInput(ForeThreadId, SelfThreadId, true);//附加线程
-		HWND new_wnd = GetFocus();//获取具有输入焦点的窗口句柄
-		AttachThreadInput(ForeThreadId, SelfThreadId, false);//取消附加的线程
-		::PostMessage(wnd, WM_NCMOUSEMOVE, MAKEWPARAM(0, 0), MAKEWPARAM(100, 100));//发送一个字消息
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
-		::PostMessage(wnd, WM_NCMOUSEMOVE, MAKEWPARAM(0, 0), MAKEWPARAM(100, 100));//发送一个字消息
-		//SendMessage(Handle, WM_KEYUP, VK_SHIFT, 0);
-
-		//::PostMessage(wnd, WM_KEYDOWN,  key, 89898);
-		printf("deydown ----> \n");
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}
-	
-	return 0;
-	 //mediasoupclient::Handler::GetNativeRtpCapabilities(nullptr);
-	 //workerThread->Stop();
-	 //signalingThread->Stop();
-	 //networkThread->Stop();
-	 ////while (true)
-	 //{
-		// printf("sleep  2 seconds ....\n");
-
-		// std::this_thread::sleep_for(std::chrono::seconds(50));
-	 //}
-	 //return 0;
+int  main(int argc, char* argv[])
+{ 
  
 
 	
@@ -139,8 +64,12 @@ int test_main(int argc, char* argv[])
 		// error
 		return -1;
 	}
+	ccloud_rendering_mgr.Loop();;
+
+	ccloud_rendering_mgr.Destroy();
+	return 0;
 	printf("init ok  2... \n");
-	while (true)
+	//while (false)
 	{
 		printf("main loop ........ \n");
 		m_thread = std::thread(
@@ -160,16 +89,16 @@ int test_main(int argc, char* argv[])
 		{
 			m_thread.join();
 		}
-		if (count < 10)
+		/*if (count < 10)
 		{
 			break;
-		}
+		}*/
 	}
 	//mediasoupclient::Handler::all_close();
 	printf("all stop\n");
 	//std::this_thread::sleep_for(std::chrono::seconds(10));
 
-	all_stop();
+	
 	printf("+++++++++++++++++ all stop ok !!! \n");
 	//std::this_thread::sleep_for(std::chrono::seconds(5));
 	
@@ -227,7 +156,7 @@ int test_main(int argc, char* argv[])
 #include<iostream>
 #pragma comment(lib,"WtsApi32.lib")
 
-int main(int argc, char* argv[])
+int test_windown_main(int argc, char* argv[])
 {
 	HWND notepadWnd =   FindWindowA("Notepad", NULL); // 记事本窗口句柄
 

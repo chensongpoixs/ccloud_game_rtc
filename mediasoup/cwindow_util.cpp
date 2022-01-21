@@ -63,7 +63,7 @@ namespace webrtc {
 		handle_data& data = *(handle_data*)lParam;
 		unsigned long process_id = 0;
 		GetWindowThreadProcessId(handle, &process_id);
-		printf("process_id = %lu\n", process_id);
+		//printf("process_id = %lu\n", process_id);
 		if (data.process_id != process_id || !IsMainWindow(handle)) {
 			return TRUE;
 		}
