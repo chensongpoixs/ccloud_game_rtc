@@ -12,7 +12,7 @@ purpose:		input_device
 #include "cinput_device_event.h"
 #include "rtc_base/logging.h"
 
-namespace webrtc {
+namespace chen {
 	using FKeyCodeType = uint8;
 	using FCharacterType = TCHAR;
 	using FRepeatType = uint8;

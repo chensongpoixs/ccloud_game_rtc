@@ -2,7 +2,7 @@
 #include "ccfg.h"
 #include "httplib.h"
 #include  "Broadcaster.hpp"
-namespace webrtc {
+namespace chen {
 	chttp_mgr g_http_mgr;
 
 	
@@ -14,8 +14,8 @@ namespace webrtc {
 
 	bool chttp_mgr::init()
 	{
-		m_host = g_cfg.get_string(webrtc::ECI_MediaSoup_Host);
-		m_port = g_cfg.get_uint32(webrtc::ECI_MediaSoup_Http_Port);
+		m_host = g_cfg.get_string(ECI_MediaSoup_Host);
+		m_port = g_cfg.get_uint32(ECI_MediaSoup_Http_Port);
 		m_room_name = g_cfg.get_string(ECI_Room_Name);
 		m_http_appfix = "https://" + m_host + ":" + std::to_string(m_port) + "/rooms/" + m_room_name;
 

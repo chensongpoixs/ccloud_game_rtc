@@ -28,9 +28,9 @@
 #include <mutex>
 #include <atomic>
 #include <condition_variable>
-#include "cconstructor_magic.h"
+
 #include <ostream>
-#include "Export.h"
+
 namespace chen
 {
 	struct clog_item;
@@ -39,7 +39,7 @@ namespace chen
 
 	class casync_log //: private cnoncopyable
 	{
-		_DISALLOW_COPY_AND_ASSIGN(casync_log);
+		 
 	private:
 		typedef std::condition_variable					ccond;
 		typedef std::atomic_bool						catomic_bool;

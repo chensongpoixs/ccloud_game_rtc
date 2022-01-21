@@ -7,7 +7,7 @@
 ************************************************************************************************/
 #include "ccfg.h"
 
-namespace webrtc {
+namespace chen {
 	ccfg g_cfg;
 	
 	ccfg::ccfg()

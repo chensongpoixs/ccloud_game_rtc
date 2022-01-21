@@ -53,7 +53,7 @@ void CaptureScreen::operator () (const osg::Camera& camera) const
 		std::lock_guard<std::mutex> lock(g_lock);
 		this->_image->readPixels(this->_ix, this->_iy, this->_iw, this->_ih, GL_BGRA, GL_UNSIGNED_BYTE);
 		_image->flipVertical(); // 进行RGBA翻转一下哈
-		webrtc::g_input_device_mgr.set_point(_iw, _ih);
+		chen::g_input_device_mgr.set_point(_iw, _ih);
 		//memcpy(m_rgba_ptr,  _image->data(), _iw * _ih * 4);
 		webrtc::DesktopCapturer::Result result = webrtc::DesktopCapturer::Result::SUCCESS;
 

@@ -36,7 +36,7 @@ class CapturerTrackSource : public webrtc::VideoTrackSource
 public:
 	static rtc::scoped_refptr<CapturerTrackSource> Create()
 	{
-		uint32_t fps = webrtc::g_cfg.get_int32(webrtc::ECI_Video_Fps);
+		uint32_t fps = chen::g_cfg.get_int32(chen::ECI_Video_Fps);
 		if (fps <= 0)
 		{
 			fps = 30;

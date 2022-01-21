@@ -12,7 +12,7 @@ purpose:		cint_point
 #include "cnet_types.h"
 
 
-namespace webrtc {
+namespace chen {
 
 	/**
 	* Structure for integer points in 2-d space.

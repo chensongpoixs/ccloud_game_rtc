@@ -12,7 +12,7 @@
 //#include "Util/Logging.hpp"
 //using namespace logging;
 #include "cnet_types.h"
-namespace webrtc {
+namespace chen {
 	using namespace rtc;
 	cconfig::cconfig():m_configs(NULL), m_values_size(0)
 	{

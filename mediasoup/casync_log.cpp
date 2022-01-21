@@ -16,7 +16,7 @@
 #include <sstream>
 #include <string>
 #include "ctime_api.h"
-#include "chttplib.h"
+#include "httplib.h"
 #ifdef _MSC_VER
 #include <io.h>
 #include <direct.h>

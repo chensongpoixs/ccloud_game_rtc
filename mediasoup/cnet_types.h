@@ -19,7 +19,7 @@
 
 #define CPG_UNUSED(object) (void)object
 
-namespace webrtc 
+namespace chen 
 {
 	typedef signed char		int8;
 	typedef unsigned char	uint8;

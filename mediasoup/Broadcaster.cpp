@@ -87,7 +87,7 @@ std::future<void> Broadcaster::OnConnectSendTransport(const json& dtlsParameters
 	};
 	/* clang-format on */
 	std::string result;
-	if (!webrtc::g_http_mgr.sync_mediasoup_connect_transport(id, sendTransport->GetId() , body.dump(), result))
+	if (!chen::g_http_mgr.sync_mediasoup_connect_transport(id, sendTransport->GetId() , body.dump(), result))
 	{
 		RTC_LOG(LS_ERROR) << "mediasoup create transport failed !!!";
 		promise.set_value();
@@ -108,7 +108,7 @@ std::future<void> Broadcaster::OnConnectRecvTransport(const json& dtlsParameters
 	};
 	/* clang-format on */
 	std::string result;
-	if (!webrtc::g_http_mgr.sync_mediasoup_connect_transport(id, recvTransport->GetId(), body.dump(), result))
+	if (!chen::g_http_mgr.sync_mediasoup_connect_transport(id, recvTransport->GetId(), body.dump(), result))
 	{
 		RTC_LOG(LS_ERROR) << "mediasoup connect transport failed !!!";
 		return promise.get_future();
@@ -158,7 +158,7 @@ std::future<std::string> Broadcaster::OnProduce(
 	};
 	/* clang-format on */
 	std::string result;
-	if (!webrtc::g_http_mgr.sync_mediasoup_producers_transport(id, sendTransport->GetId(), body.dump(), result))
+	if (!chen::g_http_mgr.sync_mediasoup_producers_transport(id, sendTransport->GetId(), body.dump(), result))
 	{
 		RTC_LOG(LS_ERROR) << "mediasoup create transport failed !!!";
 		return promise.get_future();
@@ -204,7 +204,7 @@ std::future<std::string> Broadcaster::OnProduceData(
 	};
 	/* clang-format on */
 	std::string result;
-	if (!webrtc::g_http_mgr.sync_mediasoup_produce_data_transport(id, sendTransport->GetId(), body.dump(), result))
+	if (!chen::g_http_mgr.sync_mediasoup_produce_data_transport(id, sendTransport->GetId(), body.dump(), result))
 	{
 		RTC_LOG(LS_ERROR) << "mediasoup producers transport failed !!!";
 		return promise.get_future();
@@ -244,7 +244,7 @@ bool Broadcaster::Start(const json& routerRtpCapabilities)
 	json body =
 	{
 		{ "id",           id          },
-		{ "displayName", webrtc:: g_cfg.get_string(webrtc::ECI_Client_Name)     },
+		{ "displayName", chen:: g_cfg.get_string(chen::ECI_Client_Name)     },
 		{ "device",
 			{
 				{ "name",    "version"       },
@@ -255,7 +255,7 @@ bool Broadcaster::Start(const json& routerRtpCapabilities)
 	};
 
 	 
-	if (!webrtc::g_http_mgr.sync_mediasoup_broadcasters(body.dump()))
+	if (!chen::g_http_mgr.sync_mediasoup_broadcasters(body.dump()))
 	{
 		RTC_LOG(LS_ERROR) << " mediasoup broadcasters failed !!!";
 		return false;
@@ -268,7 +268,7 @@ void Broadcaster::CreateDataConsumer(const json& body)
 {
 	
 	std::string result;
-	if (!webrtc::g_http_mgr.sync_mediasoup_consume_data_transport(id, recvTransport->GetId(), body.dump(), result))
+	if (!chen::g_http_mgr.sync_mediasoup_consume_data_transport(id, recvTransport->GetId(), body.dump(), result))
 	{
 		RTC_LOG(LS_ERROR) << "mediasoup consume data transport failed !!!";
 		return;
@@ -309,7 +309,7 @@ void Broadcaster::CreateSendTransport( )
 	};
 	 
 	std::string result;
-	if (!webrtc::g_http_mgr.sync_mediasoup_create_transport(id, body.dump(), result))
+	if (!chen::g_http_mgr.sync_mediasoup_create_transport(id, body.dump(), result))
 	{
 		RTC_LOG(LS_ERROR) << "mediasoup create transport failed !!!";
 		return;
@@ -450,7 +450,7 @@ void Broadcaster::CreateRecvTransport()
 	};
 	/* clang-format on */
 	std::string result;
-	if (!webrtc::g_http_mgr.sync_mediasoup_create_transport(id, body.dump(), result))
+	if (!chen::g_http_mgr.sync_mediasoup_create_transport(id, body.dump(), result))
 	{
 		RTC_LOG(LS_ERROR) << "mediasoup create recv transport failed !!!";
 		return;
@@ -534,7 +534,7 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 		webrtc::g_input_device_mgr.OnMessage(buffer);
 	}
 */
-	webrtc::g_input_device_mgr.OnMessage(buffer);
+	chen::g_input_device_mgr.OnMessage(buffer);
 	
 	return;
 	 
@@ -599,7 +599,7 @@ void Broadcaster::OnMessage(mediasoupclient::DataConsumer* dataConsumer, const w
 	static HWND wnd;
 	//if (!mainwidows)
 	{
-		wnd =  webrtc::FindMainWindow(); // GetActiveWindow();;
+		wnd =  chen::FindMainWindow(); // GetActiveWindow();;
 		//mainwidows = true;
 	}
 	
@@ -747,7 +747,7 @@ void Broadcaster::Stop()
 	}
 	device.reset();
 	 
-	if (!webrtc::g_http_mgr.sync_mediasoup_exit(id))
+	if (!chen::g_http_mgr.sync_mediasoup_exit(id))
 	{
 		RTC_LOG(LS_ERROR) << "mediasoup exit failed !!!";
 		return;

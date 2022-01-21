@@ -8,7 +8,7 @@ purpose:		assertion macros
 #ifndef _C_ASSERTION_MACROS_H_
 #define _C_ASSERTION_MACROS_H_
 
-namespace webrtc {
+namespace chen {
 
 	// If we don't have a platform-specific define for the TEXT macro, define it now.
 #if !defined(TEXT) && !UE_BUILD_DOCS

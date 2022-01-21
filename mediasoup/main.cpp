@@ -21,7 +21,7 @@
 using json = nlohmann::json;
 Broadcaster *broadcaster;
 bool stoped = false;
-webrtc::ccloud_rendering ccloud_rendering_mgr;
+chen::ccloud_rendering ccloud_rendering_mgr;
 
 void stop()
 {
@@ -170,7 +170,7 @@ int test_windown_main(int argc, char* argv[])
 	//}
 
 	//
-	HWND wnd = webrtc::FindMainWindow(23580);
+	HWND wnd = chen::FindMainWindow(23580);
 	HWND editWnd = FindWindowExA(notepadWnd, NULL,  "Edit" , NULL);
 	//HWND editWnd = FindWindowExA(notepadWnd, NULL,  "SysTabControl32" , NULL); // 编辑框窗口句柄
 	const BYTE vk = 'O'; // 虚拟键码

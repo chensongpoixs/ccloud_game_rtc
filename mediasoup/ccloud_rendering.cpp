@@ -6,7 +6,7 @@
 #include "rtc_base/log_sinks.h"
 #include "peerConnectionUtils.hpp"
 #include "cinput_device.h"
-namespace webrtc {
+namespace chen {
 	
 	ccloud_rendering::~ccloud_rendering() {}
  
@@ -24,7 +24,7 @@ namespace webrtc {
 			return false;
 		}
 
-		if (!webrtc::g_input_device_mgr.init())
+		if (!chen::g_input_device_mgr.init())
 		{
 			RTC_LOG(LS_ERROR) << "input_device mgr init failed !!!";
 			return false;
@@ -51,19 +51,19 @@ namespace webrtc {
 	bool ccloud_rendering::Loop()
 	{
 
-		std::string ws_url = "ws://" + webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) + ":" + std::to_string(webrtc::g_cfg.get_int32(webrtc::ECI_MediaSoup_Http_Port)) + "/?roomId=" + webrtc::g_cfg.get_string(webrtc::ECI_Room_Name) + "&peerId=" + webrtc::g_cfg.get_string(webrtc::ECI_Client_Name);//ws://127.0.0.1:8888/?roomId=chensong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
-		std::string origin = "http://" + webrtc::g_cfg.get_string(webrtc::ECI_MediaSoup_Host) + ":" + std::to_string(webrtc::g_cfg.get_int32(webrtc::ECI_MediaSoup_Http_Port));
-		if (!webrtc::g_websocket_mgr.init(ws_url, origin))
+		std::string ws_url = "ws://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port)) + "/?roomId=" + g_cfg.get_string(ECI_Room_Name) + "&peerId=" + g_cfg.get_string(ECI_Client_Name);//ws://127.0.0.1:8888/?roomId=chensong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
+		std::string origin = "http://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port));
+		if (!g_websocket_mgr.init(ws_url, origin))
 		{
 			RTC_LOG(LS_ERROR) << "weboscket connect failed !!! url = " << ws_url;
 			return false;
 		}
-		webrtc::g_websocket_mgr.start();
+		g_websocket_mgr.start();
 
 
-		if (webrtc::g_websocket_mgr.get_status() != webrtc::CWEBSOCKET_MESSAGE)
+		if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
 		{
-			RTC_LOG(LS_ERROR) << "weboscket mgr status = " << webrtc::g_websocket_mgr.get_status() << "failed !!! ";
+			RTC_LOG(LS_ERROR) << "weboscket mgr status = " << g_websocket_mgr.get_status() << "failed !!! ";
 			return false;
 		}
 
@@ -87,9 +87,9 @@ namespace webrtc {
 		std::set<std::string> dataProduceIds;
 		while (!m_stoped)
 		{
-			if (webrtc::g_websocket_mgr.get_status() != webrtc::CWEBSOCKET_MESSAGE)
+			if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
 			{
-				RTC_LOG(LS_ERROR) << "websocket status = " << webrtc::g_websocket_mgr.get_status() << "failed !!!";
+				RTC_LOG(LS_ERROR) << "websocket status = " << g_websocket_mgr.get_status() << "failed !!!";
 				break;
 			}
 			//std::string url = baseUrl + "/broadcasters/" + this->id + "/transports";
@@ -108,7 +108,7 @@ namespace webrtc {
 				{
 					for (int i = 0; i < response["peers"].size(); ++i)
 					{
-						if (response["peers"][i]["displayName"] != webrtc::g_cfg.get_string(webrtc::ECI_Client_Name))
+						if (response["peers"][i]["displayName"] != g_cfg.get_string(ECI_Client_Name))
 						{
 							std::string displayName = response["peers"][i]["displayName"];
 							temp_dataProducerIds.insert(displayName);

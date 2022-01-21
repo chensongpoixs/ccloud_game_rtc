@@ -14,13 +14,12 @@
 #include <cstdlib>
 //#include "cnoncopyable.h"
 #include "casync_log.h"
-#include "cconstructor_magic.h"
-#include "Export.h"
+ 
 namespace chen {
 	
-	class DSPDECODERPROXY_API clog //: private cnoncopyable
+	class  clog //: private cnoncopyable
 	{
-		_DISALLOW_COPY_AND_ASSIGN(clog)
+		 
 	private:
 		enum { EBuf_Size = 1024 };
 	public:

@@ -132,6 +132,15 @@
     <ClCompile Include="cinput_device_event.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="casync_log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="clog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ctime_api.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Consumer.hpp">
@@ -261,6 +270,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cint_point.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="casync_log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clog_define.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctime_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctime_const.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -16,7 +16,7 @@
 #include <iostream>
 #include <string>
 #include "cnet_types.h"
-namespace webrtc {
+namespace chen {
 	class ccfg_file //: private cnoncopyable
 	{
 	private:

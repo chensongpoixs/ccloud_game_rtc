@@ -14,7 +14,7 @@ purpose:		input_device
 #include <map>
 #include "cprotocol.h"
 #include "cint_point.h"
-namespace webrtc {
+namespace chen {
 	 
 	class cinput_device
 	{
