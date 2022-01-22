@@ -4,12 +4,15 @@
 #include "rtc_base/logging.h"
 #include "third_party/libyuv/include/libyuv.h"
 #include "ccfg.h"
+#if defined(_MSC_VER)
 #include <osgViewer/Viewer>
 #include <osgDB/ReadFile>
 #include <osg/ComputeBoundsVisitor>
 #include <osgviewer/viewereventhandlers>
 #include <osgEarthUtil/UTMGraticule>
 #include <osgUtil/Optimizer>
+#endif
+
 #include "cosd_util.h"
 
 
@@ -60,18 +63,23 @@ bool DesktopCapture::Init(size_t target_fps, size_t capture_screen_index)
 		RTC_CHECK(dc_->SelectSource(sources[capture_screen_index].id));
 		window_title_ = sources[capture_screen_index].title;
 	}*/
-	/*webrtc::DesktopCaptureOptions result;
-	result.set_allow_directx_capturer(true);*/
+#if defined(__APPLE__)
+
+
+	webrtc::DesktopCaptureOptions result;
+	result.set_allow_directx_capturer(true);
 	// 窗口
 	//dc_ = webrtc::DesktopCapturer::CreateWindowCapturer(result);
 		//webrtc::DesktopCaptureOptions::CreateDefault());
 	//桌面
 	
-	//dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(result);
+	dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(result);
 
-  //if (!dc_)
-  //  return false;
-
+	if (!dc_)
+	{
+		return false;
+	}
+#endif//#if defined(__APPLE__)
   //webrtc::DesktopCapturer::SourceList sources;
   //dc_->GetSourceList(&sources);
   ////int index = 0;
@@ -235,7 +243,9 @@ void DesktopCapture::OnOsgCaptureResult(webrtc::DesktopCapturer::Result result, 
 	}
 
 }
+#if defined(_MSC_VER)
 osg::ref_ptr<osgViewer::Viewer> viewer;
+#endif
 void DesktopCapture::StartCapture() {
   if (start_flag_) {
     RTC_LOG(WARNING) << "Capture already been running...";
@@ -243,13 +253,16 @@ void DesktopCapture::StartCapture() {
   }
 
   start_flag_ = true;
-
+#if defined(_MSC_VER)
   //if (chen::g_cfg.get_int32(chen::ECI_Capture_Type) == 0)
   {
 	  /*if (m_work_thread.joinable())
 	  {
 		  m_work_thread.join();
 	  }*/
+
+
+
 	  static bool work_thread = false;
 	 
 	  if (!work_thread)
@@ -259,31 +272,33 @@ void DesktopCapture::StartCapture() {
 		  m_work_thread = std::thread(&DesktopCapture::_work_thread, this);
 	  }
 	  CaptureScreen::Get()->set_m_data_callback(true);
+
   }
- 
+#elif    defined(__APPLE__)
   // Start new thread to capture
- // capture_thread_.reset(new std::thread([this]() {
-	//  
- // 
-	//  std::this_thread::sleep_for(std::chrono::seconds(3));
-	//   
- //   while (start_flag_) 
-	//{
-	//	 
-	//		CaptureScreen::Get()->CaptureFrame();
-	//		 
-	//  
-	////  RTC_LOG(LS_INFO) << "captureFrame fps = " << elapse;
- //     std::this_thread::sleep_for(std::chrono::milliseconds(1000 / fps_));
- //   }
-	//if (viewer)
-	//{
-	//	viewer->stopThreading();
-	//	delete viewer;
-	//	viewer = nullptr;
-	//}
-	//
- // }));
+  capture_thread_.reset(new std::thread([this]() {
+	  
+  
+	  std::this_thread::sleep_for(std::chrono::seconds(3));
+	   
+    while (start_flag_) 
+	{
+		 
+			CaptureScreen::Get()->CaptureFrame();
+			 
+	  
+	//  RTC_LOG(LS_INFO) << "captureFrame fps = " << elapse;
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000 / fps_));
+    }
+	if (viewer)
+	{
+		viewer->stopThreading();
+		delete viewer;
+		viewer = nullptr;
+	}
+	
+  }));
+#endif // #elif defined(__linux__) ||  defined(__APPLE__)
 }
 
 void DesktopCapture::StopCapture() {
@@ -297,12 +312,14 @@ void DesktopCapture::StopCapture() {
   //{
 	 // m_work_thread.join();
   //}
+ #if  defined(_MSC_VER)
   CaptureScreen::Get()->set_m_data_callback(false);
+#elif  defined(__APPLE__)
   if (capture_thread_ && capture_thread_->joinable()) 
   {
     capture_thread_->join();
   }
-
+#endif //_MSC_VER
 }
 void DesktopCapture::stop_osg()
 {
@@ -319,7 +336,7 @@ void DesktopCapture::stop_osg()
 
 void DesktopCapture::_work_thread()
 {
-
+#if  defined(_MSC_VER)
 	if(false)
 	{
 		//osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFile("cow.osg");
@@ -354,7 +371,7 @@ void DesktopCapture::_work_thread()
 		viewer->run();
 		//viewer->setUpViewOnSingleScreen(0);//这里是单屏幕显示
 	
-	
+
 	}
 
 
@@ -386,4 +403,5 @@ void DesktopCapture::_work_thread()
 	//viewer->removeEventHandler(event_ptr);
 	//delete event_ptr;
 	//event_ptr = nullptr;
+#endif // #if  defined(_MSC_VER)
 }

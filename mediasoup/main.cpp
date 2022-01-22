@@ -8,8 +8,6 @@
 #include "httplib.h"
 #include "cwebsocket_mgr.h"
 #include "ccfg.h"
-#include <WinUser.h>
-#include <Windows.h>
 #include "Broadcaster.hpp"
 #include "cwebsocket_mgr.h"
 #include "ccfg.h"
@@ -135,6 +133,8 @@ int  main(int argc, char* argv[])
 
 
 
+#if defined(_MSC_VER)
+
 
 
 // Test_Console.cpp : 定义控制台应用程序的入口点。
@@ -208,3 +208,4 @@ int test_windown_main(int argc, char* argv[])
 	
 	return 0;
 }
+#endif
