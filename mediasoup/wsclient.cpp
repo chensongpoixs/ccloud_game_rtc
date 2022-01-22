@@ -1,4 +1,6 @@
-
+#if defined(__APPLE__)
+#include <netdb.h>
+#endif
 #ifdef _WIN32
     #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
         #define _CRT_SECURE_NO_WARNINGS // _CRT_SECURE_NO_WARNINGS for sscanf errors in MSVC2013 Express
@@ -62,8 +64,12 @@
     #ifndef SOCKET_ERROR
         #define SOCKET_ERROR   (-1)
     #endif
+#include <errno.h>
+    #if defined(__APPLE__)
+    #include <netdb.h>
+    #endif
     #define closesocket(s) ::close(s)
-    #include <errno.h>
+  
     #define socketerrno errno
     #define SOCKET_EAGAIN_EINPROGRESS EAGAIN
     #define SOCKET_EWOULDBLOCK EWOULDBLOCK
@@ -71,7 +77,13 @@
 
 #include <vector>
 #include <string>
-#include "rtc_base/logging.h"
+
+//#include "rtc_base/logging.h"
+#if defined(__APPLE__)
+#include <netdb.h>
+#define closesocket(s) ::close(s)
+#endif
+
 #include "wsclient.h"
 #include <iostream>
 #include "cint2str.h"
@@ -114,7 +126,7 @@ socket_t hostname_connect(const std::string& hostname, int port) {
 		{
             break;
         }
-        ::closesocket(sockfd);
+        closesocket(sockfd);
         sockfd = INVALID_SOCKET;
     }
     ::freeaddrinfo(result);

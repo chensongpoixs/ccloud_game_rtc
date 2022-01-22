@@ -11,20 +11,24 @@ ADD_DEFINITIONS(-std=c++11 )
 
 
 INCLUDE_DIRECTORIES( 
-			./*.h
-			./*.hpp
-			./sdp/*.h
-			./sdp/*.hpp
+			./
+			./sdp
+			/Users/mac/Work/webrtc_google/webrtc/src
+			/Users/mac/Work/webrtc_google/webrtc/src/third_party/abseil-cpp
 		)
-
+add_definitions(-DWEBRTC_MAC)
 file(GLOB ALL_C_SRCS
         ./*.cpp
+        ./*.h
+        ./*.hpp
+        ./sdp/*.h
+        ./sdp/*.hpp
 	./*.cc
 	./*.c
 	./sdp/*.cpp
 	./sdp/*.cc
 	./sdp/*.c
         )
-#LINK_DIRECTORIES()
+LINK_DIRECTORIES(/Users/mac/Work/webrtc_google/webrtc/src/out/mac_x64_debug/obj)
 add_executable(${PROJECT_NAME} ${ALL_C_SRCS})
-target_link_libraries(${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME} libwebrtc.a)

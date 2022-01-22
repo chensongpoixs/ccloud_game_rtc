@@ -1,4 +1,4 @@
-﻿#include "Broadcaster.hpp"
+#include "Broadcaster.hpp"
 #include "mediasoupclient.hpp"
 //#include <cpr/cpr.h>
 #include <csignal> // sigsuspend()
@@ -45,9 +45,6 @@ void signalHandler(int signum)
 
 int  main(int argc, char* argv[])
 { 
- 
-
-	
 	const char* config_filename = "client.cfg";
 	if (argc > 1)
 	{
