@@ -1,4 +1,6 @@
-﻿#include "cwindow_util.h"
+﻿
+#include "cwindow_util.h"
+#if defined(_MSC_VER)
 #include <Windows.h>
 #include <stdio.h>
 #include <tchar.h>
@@ -102,3 +104,5 @@ namespace chen {
 		return ::ChildWindowFromPoint(mwnd, pt);
 	}
 }
+
+#endif //#if defined(_MSC_VER)

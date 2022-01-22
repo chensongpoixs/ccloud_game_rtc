@@ -376,6 +376,7 @@ namespace chen {
 			check(Event == EventType::MOUSE_DOWN || Event == EventType::MOUSE_UP);
 			// https://developer.mozilla.org/en-US/docs/Web/Events/mousedown
 			uint8 Button = Data.MouseButton.Button;
+			#if defined(_MSC_VER)
 			switch (Button)
 			{
 			case 0:
@@ -412,6 +413,7 @@ namespace chen {
 			}
 			break;
 			}
+			#endif //#if defined(_MSC_VER)
 			OutPosX = Data.MouseButton.PosX;
 			OutPosY = Data.MouseButton.PosY;
 		}

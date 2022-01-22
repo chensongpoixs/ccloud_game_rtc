@@ -25,7 +25,7 @@ namespace chen {
 	using FControllerAnalog = double;
 	using FControllerAxis = uint8;
 #define SET_POINT(v) POINT pt; pt.x = v.x; pt.y = v.y;
-
+#if defined(_MSC_VER)
 #define WINDOW_MAIN()		HWND mwin = FindMainWindow()
 #define WINDOW_CHILD()	HWND childwin = MainChildPoint(mwin, pt)
 #define WINDOW_BNTTON_DOWN(v)  uint32 active_type = WM_LBUTTONDOWN;					 \
@@ -74,6 +74,7 @@ namespace chen {
 							 														 \
 			break;																	 \
 	}
+#endif //#if defined(_MSC_VER)
 #define REGISTER_INPUT_DEVICE(type, handler_ptr) if (false == m_input_device.insert(std::make_pair(type, handler_ptr)).second){	 ERROR_EX_LOG("[type = %s][handler_ptr = %s]", #type, #handler_ptr);	return false;}
 	
 	
@@ -169,6 +170,7 @@ namespace chen {
 		// log key down -> repeat keyCode Repeat 
 		FEvent KeyDownEvent(EventType::KEY_DOWN);
 		KeyDownEvent.SetKeyDown(KeyCode, Repeat != 0);
+		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		// TODO@chensong 2022-01-20  keydown -> keycode -> repeat 
 		if (mwin)
@@ -180,6 +182,7 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
+		#endif //#if defined(_MSC_VER)
 		//KeyDownEvent.GetKeyDown();
 		//ProcessEvent(KeyDownEvent);
 		//WINDOW_MAIN();
@@ -212,6 +215,8 @@ namespace chen {
 		// log key up -> KeyCode
 		FEvent KeyUpEvent(EventType::KEY_UP);
 		KeyUpEvent.SetKeyUp(KeyCode);
+
+		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		if (mwin)
 		{
@@ -222,6 +227,7 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
+		#endif //#if defined(_MSC_VER)
 		//ProcessEvent(KeyUpEvent);
 		//WINDOW_MAIN();
 		//SET_POINT(vec);
@@ -296,7 +302,7 @@ namespace chen {
 		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
 		//ProcessEvent(MouseDownEvent);
 		NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
-
+		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		//WINDOW_BNTTON_DOWN(vec);
 		if (mwin)
@@ -309,6 +315,7 @@ namespace chen {
 			// log -> error 
 			return false;
 		}
+		#endif//#if defined(_MSC_VER)
 		return true;
 	
 	}
@@ -334,6 +341,7 @@ namespace chen {
 		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
 		NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
 		//ProcessEvent(MouseDownEvent);
+		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		//WINDOW_BNTTON_UP(vec);
 		if (mwin)
@@ -346,6 +354,7 @@ namespace chen {
 			// log -> error 
 			return false;
 		} 
+		#endif //#if defined(_MSC_VER)
 		return true;
 	}
 
@@ -369,6 +378,7 @@ namespace chen {
 		NORMAL_EX_LOG("---> PosX = %d, PoxY = %d, DeltaY = %d", PosX, PosY, DeltaY);
 		FEvent MouseMoveEvent(EventType::MOUSE_MOVE);
 		MouseMoveEvent.SetMouseDelta(PosX, PosY, DeltaX, DeltaY);
+		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		//WINDOW_BNTTON_UP(vec);
 		if (mwin)
@@ -381,6 +391,7 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
+		#endif // #if defined(_MSC_VER)
 		//ProcessEvent(MouseMoveEvent);
 		return true;
 	}
@@ -410,6 +421,7 @@ namespace chen {
 		FEvent MouseWheelEvent(EventType::MOUSE_WHEEL);
 		MouseWheelEvent.SetMouseWheel(Delta, PosX, PosY);
 		//ProcessEvent(MouseWheelEvent);
+		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		if (mwin)
 		{
@@ -421,7 +433,7 @@ namespace chen {
 			// log error 
 			return false;
 		}
-		
+		#endif // #if defined(_MSC_VER)
 		return true;
 	}
 

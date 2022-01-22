@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿#if defined(_MSC_VER)
+#pragma once
 #include <osg/Camera>
 #include <mutex>
 #include <atomic>
@@ -41,3 +42,4 @@ public:
 	double para = 0.0;
 	bool add = true;
 };
+#endif

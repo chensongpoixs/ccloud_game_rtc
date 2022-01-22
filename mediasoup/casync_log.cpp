@@ -20,7 +20,7 @@
 #ifdef _MSC_VER
 #include <io.h>
 #include <direct.h>
-#elif defined(__GNUC__) 
+#elif defined(__linux__) ||defined(__APPLE__)
 #include <unistd.h>
 #include <dirent.h>
 #else
@@ -120,7 +120,7 @@ namespace chen {
 
 			::_mkdir(m_path.c_str());
 		}
-#elif defined(__GNUC__) 
+#elif defined(__GNUC__) ||defined(__APPLE__)
 		if (::access(m_path.c_str(), 0) == -1)
 		{
 			::mkdir(m_path.c_str(), 0777);

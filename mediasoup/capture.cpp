@@ -1,5 +1,8 @@
-﻿#include "windows.h"
+#if defined(_MSC_VER)
 
+
+
+#include "windows.h"
 #include "capture.h"
 #include <osg/LightSource>
 #include <chrono>
@@ -170,3 +173,4 @@ void CaptureScreen::setCallback(DesktopCapture *callback)
 {
 	m_callback = callback;
 }
+#endif
