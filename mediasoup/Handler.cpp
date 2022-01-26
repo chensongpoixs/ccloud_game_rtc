@@ -132,7 +132,9 @@ namespace mediasoupclient
 		MSC_TRACE();
 
 		if (localSdpObject.empty())
+		{
 			localSdpObject = sdptransform::parse(this->pc->GetLocalDescription());
+		}
 
 		// Get our local DTLS parameters.
 		auto dtlsParameters = Sdp::Utils::extractDtlsParameters(localSdpObject);
@@ -225,7 +227,7 @@ namespace mediasoupclient
 
 			// Transport is not ready.
 			if (!this->transportReady)
-			{
+			{ // webrtc _connect 
 				this->SetupTransport("server", localSdpObject);
 			}
 

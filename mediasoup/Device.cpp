@@ -151,9 +151,13 @@ namespace mediasoupclient
 		MSC_TRACE();
 
 		if (!this->loaded)
+		{
 			MSC_THROW_INVALID_STATE_ERROR("not loaded");
+		}
 		else if (!appData.is_object())
+		{
 			MSC_THROW_TYPE_ERROR("appData must be a JSON object");
+		}
 
 		// Validate arguments.
 		ortc::validateIceParameters(const_cast<json&>(iceParameters));

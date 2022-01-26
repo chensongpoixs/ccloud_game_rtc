@@ -1,5 +1,6 @@
 #include "cwebsocket_mgr.h"
 #include "Broadcaster.hpp"
+#include "clog.h"
 namespace chen
 {
 
@@ -85,6 +86,15 @@ namespace chen
 		clock_guard lock(m_mutex);
 		m_send_msgs.push_back(message);
 	}
+	void cwebsocket_mgr::presssmsg(std::list<std::string>& msgs)
+	{
+		 
+		{
+			clock_guard lock(m_recv_msg_mutex);
+			msgs = std::move(m_recv_msgs);
+			m_recv_msgs.clear();
+		}
+	}
 	void cwebsocket_mgr::_work_thread()
 	{
 		 
@@ -124,11 +134,17 @@ namespace chen
 
 	 void cwebsocket_mgr::OnMessage(const std::string& message)
 	{
+		 NORMAL_EX_LOG("");
+		 
+		 {
+			 clock_guard lock(m_recv_msg_mutex);
+			 m_recv_msgs.push_back(message);
+		 }
 
 	}
 	 void cwebsocket_mgr::OnMessage(const std::vector<uint8_t>& message)
 	{
-
+		 NORMAL_EX_LOG("");
 	}
 	void cwebsocket_mgr::OnClose()
 	{

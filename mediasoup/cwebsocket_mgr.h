@@ -38,7 +38,7 @@ namespace chen
 		void destroy();
 		
 		void send(const std::string & message);
-
+		void presssmsg(std::list<std::string>& msgs);
 		CWEBSOCKET_TYPE get_status() const { return m_status; }
 
 
@@ -60,6 +60,8 @@ namespace chen
 		wsclient::WebSocket::pointer	m_ws;
 		std::mutex						m_mutex;
 		std::list<std::string>			m_send_msgs;
+		std::mutex						m_recv_msg_mutex;
+		std::list<std::string>			m_recv_msgs;
 	};
 
 	extern cwebsocket_mgr g_websocket_mgr;
