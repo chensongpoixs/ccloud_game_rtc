@@ -134,6 +134,7 @@
     <ClCompile Include="capture.cpp" />
     <ClCompile Include="casync_log.cpp" />
     <ClCompile Include="ccfg.cpp" />
+    <ClCompile Include="cclient.cpp" />
     <ClCompile Include="ccloud_rendering.cpp" />
     <ClCompile Include="cconfig.cpp" />
     <ClCompile Include="chttp_mgr.cpp" />
@@ -144,7 +145,9 @@
     <ClCompile Include="cnet_types.cpp" />
     <ClCompile Include="Consumer.cpp" />
     <ClCompile Include="cosd_util.cpp" />
+    <ClCompile Include="cproducer.cpp" />
     <ClCompile Include="ctime_api.cpp" />
+    <ClCompile Include="ctransport.cpp" />
     <ClCompile Include="cwebsocket_mgr.cpp" />
     <ClCompile Include="cwebsocket_session.cpp" />
     <ClCompile Include="cwindow_util.cpp" />
@@ -178,6 +181,7 @@
     <ClInclude Include="cassertion_macros.h" />
     <ClInclude Include="casync_log.h" />
     <ClInclude Include="ccfg.h" />
+    <ClInclude Include="cclient.h" />
     <ClInclude Include="ccloud_rendering.h" />
     <ClInclude Include="cconfig.h" />
     <ClInclude Include="chttp_mgr.h" />
@@ -190,9 +194,11 @@
     <ClInclude Include="cnet_types.h" />
     <ClInclude Include="Consumer.hpp" />
     <ClInclude Include="cosd_util.h" />
+    <ClInclude Include="cproducer.h" />
     <ClInclude Include="cprotocol.h" />
     <ClInclude Include="ctime_api.h" />
     <ClInclude Include="ctime_const.h" />
+    <ClInclude Include="ctransport.h" />
     <ClInclude Include="cwebsocket_mgr.h" />
     <ClInclude Include="cwebsocket_session.h" />
     <ClInclude Include="cwindow_util.h" />

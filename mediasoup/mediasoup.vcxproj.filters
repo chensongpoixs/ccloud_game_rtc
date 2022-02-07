@@ -141,6 +141,15 @@
     <ClCompile Include="ctime_api.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cproducer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ctransport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cclient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Consumer.hpp">
@@ -285,6 +294,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ctime_const.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cproducer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctransport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cclient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
