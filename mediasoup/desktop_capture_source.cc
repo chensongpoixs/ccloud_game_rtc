@@ -58,25 +58,6 @@ void DesktopCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
     ;
 
 
-	/*
-	VideoFrame captureFrame =
-      VideoFrame::Builder()
-          .set_video_frame_buffer(buffer)
-          .set_timestamp_rtp(0)
-          .set_timestamp_ms(rtc::TimeMillis())
-          .set_rotation(!apply_rotation ? _rotateFrame : kVideoRotation_0)
-          .build();
-  captureFrame.set_ntp_time_ms(captureTime);
-  RTC_LOG(INFO) << "[chensong]ntp time ms = " << captureTime;
-	
-	*/
-    /*if (frame.has_update_rect()) {
-      webrtc::VideoFrame::UpdateRect new_rect =
-          frame.update_rect().ScaleWithFrame(frame.width(), frame.height(), 0,
-                                             0, frame.width(), frame.height(),
-                                             out_width, out_height);
-      new_frame_builder.set_update_rect(new_rect);
-    }*/
     broadcaster_.OnFrame(new_frame_builder.build());
   } else {
     // No adaptations needed, just return the frame as is.

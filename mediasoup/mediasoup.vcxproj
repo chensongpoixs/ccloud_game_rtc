@@ -156,7 +156,6 @@
     <ClCompile Include="mediasoupclient.cpp" />
     <ClCompile Include="ortc.cpp" />
     <ClCompile Include="parser.cpp" />
-    <ClCompile Include="Producer.cpp" />
     <ClCompile Include="scalabilityMode.cpp" />
     <ClCompile Include="sdp\MediaSection.cpp" />
     <ClCompile Include="sdp\RemoteSdp.cpp" />
@@ -194,7 +193,6 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="mediasoupclient.hpp" />
     <ClInclude Include="ortc.hpp" />
-    <ClInclude Include="Producer.hpp" />
     <ClInclude Include="scalabilityMode.hpp" />
     <ClInclude Include="sdptransform.hpp" />
     <ClInclude Include="sdp\MediaSection.hpp" />

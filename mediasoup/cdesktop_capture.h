@@ -26,13 +26,10 @@ namespace chen {
 
 		void StartCapture();
 		void StopCapture();
-		void stop_osg();
-		void OnOsgCaptureResult(webrtc::DesktopCapturer::Result result, unsigned char * rgba, int32_t width, int32_t height);
-
+	 
 	private:
 		DesktopCapture();
-		void _work_thread();
-
+	 
 		void Destory();
 
 		void OnFrame(const webrtc::VideoFrame& frame) override {}
@@ -42,7 +39,7 @@ namespace chen {
 		void OnCaptureResult(webrtc::DesktopCapturer::Result result,
 			std::unique_ptr<webrtc::DesktopFrame> frame) override;
 		std::unique_ptr<webrtc::DesktopCapturer> dc_;
-		//std::unique_ptr<CaptureScreen>
+		 
 		size_t fps_;
 		std::string window_title_;
 

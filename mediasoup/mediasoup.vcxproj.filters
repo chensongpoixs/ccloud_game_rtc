@@ -33,9 +33,6 @@
     <ClCompile Include="parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Producer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="scalabilityMode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,9 +126,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ortc.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Producer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scalabilityMode.hpp">
