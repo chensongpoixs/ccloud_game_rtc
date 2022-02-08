@@ -12,7 +12,57 @@
 #include "cproducer.h"
 #include <memory>
 #include "cclient.h"
+#include "cdesktop_capture.h"
+#include "PeerConnection.hpp"
+#include "peerConnectionUtils.hpp"
+#include "pc/video_track_source.h"
 namespace chen {
+
+	class CCapturerTrackSource : public webrtc::VideoTrackSource {
+	public:
+		static rtc::scoped_refptr<CCapturerTrackSource> Create() {
+			/*const size_t kWidth = 640;
+			const size_t kHeight = 480;
+			const size_t kFps = 30;
+			std::unique_ptr<webrtc::test::VcmCapturer> capturer;
+			std::unique_ptr<webrtc::VideoCaptureModule::DeviceInfo> info(
+			webrtc::VideoCaptureFactory::CreateDeviceInfo());
+			if (!info) {
+			return nullptr;
+			}
+			int num_devices = info->NumberOfDevices();
+			for (int i = 0; i < num_devices; ++i) {
+			capturer = absl::WrapUnique(
+			webrtc::test::VcmCapturer::Create(kWidth, kHeight, kFps, i));
+			if (capturer) {
+			return new
+			rtc::RefCountedObject<CapturerTrackSource>(std::move(capturer));
+			}
+			}*/
+			std::unique_ptr<  DesktopCapture> capturer(  DesktopCapture::Create(25,0));
+			if (capturer) 
+			{
+				capturer->StartCapture();
+				return new
+					rtc::RefCountedObject<CCapturerTrackSource>(std::move(capturer));
+			}
+			return nullptr;
+		}
+
+	protected:
+		explicit CCapturerTrackSource(
+			std::unique_ptr< DesktopCapture> capturer)
+			: VideoTrackSource(/*remote=*/false), capturer_(std::move(capturer)) {}
+
+	private:
+		rtc::VideoSourceInterface<webrtc::VideoFrame>* source() override {
+			return capturer_.get();
+		}
+		//std::unique_ptr<webrtc::test::VcmCapturer> capturer_;
+		std::unique_ptr< DesktopCapture> capturer_;
+	};
+
+
 
 	class cSetSessionDescriptionObserver : public webrtc::SetSessionDescriptionObserver
 	{
@@ -47,7 +97,8 @@ namespace chen {
 	};
 	ctransport::ctransport( std::string transport_id, cclient* ptr):m_transport_id ( transport_id), m_client_ptr(ptr)
 	{}
-	bool ctransport::init(const std::string &transport_id,  const nlohmann::json& extendedRtpCapabilities,  const nlohmann::json& iceParameters,
+	bool ctransport::init(const std::string &transport_id,  const nlohmann::json& extendedRtpCapabilities,  
+		const nlohmann::json& iceParameters,
 		const nlohmann::json& iceCandidates,
 		const nlohmann::json& dtlsParameters,
 		const nlohmann::json& sctpParameters)
@@ -85,9 +136,16 @@ namespace chen {
 		config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
 		m_peer_connection = m_peer_connection_factory->CreatePeerConnection(config, nullptr, nullptr, this);
 
-
-
-		m_remote_sdp.reset( new mediasoupclient::Sdp::RemoteSdp(iceParameters, iceCandidates, dtlsParameters, sctpParameters));
+		nlohmann::json iceParameters_ = iceParameters;
+		NORMAL_EX_LOG("iceParameters_ = %s", iceParameters_.dump().c_str());
+		NORMAL_EX_LOG("iceCandidates = %s", iceCandidates.dump().c_str());
+		NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
+		NORMAL_EX_LOG("sctpParameters = %s", sctpParameters.dump().c_str());
+		/*const nlohmann::json& iceCandidates,
+		const nlohmann::json& dtlsParameters,
+		const nlohmann::json& sctpParameters*/
+		mediasoupclient::Sdp::RemoteSdp* removesdp_ptr = new mediasoupclient::Sdp::RemoteSdp(iceParameters_, iceCandidates, dtlsParameters, sctpParameters);
+		m_remote_sdp.reset( removesdp_ptr );
 		m_transport_id = transport_id;
 		
 		m_sendingRtpParametersByKind = {
@@ -96,22 +154,25 @@ namespace chen {
 		m_sendingRemoteRtpParametersByKind ={
 			{"video", mediasoupclient::ortc::getSendingRemoteRtpParameters("video", extendedRtpCapabilities)}
 		};
+		m_track = m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), CCapturerTrackSource::Create());
+
 		return true;
 	}
 
 	bool ctransport::webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track)
 	{
-		if (!track)
+		//track = createVideoTrack(std::to_string(rtc::CreateRandomId()));
+		 if (!m_track)
 		{
 			ERROR_EX_LOG("webrtc connect transport failed !!! track = nullptr" );
 			return false;
 		}
-		if (track->state() == webrtc::MediaStreamTrackInterface::TrackState::kEnded)
+		if (m_track->state() == webrtc::MediaStreamTrackInterface::TrackState::kEnded)
 		{
-			ERROR_EX_LOG("webrtc connect transport failed !!! track state = %u", track->state());
+			ERROR_EX_LOG("webrtc connect transport failed !!! track state = %u", m_track->state());
 			return false;
 		}
-		
+	 
 		webrtc::RtpTransceiverInit transceiverInit;
 		/*
 		* Define a stream id so the generated local description is correct.
@@ -123,7 +184,7 @@ namespace chen {
 		transceiverInit.stream_ids.emplace_back("0");
 
 
-		webrtc::RTCErrorOr<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>> result = m_peer_connection->AddTransceiver(track, transceiverInit);
+		webrtc::RTCErrorOr<rtc::scoped_refptr<webrtc::RtpTransceiverInterface>> result = m_peer_connection->AddTransceiver(m_track, transceiverInit);
 
 		if (!result.ok())
 		{
@@ -143,10 +204,10 @@ namespace chen {
  
 	bool ctransport::webrtc_connect_transport_setup_connect(const std::string & localDtlsRole)
 	{
-		const webrtc::SessionDescriptionInterface* desc = m_peer_connection ->local_description();
-		std::string sdp;
+		//const webrtc::SessionDescriptionInterface* desc = m_peer_connection ->local_description();
+		std::string sdp = m_offer;
 
-		desc->ToString(&sdp);
+		//desc->ToString(&sdp);
 
 
 		nlohmann::json  localSdpObject = sdptransform::parse(sdp);
@@ -155,10 +216,11 @@ namespace chen {
 
 		// Set our DTLS role.
 		dtlsParameters["role"] = localDtlsRole;
+		//dtlsParameters["transportId"] = m_transport_id;
 		std::string remoteDtlsRole = localDtlsRole == "client" ? "server" : "client";
 		 m_remote_sdp->UpdateDtlsRole(remoteDtlsRole);
 
-
+		 NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
 		// send websocket connectWebRTCTransport --->>>
 		 m_client_ptr->_send_connect_webrtc_transport(dtlsParameters);
 
@@ -172,10 +234,10 @@ namespace chen {
 
 		json& sendingRtpParameters = m_sendingRtpParametersByKind[m_track->kind()];
 		{
-			const webrtc::SessionDescriptionInterface* desc = m_peer_connection->local_description();
-			std::string offer;
+			//const webrtc::SessionDescriptionInterface* desc = m_peer_connection->local_description();
+			std::string offer = m_offer;
 
-			desc->ToString(&offer);
+			//desc->ToString(&offer);
 
 
 			//m_peer_connection->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
@@ -340,7 +402,7 @@ namespace chen {
 		std::string sdp;
 
 		desc->ToString(&sdp);
-
+		m_offer = sdp;
 		//nlohmann::json localsdpobject =  sdptransform::parse(sdp);
 		m_client_ptr->transportofferasner(true);
 	}

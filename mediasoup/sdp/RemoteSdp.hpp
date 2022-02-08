@@ -60,8 +60,8 @@ namespace mediasoupclient
 			nlohmann::json rtpParametersByKind = nlohmann::json::object();
 			// Transport remote parameters, including ICE parameters, ICE candidates,
 			// DTLS parameteres and SCTP parameters.
-			nlohmann::json iceParameters  = nlohmann::json::object();
-			nlohmann::json iceCandidates  = nlohmann::json::object();
+			nlohmann::json iceParameters = nlohmann::json::object();
+			nlohmann::json iceCandidates = nlohmann::json::object();
 			nlohmann::json dtlsParameters = nlohmann::json::object();
 			nlohmann::json sctpParameters = nlohmann::json::object();
 			// MediaSection instances.

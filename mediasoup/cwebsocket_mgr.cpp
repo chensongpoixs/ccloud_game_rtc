@@ -73,7 +73,8 @@ namespace chen
 	}
 	void cwebsocket_mgr::destroy()
 	{
-		RTC_LOG(LS_INFO) << "websocket destroy !!!";
+		NORMAL_EX_LOG("websocket destroy !!!");
+		//RTC_LOG(LS_INFO) << "websocket destroy !!!";
 		m_stoped.store(true);
 		if (m_thread.joinable())
 		{
@@ -100,21 +101,25 @@ namespace chen
 		 
 		while (!m_stoped && m_ws->getReadyState() == wsclient::WebSocket::OPEN) 
 		{
-			
-			m_ws->poll();
-			m_ws->dispatch(this);
 			if (m_send_msgs.size())
 			{
 
 				clock_guard lock(m_mutex);
 				while (m_send_msgs.size())
 				{
+
 					std::string & send_message = m_send_msgs.front();
 					m_ws->send(send_message);
+					NORMAL_EX_LOG("websocket send msg = [%s]", send_message.c_str());
 					m_send_msgs.pop_front();
 				}
+
+
 			}
-			else
+			m_ws->poll();
+			m_ws->dispatch(this);
+			
+			 
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			}
@@ -134,7 +139,7 @@ namespace chen
 
 	 void cwebsocket_mgr::OnMessage(const std::string& message)
 	{
-		 NORMAL_EX_LOG("");
+		 //NORMAL_EX_LOG("");
 		 
 		 {
 			 clock_guard lock(m_recv_msg_mutex);
@@ -144,7 +149,7 @@ namespace chen
 	}
 	 void cwebsocket_mgr::OnMessage(const std::vector<uint8_t>& message)
 	{
-		 NORMAL_EX_LOG("");
+		 ERROR_EX_LOG("");
 	}
 	void cwebsocket_mgr::OnClose()
 	{

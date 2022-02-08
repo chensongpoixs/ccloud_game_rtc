@@ -16,14 +16,17 @@
 #include "ccloud_rendering.h"
 #include "cwindow_util.h"
 #include <api/task_queue/global_task_queue_factory.h>
+#include "cclient.h"
 using json = nlohmann::json;
 
+
+chen::cclient g_client;
 bool stoped = false;
-chen::ccloud_rendering ccloud_rendering_mgr;
+//chen::ccloud_rendering ccloud_rendering_mgr;
 
 void stop()
 {
-	ccloud_rendering_mgr.Destroy();
+	//ccloud_rendering_mgr.Destroy();
 	//webrtc::g_websocket_mgr.destroy();
 	//// Remove broadcaster from the server.
 	//broadcaster->Stop();
@@ -36,9 +39,9 @@ void stop()
 }
 void signalHandler(int signum)
 {
-	RTC_LOG(LS_INFO) << "[INFO] interrupt signal (" << signum << ") received";
+	//RTC_LOG(LS_INFO) << "[INFO] interrupt signal (" << signum << ") received";
 
-	stop();
+	//stop();
 	
 }
 
@@ -55,64 +58,78 @@ int  main(int argc, char* argv[])
 	}
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
-	std::thread m_thread;
-	int32_t  count = 0;
-	if (!ccloud_rendering_mgr.init(config_filename))
+
+	bool init = g_client.init(config_filename);
+	if (!init)
 	{
-		// error
+		//
+		g_client.Destory();
+		printf("g_client init failed config_name = %s", config_filename);
+		
 		return -1;
 	}
-	ccloud_rendering_mgr.Loop();;
+	g_client.Loop();
+	g_client.Destory();
 
-	ccloud_rendering_mgr.Destroy();
-	return 0;
-	printf("init ok  2... \n");
-	//while (false)
-	{
-		printf("main loop ........ \n");
-		m_thread = std::thread(
-			[=]() {
-			printf("child ->  loop ........ \n");
-			ccloud_rendering_mgr.Loop();
-			printf("child ->  loop exit ........ \n");
-		}
-		);
-		printf("main [g_thread_count = %d] loop min 2... \n", g_thread_count);
-		std::this_thread::sleep_for(std::chrono::seconds(30));
-		printf("main [g_thread_count = %d][] loop min 2... \n", g_thread_count);
-		ccloud_rendering_mgr.Destroy();
-		
-		++count;
-		if (m_thread.joinable())
-		{
-			m_thread.join();
-		}
-		/*if (count < 10)
-		{
-			break;
-		}*/
-	}
-	//mediasoupclient::Handler::all_close();
-	printf("all stop\n");
-	//std::this_thread::sleep_for(std::chrono::seconds(10));
 
-	
-	printf("+++++++++++++++++ all stop ok !!! \n");
-	//std::this_thread::sleep_for(std::chrono::seconds(5));
-	
-	
-	//std::this_thread::sleep_for(std::chrono::minutes(1));
-	//webrtc::GlobalTaskQueueFactory()
-	//while (true)
-	{
-		printf("main [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
-		std::this_thread::sleep_for(std::chrono::seconds(10));
-		printf("main exit [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
-		//exit(0);
-	}
-	
+	//std::thread m_thread;
+	//int32_t  count = 0;
+	//if (!ccloud_rendering_mgr.init(config_filename))
+	//{
+	//	// error
+	//	return -1;
+	//}
+	//ccloud_rendering_mgr.Loop();;
 
-	return 0;
+	//ccloud_rendering_mgr.Destroy();
+	//return 0;
+	//printf("init ok  2... \n");
+	////while (false)
+	//{
+	//	printf("main loop ........ \n");
+	//	m_thread = std::thread(
+	//		[=]() {
+	//		printf("child ->  loop ........ \n");
+	//		ccloud_rendering_mgr.Loop();
+	//		printf("child ->  loop exit ........ \n");
+	//	}
+	//	);
+	//	printf("main [g_thread_count = %d] loop min 2... \n", g_thread_count);
+	//	std::this_thread::sleep_for(std::chrono::seconds(30));
+	//	printf("main [g_thread_count = %d][] loop min 2... \n", g_thread_count);
+	//	ccloud_rendering_mgr.Destroy();
+	//	
+	//	++count;
+	//	if (m_thread.joinable())
+	//	{
+	//		m_thread.join();
+	//	}
+	//	/*if (count < 10)
+	//	{
+	//		break;
+	//	}*/
+	//}
+	////mediasoupclient::Handler::all_close();
+	//printf("all stop\n");
+	////std::this_thread::sleep_for(std::chrono::seconds(10));
+
+	//
+	//printf("+++++++++++++++++ all stop ok !!! \n");
+	////std::this_thread::sleep_for(std::chrono::seconds(5));
+	//
+	//
+	////std::this_thread::sleep_for(std::chrono::minutes(1));
+	////webrtc::GlobalTaskQueueFactory()
+	////while (true)
+	//{
+	//	printf("main [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
+	//	std::this_thread::sleep_for(std::chrono::seconds(10));
+	//	printf("main exit [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
+	//	//exit(0);
+	//}
+	//
+
+	//return 0;
 	
 	
 	return 0;

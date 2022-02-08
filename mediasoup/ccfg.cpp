@@ -31,6 +31,7 @@ namespace chen {
 		set_string(ECI_Room_Name, "room_name", "chensong");
 		set_string(ECI_Client_Name, "client_name", "test");
 		set_uint32(ECI_Video_Fps, "video_fps", 30);
+		set_uint32(ECI_WebSocket_Reconnect, "reconnect_timer", 300);
 		/*set_int32(ECI_Time_Adjust, "time_adjust", 0);
 		set_string(ECI_Log_DB_Host, "log_db_ip", "127.0.0.1");
 		set_int32(ECI_Log_DB_Port, "log_db_port", 3306);

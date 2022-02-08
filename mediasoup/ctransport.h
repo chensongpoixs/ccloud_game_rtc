@@ -35,8 +35,8 @@ namespace chen {
 
 
 	public:
-		const std::string & get_transportId() const { return m_transport_id; }
-		const std::string& get_kind() const { return m_track->kind(); }
+		 std::string  get_transportId() const { return m_transport_id; }
+		 std::string get_kind() const { return m_track->kind(); }
 		nlohmann::json get_sending_rtpParameters() const { return m_sendingRtpParametersByKind[m_track->kind()]; }
 	public:
 
@@ -79,7 +79,7 @@ namespace chen {
 		std::unique_ptr<rtc::Thread> m_workerThread;
 		std::unique_ptr<mediasoupclient::Sdp::RemoteSdp>	 m_remote_sdp;
 		std::string											 m_transport_id;
-		webrtc::MediaStreamTrackInterface* m_track;
+		rtc::scoped_refptr<webrtc::VideoTrackInterface> m_track;
 		webrtc::RtpTransceiverInterface* m_transceiver;
 
 		// TODO@chensong 20220207 
@@ -89,6 +89,7 @@ namespace chen {
 
 		std::unordered_map<std::string, std::shared_ptr<cproducer>> m_producers;
 		cclient		*						m_client_ptr;
+		std::string							m_offer;
 	};
 }
 #endif // _C_TRANSPORT_H_

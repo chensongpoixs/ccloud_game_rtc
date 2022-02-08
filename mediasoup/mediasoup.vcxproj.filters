@@ -150,6 +150,9 @@
     <ClCompile Include="cclient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cdesktop_capture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Consumer.hpp">
@@ -303,6 +306,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cclient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cdesktop_capture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

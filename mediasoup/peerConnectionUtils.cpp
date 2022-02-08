@@ -94,9 +94,9 @@ static void createPeerConnectionFactory()
 	std::cout << "[INFO] peerConnectionUtils.createPeerConnectionFactory()" << std::endl;
 
 	webrtc::PeerConnectionInterface::RTCConfiguration config;
-
-	/*signalingThread = new rtc::Thread();
-	workerThread    = new rtc::Thread();
+	//networkThread.reset( )
+	signalingThread .reset( new rtc::Thread());
+	workerThread    .reset( new rtc::Thread());
 
 	signalingThread->SetName("signaling_thread", nullptr);
 	workerThread->SetName("worker_thread", nullptr);
@@ -104,7 +104,7 @@ static void createPeerConnectionFactory()
 	if (!signalingThread->Start() || !workerThread->Start())
 	{
 		throw std::runtime_error("Thread start errored");
-	}*/
+	}
 
 	peerConnectionFactory = webrtc::CreatePeerConnectionFactory(
 		networkThread.get(),

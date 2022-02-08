@@ -3,7 +3,7 @@
 #include "RemoteSdp.hpp"
 #include "../Logger.hpp"
 #include "../sdptransform.hpp"
-
+#include "../clog.h"
 using json = nlohmann::json;
 
 namespace mediasoupclient
@@ -11,15 +11,23 @@ namespace mediasoupclient
 	/* Sdp::RemoteSdp methods */
 
 	Sdp::RemoteSdp::RemoteSdp(
-	  const json& iceParameters,
-	  const json& iceCandidates,
-	  const json& dtlsParameters,
-	  const json& sctpParameters)
-	  : iceParameters(iceParameters), iceCandidates(iceCandidates), dtlsParameters(dtlsParameters),
-	    sctpParameters(sctpParameters)
+	  const json& iceParameters_,
+	  const json& iceCandidates_,
+	  const json& dtlsParameters_,
+	  const json& sctpParameters_)
+	  : iceParameters(iceParameters_), iceCandidates(iceCandidates_), dtlsParameters(dtlsParameters_),
+	    sctpParameters(sctpParameters_)
 	{
+	 
 		MSC_TRACE();
-
+		{
+			using namespace chen;
+			std::string ice = iceParameters_.dump();
+			NORMAL_EX_LOG("iceParameters_ = %s", ice.c_str());
+			NORMAL_EX_LOG("iceCandidates = %s", iceCandidates.dump().c_str());
+			NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
+			NORMAL_EX_LOG("sctpParameters = %s", sctpParameters.dump().c_str());
+		}
 		// clang-format off
 		this->sdpObject =
 		{
@@ -73,6 +81,8 @@ namespace mediasoupclient
 				{ "mids", ""       }
 			}
 		};
+		using namespace chen;
+		//NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
 		// clang-format on
 	}
 
@@ -109,8 +119,11 @@ namespace mediasoupclient
 	void Sdp::RemoteSdp::UpdateDtlsRole(const std::string& role)
 	{
 		MSC_TRACE();
-
-		this->dtlsParameters["role"] = role;
+		{
+			using namespace chen;
+			NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
+		}
+		dtlsParameters["role"] = role;
 
 		if (iceParameters.find("iceLite") != iceParameters.end())
 			sdpObject["icelite"] = "ice-lite";

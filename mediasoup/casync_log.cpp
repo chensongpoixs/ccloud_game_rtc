@@ -133,7 +133,7 @@ namespace chen {
 		if (storagetype & ELogStorageFile)
 		{
 			char log_name[1024] = {0};
-			gen_log_file_name(log_name, m_path + "/", "decoder", ".log", ELogName_AutoDate, m_date_time);
+			gen_log_file_name(log_name, m_path + "/", "mediasoup_native", ".log", ELogName_AutoDate, m_date_time);
 			m_fd.open(log_name, std::ios::out | std::ios::trunc);
 			if (!m_fd.is_open())
 			{
