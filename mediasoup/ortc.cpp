@@ -1,14 +1,14 @@
 #define MSC_CLASS "ortc"
 
 #include "ortc.hpp"
-#include "Logger.hpp"
-#include "MediaSoupClientErrors.hpp"
+ 
+ 
 #include <media/base/h264_profile_level_id.h>
 #include <algorithm> // std::find_if
 #include <regex>
 #include <stdexcept>
 #include <string>
-
+#include "clog.h"
 using json = nlohmann::json;
 using namespace mediasoupclient;
 
@@ -36,10 +36,10 @@ namespace mediasoupclient
 		 */
 		void validateRtpCapabilities(json& caps)
 		{
-			MSC_TRACE();
-
+		 
+			using namespace chen;
 			if (!caps.is_object())
-				MSC_THROW_TYPE_ERROR("caps is not an object");
+				ERROR_EX_LOG("caps is not an object");
 
 			auto codecsIt           = caps.find("codecs");
 			auto headerExtensionsIt = caps.find("headerExtensions");
@@ -47,7 +47,7 @@ namespace mediasoupclient
 			// codecs is optional. If unset, fill with an empty array.
 			if (codecsIt != caps.end() && !codecsIt->is_array())
 			{
-				MSC_THROW_TYPE_ERROR("caps.codecs is not an array");
+				ERROR_EX_LOG("caps.codecs is not an array");
 			}
 			else if (codecsIt == caps.end())
 			{
@@ -63,7 +63,7 @@ namespace mediasoupclient
 			// headerExtensions is optional. If unset, fill with an empty array.
 			if (headerExtensionsIt != caps.end() && !headerExtensionsIt->is_array())
 			{
-				MSC_THROW_TYPE_ERROR("caps.headerExtensions is not an array");
+				ERROR_EX_LOG("caps.headerExtensions is not an array");
 			}
 			else if (headerExtensionsIt == caps.end())
 			{
@@ -84,13 +84,13 @@ namespace mediasoupclient
 		 */
 		void validateRtpCodecCapability(json& codec)
 		{
-			MSC_TRACE();
+			using namespace chen;
 
 			static const std::regex MimeTypeRegex(
 			  "^(audio|video)/(.+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
 			if (!codec.is_object())
-				MSC_THROW_TYPE_ERROR("codec is not an object");
+				ERROR_EX_LOG("codec is not an object");
 
 			auto mimeTypeIt             = codec.find("mimeType");
 			auto preferredPayloadTypeIt = codec.find("preferredPayloadType");
@@ -101,25 +101,25 @@ namespace mediasoupclient
 
 			// mimeType is mandatory.
 			if (mimeTypeIt == codec.end() || !mimeTypeIt->is_string())
-				MSC_THROW_TYPE_ERROR("missing codec.mimeType");
+				ERROR_EX_LOG("missing codec.mimeType");
 
 			std::smatch mimeTypeMatch;
 			std::string regexTarget = mimeTypeIt->get<std::string>();
 			std::regex_match(regexTarget, mimeTypeMatch, MimeTypeRegex);
 
 			if (mimeTypeMatch.empty())
-				MSC_THROW_TYPE_ERROR("invalid codec.mimeType");
+				ERROR_EX_LOG("invalid codec.mimeType");
 
 			// Just override kind with media component of mimeType.
 			codec["kind"] = mimeTypeMatch[1].str();
 
 			// preferredPayloadType is optional.
 			if (preferredPayloadTypeIt != codec.end() && !preferredPayloadTypeIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("invalid codec.preferredPayloadType");
+				ERROR_EX_LOG("invalid codec.preferredPayloadType");
 
 			// clockRate is mandatory.
 			if (clockRateIt == codec.end() || !clockRateIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing codec.clockRate");
+				ERROR_EX_LOG("missing codec.clockRate");
 
 			// channels is optional. If unset, set it to 1 (just if audio).
 			if (codec["kind"] == "audio")
@@ -146,13 +146,13 @@ namespace mediasoupclient
 				auto& value     = it.value();
 
 				if (!value.is_string() && !value.is_number() && value != nullptr)
-					MSC_THROW_TYPE_ERROR("invalid codec parameter");
+					ERROR_EX_LOG("invalid codec parameter");
 
 				// Specific parameters validation.
 				if (key == "apt")
 				{
 					if (!value.is_number_integer())
-						MSC_THROW_TYPE_ERROR("invalid codec apt parameter");
+						ERROR_EX_LOG("invalid codec apt parameter");
 				}
 			}
 
@@ -176,17 +176,17 @@ namespace mediasoupclient
 		 */
 		void validateRtcpFeedback(json& fb)
 		{
-			MSC_TRACE();
-
+		 
+			using namespace chen;
 			if (!fb.is_object())
-				MSC_THROW_TYPE_ERROR("fb is not an object");
+				ERROR_EX_LOG("fb is not an object");
 
 			auto typeIt      = fb.find("type");
 			auto parameterIt = fb.find("parameter");
 
 			// type is mandatory.
 			if (typeIt == fb.end() || !typeIt->is_string())
-				MSC_THROW_TYPE_ERROR("missing fb.type");
+				ERROR_EX_LOG("missing fb.type");
 
 			// parameter is optional. If unset set it to an empty string.
 			if (parameterIt == fb.end() || !parameterIt->is_string())
@@ -200,10 +200,10 @@ namespace mediasoupclient
 		 */
 		void validateRtpHeaderExtension(json& ext)
 		{
-			MSC_TRACE();
-
+			 
+			using namespace chen;
 			if (!ext.is_object())
-				MSC_THROW_TYPE_ERROR("ext is not an object");
+				ERROR_EX_LOG("ext is not an object");
 
 			auto kindIt             = ext.find("kind");
 			auto uriIt              = ext.find("uri");
@@ -219,25 +219,25 @@ namespace mediasoupclient
 			std::string kind = kindIt->get<std::string>();
 
 			if (!kind.empty() && kind != "audio" && kind != "video")
-				MSC_THROW_TYPE_ERROR("invalid ext.kind");
+				ERROR_EX_LOG("invalid ext.kind");
 
 			// uri is mandatory.
 			if (uriIt == ext.end() || !uriIt->is_string() || uriIt->get<std::string>().empty())
-				MSC_THROW_TYPE_ERROR("missing ext.uri");
+				ERROR_EX_LOG("missing ext.uri");
 
 			// preferredId is mandatory.
 			if (preferredIdIt == ext.end() || !preferredIdIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing ext.preferredId");
+				ERROR_EX_LOG("missing ext.preferredId");
 
 			// preferredEncrypt is optional. If unset set it to false.
 			if (preferredEncryptIt != ext.end() && !preferredEncryptIt->is_boolean())
-				MSC_THROW_TYPE_ERROR("invalid ext.preferredEncrypt");
+				ERROR_EX_LOG("invalid ext.preferredEncrypt");
 			else if (preferredEncryptIt == ext.end())
 				ext["preferredEncrypt"] = false;
 
 			// direction is optional. If unset set it to sendrecv.
 			if (directionIt != ext.end() && !directionIt->is_string())
-				MSC_THROW_TYPE_ERROR("invalid ext.direction");
+				ERROR_EX_LOG("invalid ext.direction");
 			else if (directionIt == ext.end())
 				ext["direction"] = "sendrecv";
 		}
@@ -249,10 +249,10 @@ namespace mediasoupclient
 		 */
 		void validateRtpParameters(json& params)
 		{
-			MSC_TRACE();
+			using namespace chen;
 
 			if (!params.is_object())
-				MSC_THROW_TYPE_ERROR("params is not an object");
+				ERROR_EX_LOG("params is not an object");
 
 			auto midIt              = params.find("mid");
 			auto codecsIt           = params.find("codecs");
@@ -263,12 +263,12 @@ namespace mediasoupclient
 			// mid is optional.
 			if (midIt != params.end() && (!midIt->is_string() || midIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("params.mid is not a string");
+				ERROR_EX_LOG("params.mid is not a string");
 			}
 
 			// codecs is mandatory.
 			if (codecsIt == params.end() || !codecsIt->is_array())
-				MSC_THROW_TYPE_ERROR("missing params.codecs");
+				ERROR_EX_LOG("missing params.codecs");
 
 			for (auto& codec : *codecsIt)
 			{
@@ -278,7 +278,7 @@ namespace mediasoupclient
 			// headerExtensions is optional. If unset, fill with an empty array.
 			if (headerExtensionsIt != params.end() && !headerExtensionsIt->is_array())
 			{
-				MSC_THROW_TYPE_ERROR("params.headerExtensions is not an array");
+				ERROR_EX_LOG("params.headerExtensions is not an array");
 			}
 			else if (headerExtensionsIt == params.end())
 			{
@@ -294,7 +294,7 @@ namespace mediasoupclient
 			// encodings is optional. If unset, fill with an empty array.
 			if (encodingsIt != params.end() && !encodingsIt->is_array())
 			{
-				MSC_THROW_TYPE_ERROR("params.encodings is not an array");
+				ERROR_EX_LOG("params.encodings is not an array");
 			}
 			else if (encodingsIt == params.end())
 			{
@@ -310,7 +310,7 @@ namespace mediasoupclient
 			// rtcp is optional. If unset, fill with an empty object.
 			if (rtcpIt != params.end() && !rtcpIt->is_object())
 			{
-				MSC_THROW_TYPE_ERROR("params.rtcp is not an object");
+				ERROR_EX_LOG("params.rtcp is not an object");
 			}
 			else if (rtcpIt == params.end())
 			{
@@ -328,13 +328,13 @@ namespace mediasoupclient
 		 */
 		void validateRtpCodecParameters(json& codec)
 		{
-			MSC_TRACE();
-
+			 
+			using namespace chen;
 			static const std::regex MimeTypeRegex(
 			  "^(audio|video)/(.+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
 			if (!codec.is_object())
-				MSC_THROW_TYPE_ERROR("codec is not an object");
+				ERROR_EX_LOG("codec is not an object");
 
 			auto mimeTypeIt     = codec.find("mimeType");
 			auto payloadTypeIt  = codec.find("payloadType");
@@ -345,22 +345,22 @@ namespace mediasoupclient
 
 			// mimeType is mandatory.
 			if (mimeTypeIt == codec.end() || !mimeTypeIt->is_string())
-				MSC_THROW_TYPE_ERROR("missing codec.mimeType");
+				ERROR_EX_LOG("missing codec.mimeType");
 
 			std::smatch mimeTypeMatch;
 			std::string regexTarget = mimeTypeIt->get<std::string>();
 			std::regex_match(regexTarget, mimeTypeMatch, MimeTypeRegex);
 
 			if (mimeTypeMatch.empty())
-				MSC_THROW_TYPE_ERROR("invalid codec.mimeType");
+				ERROR_EX_LOG("invalid codec.mimeType");
 
 			// payloadType is mandatory.
 			if (payloadTypeIt == codec.end() || !payloadTypeIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing codec.payloadType");
+				ERROR_EX_LOG("missing codec.payloadType");
 
 			// clockRate is mandatory.
 			if (clockRateIt == codec.end() || !clockRateIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing codec.clockRate");
+				ERROR_EX_LOG("missing codec.clockRate");
 
 			// Retrieve media kind from mimeType.
 			auto kind = mimeTypeMatch[1].str();
@@ -390,13 +390,13 @@ namespace mediasoupclient
 				auto& value     = it.value();
 
 				if (!value.is_string() && !value.is_number() && value != nullptr)
-					MSC_THROW_TYPE_ERROR("invalid codec parameter");
+					ERROR_EX_LOG("invalid codec parameter");
 
 				// Specific parameters validation.
 				if (key == "apt")
 				{
 					if (!value.is_number_integer())
-						MSC_THROW_TYPE_ERROR("invalid codec apt parameter");
+						ERROR_EX_LOG("invalid codec apt parameter");
 				}
 			}
 
@@ -420,10 +420,10 @@ namespace mediasoupclient
 		 */
 		void validateRtpHeaderExtensionParameters(json& ext)
 		{
-			MSC_TRACE();
+			using namespace chen;
 
 			if (!ext.is_object())
-				MSC_THROW_TYPE_ERROR("ext is not an object");
+				ERROR_EX_LOG("ext is not an object");
 
 			auto uriIt        = ext.find("uri");
 			auto idIt         = ext.find("id");
@@ -433,16 +433,16 @@ namespace mediasoupclient
 			// uri is mandatory.
 			if (uriIt == ext.end() || !uriIt->is_string() || uriIt->get<std::string>().empty())
 			{
-				MSC_THROW_TYPE_ERROR("missing ext.uri");
+				ERROR_EX_LOG("missing ext.uri");
 			}
 
 			// id is mandatory.
 			if (idIt == ext.end() || !idIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing ext.id");
+				ERROR_EX_LOG("missing ext.id");
 
 			// encrypt is optional. If unset set it to false.
 			if (encryptIt != ext.end() && !encryptIt->is_boolean())
-				MSC_THROW_TYPE_ERROR("invalid ext.encrypt");
+				ERROR_EX_LOG("invalid ext.encrypt");
 			else if (encryptIt == ext.end())
 				ext["encrypt"] = false;
 
@@ -458,7 +458,7 @@ namespace mediasoupclient
 				auto& value = it.value();
 
 				if (!value.is_string() && !value.is_number())
-					MSC_THROW_TYPE_ERROR("invalid header extension parameter");
+					ERROR_EX_LOG("invalid header extension parameter");
 			}
 		}
 
@@ -469,10 +469,10 @@ namespace mediasoupclient
 		 */
 		void validateRtpEncodingParameters(json& encoding)
 		{
-			MSC_TRACE();
+			using namespace chen;
 
 			if (!encoding.is_object())
-				MSC_THROW_TYPE_ERROR("encoding is not an object");
+				ERROR_EX_LOG("encoding is not an object");
 
 			auto ssrcIt            = encoding.find("ssrc");
 			auto ridIt             = encoding.find("rid");
@@ -482,18 +482,18 @@ namespace mediasoupclient
 
 			// ssrc is optional.
 			if (ssrcIt != encoding.end() && !ssrcIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("invalid encoding.ssrc");
+				ERROR_EX_LOG("invalid encoding.ssrc");
 
 			// rid is optional.
 			if (ridIt != encoding.end() && (!ridIt->is_string() || ridIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("invalid encoding.rid");
+				ERROR_EX_LOG("invalid encoding.rid");
 			}
 
 			// rtx is optional.
 			if (rtxIt != encoding.end() && !rtxIt->is_object())
 			{
-				MSC_THROW_TYPE_ERROR("invalid encoding.rtx");
+				ERROR_EX_LOG("invalid encoding.rtx");
 			}
 			else if (rtxIt != encoding.end())
 			{
@@ -501,7 +501,7 @@ namespace mediasoupclient
 
 				// RTX ssrc is mandatory if rtx is present.
 				if (rtxSsrcIt == rtxIt->end() || !rtxSsrcIt->is_number_integer())
-					MSC_THROW_TYPE_ERROR("missing encoding.rtx.ssrc");
+					ERROR_EX_LOG("missing encoding.rtx.ssrc");
 			}
 
 			// dtx is optional. If unset set it to false.
@@ -516,7 +516,7 @@ namespace mediasoupclient
 			)
 			// clang-format on
 			{
-				MSC_THROW_TYPE_ERROR("invalid encoding.scalabilityMode");
+				ERROR_EX_LOG("invalid encoding.scalabilityMode");
 			}
 		}
 
@@ -527,17 +527,17 @@ namespace mediasoupclient
 		 */
 		void validateRtcpParameters(json& rtcp)
 		{
-			MSC_TRACE();
-
+		 
+			using namespace chen;
 			if (!rtcp.is_object())
-				MSC_THROW_TYPE_ERROR("rtcp is not an object");
+				ERROR_EX_LOG("rtcp is not an object");
 
 			auto cnameIt       = rtcp.find("cname");
 			auto reducedSizeIt = rtcp.find("reducedSize");
 
 			// cname is optional.
 			if (cnameIt != rtcp.end() && !cnameIt->is_string())
-				MSC_THROW_TYPE_ERROR("invalid rtcp.cname");
+				ERROR_EX_LOG("invalid rtcp.cname");
 
 			// reducedSize is optional. If unset set it to true.
 			if (reducedSizeIt == rtcp.end() || !reducedSizeIt->is_boolean())
@@ -551,16 +551,15 @@ namespace mediasoupclient
 		 */
 		void validateSctpCapabilities(json& caps)
 		{
-			MSC_TRACE();
-
+			using namespace chen;
 			if (!caps.is_object())
-				MSC_THROW_TYPE_ERROR("caps is not an object");
+				ERROR_EX_LOG("caps is not an object");
 
 			auto numStreamsIt = caps.find("numStreams");
 
 			// numStreams is mandatory.
 			if (numStreamsIt == caps.end() || !numStreamsIt->is_object())
-				MSC_THROW_TYPE_ERROR("missing caps.numStreams");
+				ERROR_EX_LOG("missing caps.numStreams");
 
 			ortc::validateNumSctpStreams(*numStreamsIt);
 		}
@@ -572,21 +571,20 @@ namespace mediasoupclient
 		 */
 		void validateNumSctpStreams(json& numStreams)
 		{
-			MSC_TRACE();
-
+			using namespace chen;
 			if (!numStreams.is_object())
-				MSC_THROW_TYPE_ERROR("numStreams is not an object");
+				ERROR_EX_LOG("numStreams is not an object");
 
 			auto osIt  = numStreams.find("OS");
 			auto misIt = numStreams.find("MIS");
 
 			// OS is mandatory.
 			if (osIt == numStreams.end() || !osIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing numStreams.OS");
+				ERROR_EX_LOG("missing numStreams.OS");
 
 			// MIS is mandatory.
 			if (misIt == numStreams.end() || !misIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing numStreams.MIS");
+				ERROR_EX_LOG("missing numStreams.MIS");
 		}
 
 		/**
@@ -596,10 +594,10 @@ namespace mediasoupclient
 		 */
 		void validateSctpParameters(json& params)
 		{
-			MSC_TRACE();
-
+			 
+			using namespace chen;
 			if (!params.is_object())
-				MSC_THROW_TYPE_ERROR("params is not an object");
+				ERROR_EX_LOG("params is not an object");
 
 			auto portIt           = params.find("port");
 			auto osIt             = params.find("OS");
@@ -608,20 +606,20 @@ namespace mediasoupclient
 
 			// port is mandatory.
 			if (portIt == params.end() || !portIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing params.port");
+				ERROR_EX_LOG("missing params.port");
 
 			// OS is mandatory.
 			if (osIt == params.end() || !osIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing params.OS");
+				ERROR_EX_LOG("missing params.OS");
 
 			// MIS is mandatory.
 			if (misIt == params.end() || !misIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing params.MIS");
+				ERROR_EX_LOG("missing params.MIS");
 
 			// maxMessageSize is mandatory.
 			if (maxMessageSizeIt == params.end() || !maxMessageSizeIt->is_number_integer())
 			{
-				MSC_THROW_TYPE_ERROR("missing params.maxMessageSize");
+				ERROR_EX_LOG("missing params.maxMessageSize");
 			}
 		}
 
@@ -632,10 +630,9 @@ namespace mediasoupclient
 		 */
 		void validateSctpStreamParameters(json& params)
 		{
-			MSC_TRACE();
-
+			using namespace chen;
 			if (!params.is_object())
-				MSC_THROW_TYPE_ERROR("params is not an object");
+				ERROR_EX_LOG("params is not an object");
 
 			auto streamIdIt          = params.find("streamId");
 			auto orderedIt           = params.find("ordered");
@@ -646,7 +643,7 @@ namespace mediasoupclient
 
 			// streamId is mandatory.
 			if (streamIdIt == params.end() || !streamIdIt->is_number_integer())
-				MSC_THROW_TYPE_ERROR("missing params.streamId");
+				ERROR_EX_LOG("missing params.streamId");
 
 			// ordered is optional.
 			bool orderedGiven = false;
@@ -670,7 +667,7 @@ namespace mediasoupclient
 
 			if (maxPacketLifeTimeIt != params.end() && maxRetransmitsIt != params.end())
 			{
-				MSC_THROW_TYPE_ERROR("cannot provide both maxPacketLifeTime and maxRetransmits");
+				ERROR_EX_LOG("cannot provide both maxPacketLifeTime and maxRetransmits");
 			}
 
 			// clang-format off
@@ -681,7 +678,7 @@ namespace mediasoupclient
 			)
 			// clang-format on
 			{
-				MSC_THROW_TYPE_ERROR("cannot be ordered with maxPacketLifeTime or maxRetransmits");
+				ERROR_EX_LOG("cannot be ordered with maxPacketLifeTime or maxRetransmits");
 			}
 			// clang-format off
 			else if (
@@ -709,10 +706,10 @@ namespace mediasoupclient
 		 */
 		void validateIceParameters(json& params)
 		{
-			MSC_TRACE();
-
+			 
+			using namespace chen;
 			if (!params.is_object())
-				MSC_THROW_TYPE_ERROR("params is not an object");
+				ERROR_EX_LOG("params is not an object");
 
 			auto usernameFragmentIt = params.find("usernameFragment");
 			auto passwordIt         = params.find("password");
@@ -723,13 +720,13 @@ namespace mediasoupclient
 			  usernameFragmentIt == params.end() ||
 			  (!usernameFragmentIt->is_string() || usernameFragmentIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.usernameFragment");
+				ERROR_EX_LOG("missing params.usernameFragment");
 			}
 
 			// userFragment is mandatory.
 			if (passwordIt == params.end() || (!passwordIt->is_string() || passwordIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.password");
+				ERROR_EX_LOG("missing params.password");
 			}
 
 			// iceLIte is optional. If unset set it to false.
@@ -744,7 +741,8 @@ namespace mediasoupclient
 		 */
 		void validateIceCandidate(json& params)
 		{
-			MSC_TRACE();
+		 
+			using namespace chen;
 
 			static const std::regex ProtocolRegex(
 			  "(udp|tcp)", std::regex_constants::ECMAScript | std::regex_constants::icase);
@@ -753,7 +751,7 @@ namespace mediasoupclient
 			  "(host|srflx|prflx|relay)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
 			if (!params.is_object())
-				MSC_THROW_TYPE_ERROR("params is not an object");
+				ERROR_EX_LOG("params is not an object");
 
 			auto foundationIt = params.find("foundation");
 			auto priorityIt   = params.find("priority");
@@ -767,23 +765,23 @@ namespace mediasoupclient
 			  foundationIt == params.end() ||
 			  (!foundationIt->is_string() || foundationIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.foundation");
+				ERROR_EX_LOG("missing params.foundation");
 			}
 
 			// priority is mandatory.
 			if (priorityIt == params.end() || !priorityIt->is_number_unsigned())
-				MSC_THROW_TYPE_ERROR("missing params.priority");
+				ERROR_EX_LOG("missing params.priority");
 
 			// ip is mandatory.
 			if (ipIt == params.end() || (!ipIt->is_string() || ipIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.ip");
+				ERROR_EX_LOG("missing params.ip");
 			}
 
 			// protocol is mandatory.
 			if (protocolIt == params.end() || (!protocolIt->is_string() || protocolIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.protocol");
+				ERROR_EX_LOG("missing params.protocol");
 			}
 
 			std::smatch protocolMatch;
@@ -791,16 +789,16 @@ namespace mediasoupclient
 			std::regex_match(regexTarget, protocolMatch, ProtocolRegex);
 
 			if (protocolMatch.empty())
-				MSC_THROW_TYPE_ERROR("invalid params.protocol");
+				ERROR_EX_LOG("invalid params.protocol");
 
 			// port is mandatory.
 			if (portIt == params.end() || !portIt->is_number_unsigned())
-				MSC_THROW_TYPE_ERROR("missing params.port");
+				ERROR_EX_LOG("missing params.port");
 
 			// type is mandatory.
 			if (typeIt == params.end() || (!typeIt->is_string() || typeIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.type");
+				ERROR_EX_LOG("missing params.type");
 			}
 
 			std::smatch typeMatch;
@@ -808,7 +806,7 @@ namespace mediasoupclient
 			std::regex_match(regexTarget, typeMatch, TypeRegex);
 
 			if (typeMatch.empty())
-				MSC_THROW_TYPE_ERROR("invalid params.type");
+				ERROR_EX_LOG("invalid params.type");
 		}
 
 		/**
@@ -818,10 +816,10 @@ namespace mediasoupclient
 		 */
 		void validateIceCandidates(json& params)
 		{
-			MSC_TRACE();
-
+			 
+			using namespace chen;
 			if (!params.is_array())
-				MSC_THROW_TYPE_ERROR("params is not an array");
+				ERROR_EX_LOG("params is not an array");
 
 			for (auto& iceCandidate : params)
 			{
@@ -836,10 +834,9 @@ namespace mediasoupclient
 		 */
 		void validateDtlsFingerprint(json& params)
 		{
-			MSC_TRACE();
-
+			using namespace chen;
 			if (!params.is_object())
-				MSC_THROW_TYPE_ERROR("params is not an object");
+				ERROR_EX_LOG("params is not an object");
 
 			auto algorithmIt = params.find("algorithm");
 			auto valueIt     = params.find("value");
@@ -849,13 +846,13 @@ namespace mediasoupclient
 			  algorithmIt == params.end() ||
 			  (!algorithmIt->is_string() || algorithmIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.algorithm");
+				ERROR_EX_LOG("missing params.algorithm");
 			}
 
 			// foundation is mandatory.
 			if (valueIt == params.end() || (!valueIt->is_string() || valueIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.value");
+				ERROR_EX_LOG("missing params.value");
 			}
 		}
 
@@ -866,13 +863,13 @@ namespace mediasoupclient
 		 */
 		void validateDtlsParameters(json& params)
 		{
-			MSC_TRACE();
-
+			 
+			using namespace chen;
 			static const std::regex RoleRegex(
 			  "(auto|client|server)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
 			if (!params.is_object())
-				MSC_THROW_TYPE_ERROR("params is not an object");
+				ERROR_EX_LOG("params is not an object");
 
 			auto roleIt         = params.find("role");
 			auto fingerprintsIt = params.find("fingerprints");
@@ -880,7 +877,7 @@ namespace mediasoupclient
 			// role is mandatory.
 			if (roleIt == params.end() || (!roleIt->is_string() || roleIt->get<std::string>().empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.role");
+				ERROR_EX_LOG("missing params.role");
 			}
 
 			std::smatch roleMatch;
@@ -888,12 +885,12 @@ namespace mediasoupclient
 			std::regex_match(regexTarget, roleMatch, RoleRegex);
 
 			if (roleMatch.empty())
-				MSC_THROW_TYPE_ERROR("invalid params.role");
+				ERROR_EX_LOG("invalid params.role");
 
 			// fingerprints is mandatory.
 			if (fingerprintsIt == params.end() || (!fingerprintsIt->is_array() || fingerprintsIt->empty()))
 			{
-				MSC_THROW_TYPE_ERROR("missing params.fingerprints");
+				ERROR_EX_LOG("missing params.fingerprints");
 			}
 
 			for (auto& fingerprint : *fingerprintsIt)
@@ -907,10 +904,9 @@ namespace mediasoupclient
 		 */
 		void validateProducerCodecOptions(json& params)
 		{
-			MSC_TRACE();
-
+			using namespace chen;
 			if (!params.is_object())
-				MSC_THROW_TYPE_ERROR("params is not an object");
+				ERROR_EX_LOG("params is not an object");
 
 			auto opusStereoIt              = params.find("opusStereo");
 			auto opusFecIt                 = params.find("opusFec");
@@ -923,42 +919,42 @@ namespace mediasoupclient
 
 			if (opusStereoIt != params.end() && !opusStereoIt->is_boolean())
 			{
-				MSC_THROW_TYPE_ERROR("invalid params.opusStereo");
+				ERROR_EX_LOG("invalid params.opusStereo");
 			}
 
 			if (opusFecIt != params.end() && !opusFecIt->is_boolean())
 			{
-				MSC_THROW_TYPE_ERROR("invalid params.opusFec");
+				ERROR_EX_LOG("invalid params.opusFec");
 			}
 
 			if (opusDtxIt != params.end() && !opusDtxIt->is_boolean())
 			{
-				MSC_THROW_TYPE_ERROR("invalid params.opusDtx");
+				ERROR_EX_LOG("invalid params.opusDtx");
 			}
 
 			if (opusMaxPlaybackRateIt != params.end() && !opusMaxPlaybackRateIt->is_number_unsigned())
 			{
-				MSC_THROW_TYPE_ERROR("invalid params.opusMaxPlaybackRate");
+				ERROR_EX_LOG("invalid params.opusMaxPlaybackRate");
 			}
 
 			if (opusPtimeIt != params.end() && !opusPtimeIt->is_number_integer())
 			{
-				MSC_THROW_TYPE_ERROR("invalid params.opusPtime");
+				ERROR_EX_LOG("invalid params.opusPtime");
 			}
 
 			if (videoGoogleStartBitrateIt != params.end() && !videoGoogleStartBitrateIt->is_number_integer())
 			{
-				MSC_THROW_TYPE_ERROR("invalid params.videoGoogleStartBitrate");
+				ERROR_EX_LOG("invalid params.videoGoogleStartBitrate");
 			}
 
 			if (videoGoogleMaxBitrateIt != params.end() && !videoGoogleMaxBitrateIt->is_number_integer())
 			{
-				MSC_THROW_TYPE_ERROR("invalid params.videoGoogleMaxBitrate");
+				ERROR_EX_LOG("invalid params.videoGoogleMaxBitrate");
 			}
 
 			if (videoGoogleMinBitrateIt != params.end() && !videoGoogleMinBitrateIt->is_number_integer())
 			{
-				MSC_THROW_TYPE_ERROR("invalid params.videoGoogleMinBitrate");
+				ERROR_EX_LOG("invalid params.videoGoogleMinBitrate");
 			}
 		}
 
@@ -967,7 +963,7 @@ namespace mediasoupclient
 		 */
 		json getExtendedRtpCapabilities(json& localCaps, json& remoteCaps)
 		{
-			MSC_TRACE();
+			 
 
 			// This may throw.
 			validateRtpCapabilities(localCaps);
@@ -1110,7 +1106,7 @@ namespace mediasoupclient
 		 */
 		json getRecvRtpCapabilities(const json& extendedRtpCapabilities)
 		{
-			MSC_TRACE();
+			 
 
 			// clang-format off
 			json rtpCapabilities =
@@ -1199,7 +1195,7 @@ namespace mediasoupclient
 		 */
 		json getSendingRtpParameters(const std::string& kind, const json& extendedRtpCapabilities)
 		{
-			MSC_TRACE();
+			 
 
 			// clang-format off
 			json rtpParameters =
@@ -1292,9 +1288,7 @@ namespace mediasoupclient
 		 * Generate RTP parameters of the given kind for sending media.
 		 */
 		json getSendingRemoteRtpParameters(const std::string& kind, const json& extendedRtpCapabilities)
-		{
-			MSC_TRACE();
-
+		{ 
 			// clang-format off
 			json rtpParameters =
 			{
@@ -1460,8 +1454,7 @@ namespace mediasoupclient
 		 */
 		const json generateProbatorRtpParameters(const json& videoRtpParameters)
 		{
-			MSC_TRACE();
-
+			 
 			// This may throw.
 			json validatedRtpParameters = videoRtpParameters;
 
@@ -1513,8 +1506,7 @@ namespace mediasoupclient
 		 */
 		bool canSend(const std::string& kind, const json& extendedRtpCapabilities)
 		{
-			MSC_TRACE();
-
+			 
 			const auto& codecs = extendedRtpCapabilities["codecs"];
 			auto codecIt       = std::find_if(codecs.begin(), codecs.end(), [&kind](const json& codec) {
         return kind == codec["kind"].get<std::string>();
@@ -1529,8 +1521,7 @@ namespace mediasoupclient
 		 */
 		bool canReceive(json& rtpParameters, const json& extendedRtpCapabilities)
 		{
-			MSC_TRACE();
-
+			 
 			// This may throw.
 			validateRtpParameters(rtpParameters);
 
@@ -1552,9 +1543,7 @@ namespace mediasoupclient
 // Private helpers used in this file.
 
 static bool isRtxCodec(const json& codec)
-{
-	MSC_TRACE();
-
+{ 
 	static const std::regex RtxMimeTypeRegex(
 	  "^(audio|video)/rtx$", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
@@ -1566,8 +1555,7 @@ static bool isRtxCodec(const json& codec)
 
 static bool matchCodecs(json& aCodec, const json& bCodec, bool strict, bool modify)
 {
-	MSC_TRACE();
-
+	 
 	auto aMimeTypeIt = aCodec.find("mimeType");
 	auto bMimeTypeIt = bCodec.find("mimeType");
 	auto aMimeType   = aMimeTypeIt->get<std::string>();
@@ -1653,9 +1641,7 @@ static bool matchCodecs(json& aCodec, const json& bCodec, bool strict, bool modi
 }
 
 static bool matchHeaderExtensions(const json& aExt, const json& bExt)
-{
-	MSC_TRACE();
-
+{ 
 	if (aExt["kind"] != bExt["kind"])
 		return false;
 
@@ -1664,8 +1650,7 @@ static bool matchHeaderExtensions(const json& aExt, const json& bExt)
 
 static json reduceRtcpFeedback(const json& codecA, const json& codecB)
 {
-	MSC_TRACE();
-
+	 
 	auto reducedRtcpFeedback = json::array();
 	auto rtcpFeedbackAIt     = codecA.find("rtcpFeedback");
 	auto rtcpFeedbackBIt     = codecB.find("rtcpFeedback");
@@ -1685,9 +1670,7 @@ static json reduceRtcpFeedback(const json& codecA, const json& codecB)
 }
 
 static uint8_t getH264PacketizationMode(const json& codec)
-{
-	MSC_TRACE();
-
+{ 
 	auto& parameters         = codec["parameters"];
 	auto packetizationModeIt = parameters.find("packetization-mode");
 
@@ -1706,8 +1689,7 @@ static uint8_t getH264PacketizationMode(const json& codec)
 
 static uint8_t getH264LevelAssimetryAllowed(const json& codec)
 {
-	MSC_TRACE();
-
+	 
 	const auto& parameters       = codec["parameters"];
 	auto levelAssimetryAllowedIt = parameters.find("level-asymmetry-allowed");
 
@@ -1726,8 +1708,7 @@ static uint8_t getH264LevelAssimetryAllowed(const json& codec)
 
 static std::string getH264ProfileLevelId(const json& codec)
 {
-	MSC_TRACE();
-
+	 
 	const auto& parameters = codec["parameters"];
 	auto profileLevelIdIt  = parameters.find("profile-level-id");
 
@@ -1740,9 +1721,7 @@ static std::string getH264ProfileLevelId(const json& codec)
 }
 
 static std::string getVP9ProfileId(const json& codec)
-{
-	MSC_TRACE();
-
+{ 
 	const auto& parameters = codec["parameters"];
 	auto profileIdIt       = parameters.find("profile-id");
 

@@ -37,23 +37,7 @@ namespace chen {
 
 	bool DesktopCapture::Init(size_t target_fps, size_t capture_screen_index) 
 	{
-		/*if (chen::g_cfg.get_int32(chen::ECI_Capture_Type))
-		{
-		webrtc::DesktopCaptureOptions result;
-		result.set_allow_directx_capturer(true);
-		dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(result);
-		if (!dc_)
-		{
-		return false;
-		}
-		webrtc::DesktopCapturer::SourceList sources;
-		dc_->GetSourceList(&sources);
-		RTC_CHECK(dc_->SelectSource(sources[capture_screen_index].id));
-		window_title_ = sources[capture_screen_index].title;
-		}*/
-
-
-
+		  
 		webrtc::DesktopCaptureOptions result;
 		result.set_allow_directx_capturer(true);
 		// 窗口
@@ -70,39 +54,10 @@ namespace chen {
 
 		webrtc::DesktopCapturer::SourceList sources;
 		dc_->GetSourceList(&sources);
-		////int index = 0;
-		////FILE *out_file_ptr = fopen("chensong_desktop_capture.log", "wb+");
-		////for (const webrtc::DesktopCapturer::Source & source : sources)
-		////{
-		//// fprintf(out_file_ptr, "[title = %s]\n", source.title.c_str());
-		//// fflush(out_file_ptr);
-		//// 
-		//// //if ("chensong.mp4 - PotPlayer" == source.title)
-		//// //if ("rtmp://127.0.0.1/live/test - VLC media player" == source.title)
-		//// if ("Prj_ChengDu (64-bit Development PCD3D_SM5) " == source.title)
-		//// {
-		////  capture_screen_index = index;
-		////  break;
-		//// }
-		//// ++index;
-		////}
-		////fprintf(out_file_ptr, "[capture_screen_index = %d]\n", capture_screen_index);
-		////fflush(out_file_ptr);
-		//if (capture_screen_index > sources.size()) {
-		//  RTC_LOG(LS_WARNING) << "The total sources of screen is " << sources.size()
-		//                      << ", but require source of index at "
-		//                      << capture_screen_index;
-		//  return false;
-		//}
-
-
-
-		//RTC_CHECK(dc_->SelectSource(sources[capture_screen_index].id));
-		//window_title_ = sources[capture_screen_index].title;
+		 
 		fps_ = target_fps;
 
-		//RTC_LOG(LS_INFO) << "Init DesktopCapture finish window_title = " << window_title_ << " , fps = " << fps_ <<"";
-		// Start new thread to capture
+		 
 		return true;
 	}
 

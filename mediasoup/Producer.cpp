@@ -1,9 +1,9 @@
 #define MSC_CLASS "Producer"
 
 #include "Producer.hpp"
-#include "Logger.hpp"
-#include "MediaSoupClientErrors.hpp"
-
+ 
+ 
+#include "clog.h"
 using json = nlohmann::json;
 
 namespace mediasoupclient
@@ -20,75 +20,75 @@ namespace mediasoupclient
 	  : privateListener(privateListener), listener(listener), id(id), localId(localId),
 	    rtpSender(rtpSender), track(track), rtpParameters(rtpParameters), appData(appData)
 	{
-		MSC_TRACE();
+		 
 	}
 
 	const std::string& Producer::GetId() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->id;
 	}
 
 	const std::string& Producer::GetLocalId() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->localId;
 	}
 
 	bool Producer::IsClosed() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->closed;
 	}
 
 	std::string Producer::GetKind() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->track->kind();
 	}
 
 	webrtc::RtpSenderInterface* Producer::GetRtpSender() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->rtpSender;
 	}
 
 	webrtc::MediaStreamTrackInterface* Producer::GetTrack() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->track;
 	}
 
 	const json& Producer::GetRtpParameters() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->rtpParameters;
 	}
 
 	bool Producer::IsPaused() const
 	{
-		MSC_TRACE();
+		 
 
 		return !this->track->enabled();
 	}
 
 	uint8_t Producer::GetMaxSpatialLayer() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->maxSpatialLayer;
 	}
 
 	json& Producer::GetAppData()
 	{
-		MSC_TRACE();
+		 
 
 		return this->appData;
 	}
@@ -98,7 +98,7 @@ namespace mediasoupclient
 	 */
 	void Producer::Close()
 	{
-		MSC_TRACE();
+		 
 
 		if (this->closed)
 			return;
@@ -110,8 +110,9 @@ namespace mediasoupclient
 
 	json Producer::GetStats() const
 	{
+		using namespace chen;
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("Producer closed");
+			ERROR_EX_LOG("Producer closed");
 
 		return this->privateListener->OnGetStats(this);
 	}
@@ -121,11 +122,10 @@ namespace mediasoupclient
 	 */
 	void Producer::Pause()
 	{
-		MSC_TRACE();
-
+		using namespace chen;
 		if (this->closed)
 		{
-			MSC_ERROR("Producer closed");
+			ERROR_EX_LOG("Producer closed");
 
 			return;
 		}
@@ -138,11 +138,10 @@ namespace mediasoupclient
 	 */
 	void Producer::Resume()
 	{
-		MSC_TRACE();
-
+		using namespace chen;
 		if (this->closed)
 		{
-			MSC_ERROR("Producer closed");
+			ERROR_EX_LOG("Producer closed");
 
 			return;
 		}
@@ -155,19 +154,19 @@ namespace mediasoupclient
 	 */
 	void Producer::ReplaceTrack(webrtc::MediaStreamTrackInterface* track)
 	{
-		MSC_TRACE();
+		using namespace chen;
 
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("Producer closed");
+			ERROR_EX_LOG("Producer closed");
 		else if (track == nullptr)
-			MSC_THROW_TYPE_ERROR("missing track");
+			ERROR_EX_LOG("missing track");
 		else if (track->state() == webrtc::MediaStreamTrackInterface::TrackState::kEnded)
-			MSC_THROW_INVALID_STATE_ERROR("track ended");
+			ERROR_EX_LOG("track ended");
 
 		// Do nothing if this is the same track as the current handled one.
 		if (track == this->track)
 		{
-			MSC_DEBUG("same track, ignored");
+			NORMAL_EX_LOG("same track, ignored");
 
 			return;
 		}
@@ -194,12 +193,12 @@ namespace mediasoupclient
 	 */
 	void Producer::SetMaxSpatialLayer(const uint8_t spatialLayer)
 	{
-		MSC_TRACE();
-
+		 
+		using namespace chen;
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("Producer closed");
+			ERROR_EX_LOG("Producer closed");
 		else if (this->track->kind() != "video")
-			MSC_THROW_TYPE_ERROR("not a video Producer");
+			ERROR_EX_LOG("not a video Producer");
 
 		if (spatialLayer == this->maxSpatialLayer)
 			return;
@@ -215,8 +214,7 @@ namespace mediasoupclient
 	 */
 	void Producer::TransportClosed()
 	{
-		MSC_TRACE();
-
+	 
 		if (this->closed)
 			return;
 

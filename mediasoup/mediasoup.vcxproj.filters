@@ -24,9 +24,6 @@
     <ClCompile Include="DataConsumer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataProducer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Device.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -34,9 +31,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Handler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mediasoupclient.cpp">
@@ -75,9 +69,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Broadcaster.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ccfg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -93,16 +84,7 @@
     <ClCompile Include="cwebsocket_mgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="desktop_capture.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="desktop_capture_source.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="httplib.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="peerConnectionUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="wsclient.cpp">
@@ -111,19 +93,10 @@
     <ClCompile Include="cwebsocket_session.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="capture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cosd_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ccloud_rendering.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cwindow_util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="chttp_mgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cinput_device.cpp">
@@ -161,13 +134,7 @@
     <ClInclude Include="DataConsumer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataProducer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Device.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Exception.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Handler.hpp">
@@ -176,13 +143,7 @@
     <ClInclude Include="json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Logger.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mediasoupclient.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MediaSoupClientErrors.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ortc.hpp">
@@ -218,9 +179,6 @@
     <ClInclude Include="sdp\Utils.hpp">
       <Filter>sdp</Filter>
     </ClInclude>
-    <ClInclude Include="Broadcaster.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ccfg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -236,16 +194,7 @@
     <ClInclude Include="cwebsocket_mgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="desktop_capture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="desktop_capture_source.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="httplib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="peerConnectionUtils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wsclient.h">
@@ -254,19 +203,10 @@
     <ClInclude Include="cwebsocket_session.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="capture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cosd_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ccloud_rendering.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cwindow_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="chttp_mgr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cinput_device.h">

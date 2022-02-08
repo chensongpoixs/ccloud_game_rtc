@@ -1,7 +1,7 @@
 #define MSC_CLASS "Sdp::RemoteSdp"
 
 #include "RemoteSdp.hpp"
-#include "../Logger.hpp"
+ 
 #include "../sdptransform.hpp"
 #include "../clog.h"
 using json = nlohmann::json;
@@ -19,15 +19,8 @@ namespace mediasoupclient
 	    sctpParameters(sctpParameters_)
 	{
 	 
-		MSC_TRACE();
-		{
-			using namespace chen;
-			std::string ice = iceParameters_.dump();
-			NORMAL_EX_LOG("iceParameters_ = %s", ice.c_str());
-			NORMAL_EX_LOG("iceCandidates = %s", iceCandidates.dump().c_str());
-			NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
-			NORMAL_EX_LOG("sctpParameters = %s", sctpParameters.dump().c_str());
-		}
+		 
+		
 		// clang-format off
 		this->sdpObject =
 		{
@@ -88,8 +81,7 @@ namespace mediasoupclient
 
 	Sdp::RemoteSdp::~RemoteSdp()
 	{
-		MSC_TRACE();
-
+		 
 		for (const auto* mediaSection : this->mediaSections)
 		{
 			delete mediaSection;
@@ -98,7 +90,7 @@ namespace mediasoupclient
 
 	void Sdp::RemoteSdp::UpdateIceParameters(const json& iceParameters)
 	{
-		MSC_TRACE();
+		 
 
 		this->iceParameters = iceParameters;
 
@@ -118,7 +110,7 @@ namespace mediasoupclient
 
 	void Sdp::RemoteSdp::UpdateDtlsRole(const std::string& role)
 	{
-		MSC_TRACE();
+		 
 		{
 			using namespace chen;
 			NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
@@ -141,7 +133,7 @@ namespace mediasoupclient
 
 	Sdp::RemoteSdp::MediaSectionIdx Sdp::RemoteSdp::GetNextMediaSectionIdx()
 	{
-		MSC_TRACE();
+		 
 
 		// If a closed media section is found, return its index.
 		for (auto idx{ 0u }; idx < this->mediaSections.size(); ++idx)
@@ -163,7 +155,7 @@ namespace mediasoupclient
 	  json& answerRtpParameters,
 	  const json* codecOptions)
 	{
-		MSC_TRACE();
+	 
 
 		auto* mediaSection = new AnswerMediaSection(
 		  this->iceParameters,
@@ -226,7 +218,7 @@ namespace mediasoupclient
 	  const std::string& streamId,
 	  const std::string& trackId)
 	{
-		MSC_TRACE();
+		 
 
 		auto* mediaSection = new OfferMediaSection(
 		  this->iceParameters,
@@ -244,7 +236,7 @@ namespace mediasoupclient
 
 	void Sdp::RemoteSdp::DisableMediaSection(const std::string& mid)
 	{
-		MSC_TRACE();
+		 
 
 		const auto idx     = this->midToIndex[mid];
 		auto* mediaSection = this->mediaSections[idx];
@@ -254,7 +246,7 @@ namespace mediasoupclient
 
 	void Sdp::RemoteSdp::CloseMediaSection(const std::string& mid)
 	{
-		MSC_TRACE();
+		 
 
 		const auto idx     = this->midToIndex[mid];
 		auto* mediaSection = this->mediaSections[idx];
@@ -275,7 +267,7 @@ namespace mediasoupclient
 
 	std::string Sdp::RemoteSdp::GetSdp()
 	{
-		MSC_TRACE();
+		 
 
 		// Increase SDP version.
 		auto version = this->sdpObject["origin"]["sessionVersion"].get<uint32_t>();
@@ -287,7 +279,7 @@ namespace mediasoupclient
 
 	void Sdp::RemoteSdp::AddMediaSection(MediaSection* newMediaSection)
 	{
-		MSC_TRACE();
+		 
 
 		if (this->firstMid.empty())
 			this->firstMid = newMediaSection->GetMid();
@@ -306,7 +298,7 @@ namespace mediasoupclient
 
 	void Sdp::RemoteSdp::ReplaceMediaSection(MediaSection* newMediaSection, const std::string& reuseMid)
 	{
-		MSC_TRACE();
+		 
 
 		// Store it in the map.
 		if (!reuseMid.empty())
@@ -348,7 +340,7 @@ namespace mediasoupclient
 
 	void Sdp::RemoteSdp::RegenerateBundleMids()
 	{
-		MSC_TRACE();
+		 
 
 		std::string mids;
 

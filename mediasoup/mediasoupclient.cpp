@@ -1,7 +1,7 @@
 #define MSC_CLASS "mediasoupclient"
 
 #include "mediasoupclient.hpp"
-#include "Logger.hpp"
+ 
 #include "version.hpp"
 #include <rtc_base/helpers.h>
 #include <rtc_base/ssl_adapter.h>
@@ -12,7 +12,7 @@ namespace mediasoupclient
 {
 	void Initialize() // NOLINT(readability-identifier-naming)
 	{
-		MSC_TRACE();
+		 
 
 		rtc::InitializeSSL();
 		rtc::InitRandom(rtc::Time());
@@ -20,7 +20,7 @@ namespace mediasoupclient
 
 	void Cleanup() // NOLINT(readability-identifier-naming)
 	{
-		MSC_TRACE();
+ 
 
 		rtc::CleanupSSL();
 	}

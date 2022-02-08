@@ -1,8 +1,8 @@
 #define MSC_CLASS "Sdp::Utils"
 
 #include "Utils.hpp"
-#include "../Logger.hpp"
-#include "../MediaSoupClientErrors.hpp"
+ 
+ 
 #include "../Utils.hpp"
 #include <algorithm> // ::transform
 #include <cctype>    // ::tolower
@@ -11,7 +11,7 @@
 #include <set>
 #include <vector>
 #include "../Utils.hpp"
-
+#include "../clog.h"
 namespace mediasoupclient
 {
 	namespace Sdp
@@ -20,7 +20,7 @@ namespace mediasoupclient
 		{
 			json extractRtpCapabilities(const json& sdpObject)
 			{
-				MSC_TRACE();
+				 
 
 				// Map of RtpCodecParameters indexed by payload type.
 				std::map<uint8_t, json> codecsMap;
@@ -169,7 +169,7 @@ namespace mediasoupclient
 
 			json extractDtlsParameters(const json& sdpObject)
 			{
-				MSC_TRACE();
+			 
 
 				json m;
 				json fingerprint;
@@ -221,7 +221,7 @@ namespace mediasoupclient
 
 			void addLegacySimulcast(json& offerMediaObject, uint8_t numStreams)
 			{
-				MSC_TRACE();
+			 
 
 				if (numStreams <= 1)
 					return;
@@ -240,7 +240,8 @@ namespace mediasoupclient
 
 				if (jsonSsrcIt == mSsrcs.end())
 				{
-					MSC_THROW_ERROR("a=ssrc line with msid information not found");
+					using namespace chen;
+					ERROR_EX_LOG("a=ssrc line with msid information not found");
 				}
 
 				auto& ssrcMsidLine = *jsonSsrcIt;
@@ -295,9 +296,9 @@ namespace mediasoupclient
 					return (
 					  jsonAttributeIt->get<std::string>() == "cname" && jsonIdIt->get<uint32_t>() == firstSsrc);
 				});
-
+				using  namespace chen;
 				if (jsonSsrcIt == mSsrcs.end())
-					MSC_THROW_ERROR("CNAME line not found");
+					ERROR_EX_LOG("CNAME line not found");
 
 				auto cname    = (*jsonSsrcIt)["value"].get<std::string>();
 				auto ssrcs    = json::array();
@@ -390,7 +391,7 @@ namespace mediasoupclient
 
 			std::string getCname(const json& offerMediaObject)
 			{
-				MSC_TRACE();
+			 
 
 				auto jsonMssrcsIt = offerMediaObject.find("ssrc");
 
@@ -422,9 +423,9 @@ namespace mediasoupclient
 					auto ssrc = line["id"].get<uint32_t>();
 					ssrcs.push_back(ssrc);
 				}
-
+				using namespace chen;
 				if (ssrcs.empty())
-					MSC_THROW_ERROR("no a=ssrc lines found");
+					ERROR_EX_LOG("no a=ssrc lines found");
 
 				ssrcs.unique();
 
@@ -480,8 +481,7 @@ namespace mediasoupclient
 
 			void applyCodecParameters(const json& offerRtpParameters, json& answerMediaObject)
 			{
-				MSC_TRACE();
-
+				 
 				for (const auto& codec : offerRtpParameters["codecs"])
 				{
 					auto mimeType = codec["mimeType"].get<std::string>();

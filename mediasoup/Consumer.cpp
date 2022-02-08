@@ -1,13 +1,14 @@
 #define MSC_CLASS "Consumer"
 
 #include "Consumer.hpp"
-#include "Logger.hpp"
-#include "MediaSoupClientErrors.hpp"
-
+ 
+ 
+#include "clog.h"
 using json = nlohmann::json;
 
 namespace mediasoupclient
 {
+	using namespace chen;
 	Consumer::Consumer(
 	  Consumer::PrivateListener* privateListener,
 	  Consumer::Listener* listener,
@@ -22,75 +23,75 @@ namespace mediasoupclient
 	    producerId(producerId), rtpReceiver(rtpReceiver), track(track), rtpParameters(rtpParameters),
 	    appData(appData)
 	{
-		MSC_TRACE();
+		 
 	}
 
 	const std::string& Consumer::GetId() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->id;
 	}
 
 	const std::string& Consumer::GetLocalId() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->localId;
 	}
 
 	const std::string& Consumer::GetProducerId() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->producerId;
 	}
 
 	bool Consumer::IsClosed() const
 	{
-		MSC_TRACE();
+	 
 
 		return this->closed;
 	}
 
 	const std::string Consumer::GetKind() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->track->kind();
 	}
 
 	webrtc::RtpReceiverInterface* Consumer::GetRtpReceiver() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->rtpReceiver;
 	}
 
 	webrtc::MediaStreamTrackInterface* Consumer::GetTrack() const
 	{
-		MSC_TRACE();
+	 
 
 		return this->track;
 	}
 
 	const json& Consumer::GetRtpParameters() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->rtpParameters;
 	}
 
 	bool Consumer::IsPaused() const
 	{
-		MSC_TRACE();
+		 
 
 		return !this->track->enabled();
 	}
 
 	json& Consumer::GetAppData()
 	{
-		MSC_TRACE();
+	 
 
 		return this->appData;
 	}
@@ -100,7 +101,7 @@ namespace mediasoupclient
 	 */
 	void Consumer::Close()
 	{
-		MSC_TRACE();
+		 
 
 		if (this->closed)
 			return;
@@ -113,7 +114,7 @@ namespace mediasoupclient
 	json Consumer::GetStats() const
 	{
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("Consumer closed");
+			ERROR_EX_LOG("Consumer closed");
 
 		return this->privateListener->OnGetStats(this);
 	}
@@ -123,11 +124,11 @@ namespace mediasoupclient
 	 */
 	void Consumer::Pause()
 	{
-		MSC_TRACE();
+		 
 
 		if (this->closed)
 		{
-			MSC_ERROR("Consumer closed");
+			ERROR_EX_LOG("Consumer closed");
 
 			return;
 		}
@@ -140,11 +141,10 @@ namespace mediasoupclient
 	 */
 	void Consumer::Resume()
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
 		{
-			MSC_ERROR("Consumer closed");
+			ERROR_EX_LOG("Consumer closed");
 
 			return;
 		}
@@ -157,8 +157,7 @@ namespace mediasoupclient
 	 */
 	void Consumer::TransportClosed()
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
 			return;
 

@@ -2,13 +2,14 @@
 
  
 #include "MediaSection.hpp"
-#include "../Logger.hpp"
+ 
 #include <algorithm> // ::transform
 #include <cctype>    // ::tolower
 #include <regex>
 #include <sstream>
 #include <utility>
 #include "../json.hpp"
+#include "../clog.h"
 using json = nlohmann::json;
 
 // Static functions declaration.
@@ -20,7 +21,7 @@ namespace mediasoupclient
 	{
 		MediaSection::MediaSection(const json& iceParameters, const json& iceCandidates)
 		{
-			MSC_TRACE();
+			 
 
 			// Set ICE parameters.
 			SetIceParameters(iceParameters);
@@ -54,37 +55,33 @@ namespace mediasoupclient
 
 		std::string MediaSection::GetMid() const
 		{
-			MSC_TRACE();
+			
 
 			return this->mediaObject["mid"].get<std::string>();
 		}
 
 		bool MediaSection::IsClosed() const
 		{
-			MSC_TRACE();
-
+			 
 			return this->mediaObject["port"] == 0;
 		}
 
 		json MediaSection::GetObject() const
 		{
-			MSC_TRACE();
-
+			 
 			return this->mediaObject;
 		}
 
 		void MediaSection::SetIceParameters(const json& iceParameters)
 		{
-			MSC_TRACE();
-
+			 
 			this->mediaObject["iceUfrag"] = iceParameters["usernameFragment"];
 			this->mediaObject["icePwd"]   = iceParameters["password"];
 		}
 
 		void MediaSection::Disable()
 		{
-			MSC_TRACE();
-
+			 
 			this->mediaObject["direction"] = "inactive";
 
 			this->mediaObject.erase("ext");
@@ -96,8 +93,7 @@ namespace mediasoupclient
 
 		void MediaSection::Close()
 		{
-			MSC_TRACE();
-
+			 
 			this->mediaObject["direction"] = "inactive";
 			this->mediaObject["port"]      = 0;
 
@@ -120,8 +116,7 @@ namespace mediasoupclient
 		  const json* codecOptions)
 		  : MediaSection(iceParameters, iceCandidates)
 		{
-			MSC_TRACE();
-
+			 
 			auto type = offerMediaObject["type"].get<std::string>();
 
 			this->mediaObject["mid"]        = offerMediaObject["mid"];
@@ -390,8 +385,7 @@ namespace mediasoupclient
 
 		void AnswerMediaSection::SetDtlsRole(const std::string& role)
 		{
-			MSC_TRACE();
-
+			 
 			if (role == "client")
 				this->mediaObject["setup"] = "active";
 			else if (role == "server")
@@ -412,8 +406,7 @@ namespace mediasoupclient
 		  const std::string& trackId)
 		  : MediaSection(iceParameters, iceCandidates)
 		{
-			MSC_TRACE();
-
+			
 			this->mediaObject["mid"]  = mid;
 			this->mediaObject["type"] = kind;
 
@@ -582,8 +575,7 @@ namespace mediasoupclient
 
 		void OfferMediaSection::SetDtlsRole(const std::string& /* role */)
 		{
-			MSC_TRACE();
-
+			 
 			// The SDP offer must always have a=setup:actpass.
 			this->mediaObject["setup"] = "actpass";
 		}

@@ -14,7 +14,7 @@
 #include "cclient.h"
 #include "cdesktop_capture.h"
 #include "PeerConnection.hpp"
-#include "peerConnectionUtils.hpp"
+ 
 #include "pc/video_track_source.h"
 namespace chen {
 
@@ -137,10 +137,10 @@ namespace chen {
 		m_peer_connection = m_peer_connection_factory->CreatePeerConnection(config, nullptr, nullptr, this);
 
 		nlohmann::json iceParameters_ = iceParameters;
-		NORMAL_EX_LOG("iceParameters_ = %s", iceParameters_.dump().c_str());
-		NORMAL_EX_LOG("iceCandidates = %s", iceCandidates.dump().c_str());
-		NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
-		NORMAL_EX_LOG("sctpParameters = %s", sctpParameters.dump().c_str());
+		/*	NORMAL_EX_LOG("iceParameters_ = %s", iceParameters_.dump().c_str());
+			NORMAL_EX_LOG("iceCandidates = %s", iceCandidates.dump().c_str());
+			NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
+			NORMAL_EX_LOG("sctpParameters = %s", sctpParameters.dump().c_str());*/
 		/*const nlohmann::json& iceCandidates,
 		const nlohmann::json& dtlsParameters,
 		const nlohmann::json& sctpParameters*/

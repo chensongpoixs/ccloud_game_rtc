@@ -1,8 +1,8 @@
 #define MSC_CLASS "DataConsumer"
-
+#include "clog.h"
 #include "DataConsumer.hpp"
-#include "Logger.hpp"
-#include "MediaSoupClientErrors.hpp"
+ 
+ 
 
 using json = nlohmann::json;
 
@@ -19,7 +19,7 @@ namespace mediasoupclient
 	  : listener(listener), privateListener(privateListener), id(id), dataProducerId(dataProducerId),
 	    dataChannel(dataChannel), sctpParameters(sctpStreamParameters), appData(appData)
 	{
-		MSC_TRACE();
+		 
 
 		this->dataChannel->RegisterObserver(this);
 	}
@@ -27,7 +27,7 @@ namespace mediasoupclient
 	// The data channel state has changed.
 	void DataConsumer::OnStateChange()
 	{
-		MSC_TRACE();
+		 
 
 		webrtc::DataChannelInterface::DataState state = this->dataChannel->state();
 
@@ -46,7 +46,8 @@ namespace mediasoupclient
 				this->listener->OnClose(this);
 				break;
 			default:
-				MSC_ERROR("unknown state %s", webrtc::DataChannelInterface::DataStateString(state));
+				using namespace chen;
+				ERROR_EX_LOG("unknown state %s", webrtc::DataChannelInterface::DataStateString(state));
 				break;
 		}
 	}
@@ -54,7 +55,7 @@ namespace mediasoupclient
 	//  A data buffer was successfully received.
 	void DataConsumer::OnMessage(const webrtc::DataBuffer& buffer)
 	{
-		MSC_TRACE();
+		 
 
 		this->listener->OnMessage(this, buffer);
 	}
@@ -62,7 +63,7 @@ namespace mediasoupclient
 	// The data channel's buffered_amount has changed.
 	void DataConsumer::OnBufferedAmountChange(uint64_t /*sentDataSize*/)
 	{
-		MSC_TRACE();
+		 
 		// Should not happen on consumer.
 	}
 
@@ -71,14 +72,14 @@ namespace mediasoupclient
 	 */
 	const std::string& DataConsumer::GetId() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->id;
 	}
 
 	std::string DataConsumer::GetLocalId() const
 	{
-		MSC_TRACE();
+	 
 
 		return std::to_string(this->dataChannel->id());
 	}
@@ -88,7 +89,7 @@ namespace mediasoupclient
 	 */
 	const std::string& DataConsumer::GetDataProducerId() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->dataProducerId;
 	}
@@ -98,7 +99,7 @@ namespace mediasoupclient
 	 */
 	const json& DataConsumer::GetSctpStreamParameters() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->sctpParameters;
 	}
@@ -108,7 +109,7 @@ namespace mediasoupclient
 	 */
 	webrtc::DataChannelInterface::DataState DataConsumer::GetReadyState() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->dataChannel->state();
 	}
@@ -118,7 +119,7 @@ namespace mediasoupclient
 	 */
 	std::string DataConsumer::GetLabel() const
 	{
-		MSC_TRACE();
+	 
 
 		return this->dataChannel->label();
 	}
@@ -128,7 +129,7 @@ namespace mediasoupclient
 	 */
 	std::string DataConsumer::GetProtocol() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->dataChannel->protocol();
 	}
@@ -137,8 +138,7 @@ namespace mediasoupclient
 	 * App custom data.
 	 */
 	const json& DataConsumer::GetAppData() const
-	{
-		MSC_TRACE();
+	{ 
 
 		return this->appData;
 	}
@@ -148,7 +148,7 @@ namespace mediasoupclient
 	 */
 	bool DataConsumer::IsClosed() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->closed;
 	}
@@ -158,7 +158,7 @@ namespace mediasoupclient
 	 */
 	void DataConsumer::Close()
 	{
-		MSC_TRACE();
+		 
 
 		if (this->closed)
 			return;
@@ -173,7 +173,7 @@ namespace mediasoupclient
 	 */
 	void DataConsumer::TransportClosed()
 	{
-		MSC_TRACE();
+		 
 
 		if (this->closed)
 			return;

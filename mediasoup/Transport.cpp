@@ -1,54 +1,53 @@
 ﻿#define MSC_CLASS "Transport"
 
 #include "Transport.hpp"
-#include "Logger.hpp"
-#include "MediaSoupClientErrors.hpp"
+ 
+ 
 #include "ortc.hpp"
-
+#include "clog.h"
 using json = nlohmann::json;
 
 namespace mediasoupclient
 {
 	/* Transport */
-
+	using namespace chen;
 	Transport::Transport(
 	  Listener* listener, const std::string& id, const json* extendedRtpCapabilities, const json& appData)
 	  : extendedRtpCapabilities(extendedRtpCapabilities), listener(listener), id(id), appData(appData)
 	{
-		MSC_TRACE();
+		 
 	}
 
 	const std::string& Transport::GetId() const
 	{
-		MSC_TRACE();
-
+		 
 		return this->id;
 	}
 
 	bool Transport::IsClosed() const
 	{
-		MSC_TRACE();
+		 
 
 		return this->closed;
 	}
 
 	const std::string& Transport::GetConnectionState() const
 	{
-		MSC_TRACE();
+		 
 
 		return PeerConnection::iceConnectionState2String[this->connectionState];
 	}
 
 	json& Transport::GetAppData()
 	{
-		MSC_TRACE();
+	 
 
 		return this->appData;
 	}
 
 	void Transport::Close()
 	{
-		MSC_TRACE();
+		 
 
 		if (this->closed)
 			return;
@@ -61,47 +60,43 @@ namespace mediasoupclient
 
 	json Transport::GetStats() const
 	{
-		MSC_TRACE();
-
+		 
+		
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("Transport closed");
+			ERROR_EX_LOG("Transport closed");
 		else
 			return this->handler->GetTransportStats();
 	}
 
 	void Transport::RestartIce(const json& iceParameters)
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("Transport closed");
+			ERROR_EX_LOG("Transport closed");
 		else
 			return this->handler->RestartIce(iceParameters);
 	}
 
 	void Transport::UpdateIceServers(const json& iceServers)
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("Transport closed");
+			ERROR_EX_LOG("Transport closed");
 		else
 			return this->handler->UpdateIceServers(iceServers);
 	}
 
 	void Transport::SetHandler(Handler* handler)
 	{
-		MSC_TRACE();
-
+		 
 		this->handler = handler;
 	}
 
 	void Transport::OnConnect(json& dtlsParameters)
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("Transport closed");
+			ERROR_EX_LOG("Transport closed");
 
 		return this->listener->OnConnect(this, dtlsParameters).get();
 	}
@@ -109,8 +104,7 @@ namespace mediasoupclient
 	void Transport::OnConnectionStateChange(
 	  webrtc::PeerConnectionInterface::IceConnectionState connectionState)
 	{
-		MSC_TRACE();
-
+		 
 		// Update connection state.
 		this->connectionState = connectionState;
 
@@ -135,8 +129,7 @@ namespace mediasoupclient
 	  : Transport(listener, id, extendedRtpCapabilities, appData), listener(listener),
 	    canProduceByKind(canProduceByKind)
 	{
-		MSC_TRACE();
-
+		 
 		if (sctpParameters != nullptr && sctpParameters.is_object())
 		{
 			this->hasSctpParameters = true;
@@ -179,16 +172,15 @@ namespace mediasoupclient
 	  const json* codecOptions,
 	  const json& appData)
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("SendTransport closed");
+			ERROR_EX_LOG("SendTransport closed");
 		else if (!track)
-			MSC_THROW_TYPE_ERROR("missing track");
+			ERROR_EX_LOG("missing track");
 		else if (track->state() == webrtc::MediaStreamTrackInterface::TrackState::kEnded)
-			MSC_THROW_INVALID_STATE_ERROR("track ended");
+			ERROR_EX_LOG("track ended");
 		else if (this->canProduceByKind->find(track->kind()) == this->canProduceByKind->end())
-			MSC_THROW_UNSUPPORTED_ERROR("cannot produce track kind");
+			ERROR_EX_LOG("cannot produce track kind");
 
 		if (codecOptions)
 		{
@@ -228,7 +220,7 @@ namespace mediasoupclient
 			producerId =
 			  this->listener->OnProduce(this, track->kind(), sendResult.rtpParameters, appData).get();
 		}
-		catch (MediaSoupClientError& error)
+		catch (...)
 		{
 			this->sendHandler->StopSending(sendResult.localId);
 
@@ -250,59 +242,10 @@ namespace mediasoupclient
 		return producer;
 	}
 
-	DataProducer* SendTransport::ProduceData(
-	  DataProducer::Listener* dataProducerListener,
-	  const std::string& label,
-	  const std::string& protocol,
-	  bool ordered,
-	  int maxRetransmits,
-	  int maxPacketLifeTime,
-	  const nlohmann::json& appData)
-	{
-		MSC_TRACE();
-
-		if (!this->hasSctpParameters)
-			MSC_THROW_ERROR("SctpParameters are mandatory when using data producer listener");
-
-		webrtc::DataChannelInit dataChannelInit;
-		dataChannelInit.protocol = protocol;
-		dataChannelInit.ordered  = ordered;
-		if (maxRetransmits != -1 && maxPacketLifeTime != 0)
-		{
-			MSC_THROW_ERROR("Cannot set both maxRetransmits and maxPacketLifeTime");
-		}
-		if (maxRetransmits != 0)
-		{
-			dataChannelInit.maxRetransmits = maxRetransmits;
-		}
-		if (maxPacketLifeTime != 0)
-		{
-			dataChannelInit.maxRetransmitTime = maxPacketLifeTime;
-		}
-
-		// This may throw.
-		auto sendResult = this->sendHandler->SendDataChannel(label, dataChannelInit);
-
-		auto dataChannelId =
-		  this->listener->OnProduceData(this, sendResult.sctpStreamParameters, label, protocol, appData);
-
-		auto* dataProducer = new DataProducer(
-		  this,
-		  dataProducerListener,
-		  dataChannelId.get(),
-		  sendResult.dataChannel,
-		  sendResult.sctpStreamParameters,
-		  appData);
-
-		this->dataProducers[dataProducer->GetId()] = dataProducer;
-
-		return dataProducer;
-	}
-
+	 
 	void SendTransport::Close()
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
 			return;
 
@@ -316,20 +259,13 @@ namespace mediasoupclient
 			producer->TransportClosed();
 		}
 
-		// Close all Data Producers.
-		for (auto& kv : this->dataProducers)
-		{
-			auto* dataProducer = kv.second;
-
-			dataProducer->TransportClosed();
-		}
+	 
 		
 	}
 
 	void SendTransport::OnClose(Producer* producer)
 	{
-		MSC_TRACE();
-
+		 
 		this->producers.erase(producer->GetId());
 
 		if (this->closed)
@@ -339,33 +275,25 @@ namespace mediasoupclient
 		this->sendHandler->StopSending(producer->GetLocalId());
 	}
 
-	void SendTransport::OnClose(DataProducer* dataProducer)
-	{
-		MSC_TRACE();
-
-		this->dataProducers.erase(dataProducer->GetId());
-	}
+	 
 
 	void SendTransport::OnReplaceTrack(const Producer* producer, webrtc::MediaStreamTrackInterface* track)
 	{
-		MSC_TRACE();
-
+		 
 		return this->sendHandler->ReplaceTrack(producer->GetLocalId(), track);
 	}
 
 	void SendTransport::OnSetMaxSpatialLayer(const Producer* producer, uint8_t maxSpatialLayer)
 	{
-		MSC_TRACE();
-
+		 
 		return this->sendHandler->SetMaxSpatialLayer(producer->GetLocalId(), maxSpatialLayer);
 	}
 
 	json SendTransport::OnGetStats(const Producer* producer)
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("SendTransport closed");
+			ERROR_EX_LOG("SendTransport closed");
 
 		return this->sendHandler->GetSenderStats(producer->GetLocalId());
 	}
@@ -384,8 +312,7 @@ namespace mediasoupclient
 	  const json& appData)
 	  : Transport(listener, id, extendedRtpCapabilities, appData)
 	{
-		MSC_TRACE();
-
+		 
 		this->hasSctpParameters = sctpParameters != nullptr && sctpParameters.is_object();
 
 		this->recvHandler.reset(new RecvHandler(
@@ -410,22 +337,21 @@ namespace mediasoupclient
 	  json* rtpParameters,
 	  const json& appData)
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("RecvTransport closed");
+			ERROR_EX_LOG("RecvTransport closed");
 		else if (id.empty())
-			MSC_THROW_TYPE_ERROR("missing id");
+			ERROR_EX_LOG("missing id");
 		else if (producerId.empty())
-			MSC_THROW_TYPE_ERROR("missing producerId");
+			ERROR_EX_LOG("missing producerId");
 		else if (kind != "audio" && kind != "video")
-			MSC_THROW_TYPE_ERROR("invalid kind");
+			ERROR_EX_LOG("invalid kind");
 		else if (!rtpParameters)
-			MSC_THROW_TYPE_ERROR("missing rtpParameters");
+			ERROR_EX_LOG("missing rtpParameters");
 		else if (!appData.is_object())
-			MSC_THROW_TYPE_ERROR("appData must be a JSON object");
+			ERROR_EX_LOG("appData must be a JSON object");
 		else if (!ortc::canReceive(*rtpParameters, *this->extendedRtpCapabilities))
-			MSC_THROW_UNSUPPORTED_ERROR("cannot consume this Producer");
+			ERROR_EX_LOG("cannot consume this Producer");
 
 		// May throw.
 		auto recvResult = this->recvHandler->Receive(id, kind, rtpParameters);
@@ -456,13 +382,13 @@ namespace mediasoupclient
 				// May throw.
 				auto result = this->recvHandler->Receive(probatorId, kind, &probatorRtpParameters);
 
-				MSC_DEBUG("Consumer for RTP probation created");
+				NORMAL_EX_LOG("Consumer for RTP probation created");
 
 				this->probatorConsumerCreated = true;
 			}
 			catch (std::runtime_error& error)
 			{
-				MSC_ERROR("failed to create Consumer for RTP probation: %s", error.what());
+				ERROR_EX_LOG("failed to create Consumer for RTP probation: %s", error.what());
 			}
 		}
 
@@ -479,20 +405,18 @@ namespace mediasoupclient
 	  const std::string& label,
 	  const std::string& protocol,
 	  const nlohmann::json& appData)
-	{
-		MSC_TRACE();
-
+	{ 
 		webrtc::DataChannelInit dataChannelInit;
 		dataChannelInit.protocol = protocol;
 
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("RecvTransport closed");
+			ERROR_EX_LOG("RecvTransport closed");
 		else if (id.empty())
-			MSC_THROW_TYPE_ERROR("missing id");
+			ERROR_EX_LOG("missing id");
 		else if (producerId.empty())
-			MSC_THROW_TYPE_ERROR("missing producerId");
+			ERROR_EX_LOG("missing producerId");
 		else if (!this->hasSctpParameters)
-			MSC_THROW_TYPE_ERROR("Cannot use DataChannels with this transport. SctpParameters are not set.");
+			ERROR_EX_LOG("Cannot use DataChannels with this transport. SctpParameters are not set.");
 
 		// This may throw.
 		auto recvResult = this->recvHandler->ReceiveDataChannel(label, dataChannelInit);
@@ -507,8 +431,7 @@ namespace mediasoupclient
 
 	void RecvTransport::Close()
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
 			return;
 
@@ -533,8 +456,7 @@ namespace mediasoupclient
 
 	void RecvTransport::OnClose(Consumer* consumer)
 	{
-		MSC_TRACE();
-
+		 
 		this->consumers.erase(consumer->GetId());
 
 		if (this->closed)
@@ -546,17 +468,15 @@ namespace mediasoupclient
 
 	void RecvTransport::OnClose(DataConsumer* dataConsumer)
 	{
-		MSC_TRACE();
-
+		 
 		this->dataConsumers.erase(dataConsumer->GetId());
 	}
 
 	json RecvTransport::OnGetStats(const Consumer* consumer)
 	{
-		MSC_TRACE();
-
+		 
 		if (this->closed)
-			MSC_THROW_INVALID_STATE_ERROR("RecvTransport closed");
+			ERROR_EX_LOG("RecvTransport closed");
 
 		return this->recvHandler->GetReceiverStats(consumer->GetLocalId());
 	}

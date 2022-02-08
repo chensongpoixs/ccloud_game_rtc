@@ -1,19 +1,19 @@
-﻿#include "Broadcaster.hpp"
+﻿ 
 #include "mediasoupclient.hpp"
 //#include <cpr/cpr.h>
 #include <csignal> // sigsuspend()
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include "httplib.h"
+ 
 #include "cwebsocket_mgr.h"
 #include "ccfg.h"
-#include "Broadcaster.hpp"
+ 
 #include "cwebsocket_mgr.h"
 #include "ccfg.h"
-#include "httplib.h"
-#include "peerConnectionUtils.hpp"
-#include "ccloud_rendering.h"
+ 
+ 
+ 
 #include "cwindow_util.h"
 #include <api/task_queue/global_task_queue_factory.h>
 #include "cclient.h"
@@ -72,64 +72,6 @@ int  main(int argc, char* argv[])
 	g_client.Destory();
 
 
-	//std::thread m_thread;
-	//int32_t  count = 0;
-	//if (!ccloud_rendering_mgr.init(config_filename))
-	//{
-	//	// error
-	//	return -1;
-	//}
-	//ccloud_rendering_mgr.Loop();;
-
-	//ccloud_rendering_mgr.Destroy();
-	//return 0;
-	//printf("init ok  2... \n");
-	////while (false)
-	//{
-	//	printf("main loop ........ \n");
-	//	m_thread = std::thread(
-	//		[=]() {
-	//		printf("child ->  loop ........ \n");
-	//		ccloud_rendering_mgr.Loop();
-	//		printf("child ->  loop exit ........ \n");
-	//	}
-	//	);
-	//	printf("main [g_thread_count = %d] loop min 2... \n", g_thread_count);
-	//	std::this_thread::sleep_for(std::chrono::seconds(30));
-	//	printf("main [g_thread_count = %d][] loop min 2... \n", g_thread_count);
-	//	ccloud_rendering_mgr.Destroy();
-	//	
-	//	++count;
-	//	if (m_thread.joinable())
-	//	{
-	//		m_thread.join();
-	//	}
-	//	/*if (count < 10)
-	//	{
-	//		break;
-	//	}*/
-	//}
-	////mediasoupclient::Handler::all_close();
-	//printf("all stop\n");
-	////std::this_thread::sleep_for(std::chrono::seconds(10));
-
-	//
-	//printf("+++++++++++++++++ all stop ok !!! \n");
-	////std::this_thread::sleep_for(std::chrono::seconds(5));
-	//
-	//
-	////std::this_thread::sleep_for(std::chrono::minutes(1));
-	////webrtc::GlobalTaskQueueFactory()
-	////while (true)
-	//{
-	//	printf("main [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
-	//	std::this_thread::sleep_for(std::chrono::seconds(10));
-	//	printf("main exit [g_thread_count = %d] ====================loop min 2... \n", g_thread_count);
-	//	//exit(0);
-	//}
-	//
-
-	//return 0;
 	
 	
 	return 0;

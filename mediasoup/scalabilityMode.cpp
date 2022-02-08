@@ -1,7 +1,7 @@
 #define MSC_CLASS "scalabilityMode"
 
 #include "scalabilityMode.hpp"
-#include "Logger.hpp"
+#include "clog.h"
 #include <regex>
 
 using json = nlohmann::json;
@@ -11,6 +11,7 @@ static const std::regex ScalabilityModeRegex(
 
 namespace mediasoupclient
 {
+	using namespace chen;
 	json parseScalabilityMode(const std::string& scalabilityMode)
 	{
 		/* clang-format off */
@@ -34,12 +35,12 @@ namespace mediasoupclient
 			}
 			catch (std::exception& e)
 			{
-				MSC_WARN("invalid scalabilityMode: %s", e.what());
+				WARNING_EX_LOG("invalid scalabilityMode: %s", e.what());
 			}
 		}
 		else
 		{
-			MSC_WARN("invalid scalabilityMode: %s", scalabilityMode.c_str());
+			WARNING_EX_LOG("invalid scalabilityMode: %s", scalabilityMode.c_str());
 		}
 
 		return jsonScalabilityMode;

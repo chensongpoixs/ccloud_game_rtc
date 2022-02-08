@@ -1,14 +1,14 @@
 #define MSC_CLASS "Handler"
 
 #include "Handler.hpp"
-#include "Logger.hpp"
-#include "MediaSoupClientErrors.hpp"
+ 
+ 
 #include "PeerConnection.hpp"
 #include "ortc.hpp"
 #include "sdptransform.hpp"
 #include "sdp/Utils.hpp"
 #include <cinttypes> // PRIu64, etc
-
+#include "clog.h"
 using json = nlohmann::json;
 
 constexpr uint16_t SctpNumStreamsOs{ 1024u };
@@ -26,7 +26,7 @@ namespace mediasoupclient
 	std::unique_ptr<PeerConnection> handler_pc;
 	json Handler::GetNativeRtpCapabilities(const PeerConnection::Options* peerConnectionOptions)
 	{
-		MSC_TRACE();
+		 
 
 		std::unique_ptr<PeerConnection::PrivateListener> privateListener(
 		  new PeerConnection::PrivateListener());
@@ -53,7 +53,7 @@ namespace mediasoupclient
 	}
 	json Handler::GetNativeSctpCapabilities()
 	{
-		MSC_TRACE();
+		 
 
 		json caps = { { "numStreams", SctpNumStreams } };
 
@@ -71,7 +71,7 @@ namespace mediasoupclient
 	  const PeerConnection::Options* peerConnectionOptions)
 	  : privateListener(privateListener)
 	{
-		MSC_TRACE();
+		 
 
 		this->pc.reset(new PeerConnection(this, peerConnectionOptions));
 
@@ -81,7 +81,7 @@ namespace mediasoupclient
 
 	void Handler::Close()
 	{
-		MSC_TRACE();
+		 
 
 		
 		this->pc->Close();
@@ -89,14 +89,14 @@ namespace mediasoupclient
 
 	json Handler::GetTransportStats()
 	{
-		MSC_TRACE();
+	 
 
 		return this->pc->GetStats();
 	}
 
 	void Handler::UpdateIceServers(const json& iceServerUris)
 	{
-		MSC_TRACE();
+		 
 
 		auto configuration = this->pc->GetConfiguration();
 
@@ -116,20 +116,20 @@ namespace mediasoupclient
 
 		if (this->pc->SetConfiguration(configuration))
 			return;
-
-		MSC_THROW_ERROR("failed to update ICE servers");
+		using namespace chen;
+		ERROR_EX_LOG("failed to update ICE servers");
 	};
 
 	void Handler::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState newState)
 	{
-		MSC_TRACE();
+		 
 
 		return this->privateListener->OnConnectionStateChange(newState);
 	}
 
 	void Handler::SetupTransport(const std::string& localDtlsRole, json& localSdpObject)
 	{
-		MSC_TRACE();
+		 
 
 		if (localSdpObject.empty())
 			localSdpObject = sdptransform::parse(this->pc->GetLocalDescription());
@@ -163,7 +163,7 @@ namespace mediasoupclient
 	  : Handler(
 	      privateListener, iceParameters, iceCandidates, dtlsParameters, sctpParameters, peerConnectionOptions)
 	{
-		MSC_TRACE();
+		 
 
 		this->sendingRtpParametersByKind = sendingRtpParametersByKind;
 
@@ -175,15 +175,18 @@ namespace mediasoupclient
 	  std::vector<webrtc::RtpEncodingParameters>* encodings,
 	  const json* codecOptions)
 	{
-		MSC_TRACE();
+		 
 
 		// Check if the track is a null pointer.
 		if (!track)
 		{
-			MSC_THROW_TYPE_ERROR("missing track");
+			using namespace chen;
+			ERROR_EX_LOG("missing track");
 		}
-
-		MSC_DEBUG("[kind:%s, track->id():%s]", track->kind().c_str(), track->id().c_str());
+		{
+			using namespace chen;
+			NORMAL_LOG("[kind:%s, track->id():%s]", track->kind().c_str(), track->id().c_str());
+		}
 
 		if (encodings && encodings->size() > 1)
 		{
@@ -207,7 +210,8 @@ namespace mediasoupclient
 
 		if (!transceiver)
 		{
-			MSC_THROW_ERROR("error creating transceiver");
+			using namespace chen;
+			ERROR_EX_LOG("error creating transceiver");
 		}
 
 		transceiver->SetDirection(webrtc::RtpTransceiverDirection::kSendRecv);
@@ -228,8 +232,8 @@ namespace mediasoupclient
 			{
 				this->SetupTransport("server", localSdpObject);
 			}
-
-			MSC_DEBUG("calling pc->SetLocalDescription():\n%s", offer.c_str());
+			using namespace chen;
+			NORMAL_EX_LOG("calling pc->SetLocalDescription():\n%s", offer.c_str());
 
 			this->pc->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
 
@@ -311,8 +315,8 @@ namespace mediasoupclient
 		  codecOptions);
 
 		auto answer = this->remoteSdp->GetSdp();
-
-		MSC_DEBUG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
+		using namespace chen;
+		NORMAL_EX_LOG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
 
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::ANSWER, answer);
 
@@ -331,8 +335,7 @@ namespace mediasoupclient
 	Handler::DataChannel SendHandler::SendDataChannel(
 	  const std::string& label, webrtc::DataChannelInit dataChannelInit)
 	{
-		MSC_TRACE();
-
+		 
 		uint16_t streamId = this->nextSendSctpStreamId;
 
 		dataChannelInit.negotiated = true;
@@ -383,22 +386,23 @@ namespace mediasoupclient
 
 			if (offerMediaObject == localSdpObject["media"].end())
 			{
-				MSC_THROW_ERROR("Missing 'application' media section in SDP offer");
+				using namespace chen;
+				ERROR_EX_LOG("Missing 'application' media section in SDP offer");
 			}
 
 			if (!this->transportReady)
 			{
 				this->SetupTransport("server", localSdpObject);
 			}
-
-			MSC_DEBUG("calling pc.setLocalDescription() [offer:%s]", offer.c_str());
+			using namespace chen;
+			NORMAL_EX_LOG("calling pc.setLocalDescription() [offer:%s]", offer.c_str());
 
 			this->pc->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
 			this->remoteSdp->SendSctpAssociation(*offerMediaObject);
 
 			auto sdpAnswer = this->remoteSdp->GetSdp();
-
-			MSC_DEBUG("calling pc.setRemoteDescription() [answer:%s]", sdpAnswer.c_str());
+			using namespace chen;
+			NORMAL_EX_LOG("calling pc.setRemoteDescription() [answer:%s]", sdpAnswer.c_str());
 
 			this->pc->SetRemoteDescription(PeerConnection::SdpType::ANSWER, sdpAnswer);
 			this->hasDataChannelMediaSection = true;
@@ -415,14 +419,13 @@ namespace mediasoupclient
 
 	void SendHandler::StopSending(const std::string& localId)
 	{
-		MSC_TRACE();
-
-		MSC_DEBUG("[localId:%s]", localId.c_str());
+		using namespace chen;
+		NORMAL_EX_LOG("[localId:%s]", localId.c_str());
 
 		auto locaIdIt = this->mapMidTransceiver.find(localId);
 
 		if (locaIdIt == this->mapMidTransceiver.end())
-			MSC_THROW_ERROR("associated RtpTransceiver not found");
+			ERROR_EX_LOG("associated RtpTransceiver not found");
 
 		auto* transceiver = locaIdIt->second;
 
@@ -435,7 +438,7 @@ namespace mediasoupclient
 
 		auto offer = this->pc->CreateOffer(options);
 
-		MSC_DEBUG("calling pc->SetLocalDescription():\n%s", offer.c_str());
+		NORMAL_EX_LOG("calling pc->SetLocalDescription():\n%s", offer.c_str());
 
 		// May throw.
 		this->pc->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
@@ -443,7 +446,7 @@ namespace mediasoupclient
 		auto localSdpObj = sdptransform::parse(this->pc->GetLocalDescription());
 		auto answer      = this->remoteSdp->GetSdp();
 
-		MSC_DEBUG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
+		NORMAL_EX_LOG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
 
 		// May throw.
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::ANSWER, answer);
@@ -451,9 +454,8 @@ namespace mediasoupclient
 
 	void SendHandler::ReplaceTrack(const std::string& localId, webrtc::MediaStreamTrackInterface* track)
 	{
-		MSC_TRACE();
-
-		MSC_DEBUG(
+		using namespace chen;
+		NORMAL_EX_LOG(
 		  "[localId:%s, track->id():%s]",
 		  localId.c_str(),
 		  track == nullptr ? "nullptr" : track->id().c_str());
@@ -461,7 +463,7 @@ namespace mediasoupclient
 		auto localIdIt = this->mapMidTransceiver.find(localId);
 
 		if (localIdIt == this->mapMidTransceiver.end())
-			MSC_THROW_ERROR("associated RtpTransceiver not found");
+			ERROR_EX_LOG("associated RtpTransceiver not found");
 
 		auto* transceiver = localIdIt->second;
 
@@ -470,14 +472,13 @@ namespace mediasoupclient
 
 	void SendHandler::SetMaxSpatialLayer(const std::string& localId, uint8_t spatialLayer)
 	{
-		MSC_TRACE();
-
-		MSC_DEBUG("[localId:%s, spatialLayer:%" PRIu8 "]", localId.c_str(), spatialLayer);
+		using namespace chen;
+		NORMAL_EX_LOG("[localId:%s, spatialLayer:%" PRIu8 "]", localId.c_str(), spatialLayer);
 
 		auto localIdIt = this->mapMidTransceiver.find(localId);
 
 		if (localIdIt == this->mapMidTransceiver.end())
-			MSC_THROW_ERROR("associated RtpTransceiver not found");
+			ERROR_EX_LOG("associated RtpTransceiver not found");
 
 		auto* transceiver = localIdIt->second;
 		auto parameters   = transceiver->sender()->GetParameters();
@@ -532,19 +533,18 @@ namespace mediasoupclient
 		auto result = transceiver->sender()->SetParameters(parameters);
 
 		if (!result.ok())
-			MSC_THROW_ERROR("%s", result.message());
+			ERROR_EX_LOG("%s", result.message());
 	}
 
 	json SendHandler::GetSenderStats(const std::string& localId)
 	{
-		MSC_TRACE();
-
-		MSC_DEBUG("[localId:%s]", localId.c_str());
+		using namespace chen;
+		NORMAL_EX_LOG("[localId:%s]", localId.c_str());
 
 		auto localIdIt = this->mapMidTransceiver.find(localId);
 
 		if (localIdIt == this->mapMidTransceiver.end())
-			MSC_THROW_ERROR("associated RtpTransceiver not found");
+			ERROR_EX_LOG("associated RtpTransceiver not found");
 
 		auto* transceiver = localIdIt->second;
 		auto stats        = this->pc->GetStats(transceiver->sender());
@@ -554,7 +554,7 @@ namespace mediasoupclient
 
 	void SendHandler::RestartIce(const json& iceParameters)
 	{
-		MSC_TRACE();
+	 
 
 		// Provide the remote SDP handler with new remote ICE parameters.
 		this->remoteSdp->UpdateIceParameters(iceParameters);
@@ -567,8 +567,8 @@ namespace mediasoupclient
 
 		// May throw.
 		auto offer = this->pc->CreateOffer(options);
-
-		MSC_DEBUG("calling pc->SetLocalDescription():\n%s", offer.c_str());
+		using namespace chen;
+		NORMAL_EX_LOG("calling pc->SetLocalDescription():\n%s", offer.c_str());
 
 		// May throw.
 		this->pc->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
@@ -576,7 +576,7 @@ namespace mediasoupclient
 		auto localSdpObj = sdptransform::parse(this->pc->GetLocalDescription());
 		auto answer      = this->remoteSdp->GetSdp();
 
-		MSC_DEBUG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
+		NORMAL_EX_LOG("calling pc->SetRemoteDescription():\n%s", answer.c_str());
 
 		// May throw.
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::ANSWER, answer);
@@ -594,15 +594,15 @@ namespace mediasoupclient
 	  : Handler(
 	      privateListener, iceParameters, iceCandidates, dtlsParameters, sctpParameters, peerConnectionOptions)
 	{
-		MSC_TRACE();
+		 
 	};
 
 	RecvHandler::RecvResult RecvHandler::Receive(
 	  const std::string& id, const std::string& kind, const json* rtpParameters)
 	{
-		MSC_TRACE();
-
-		MSC_DEBUG("[id:%s, kind:%s]", id.c_str(), kind.c_str());
+		 
+		using namespace chen;
+		NORMAL_EX_LOG("[id:%s, kind:%s]", id.c_str(), kind.c_str());
 
 		std::string localId;
 
@@ -619,7 +619,7 @@ namespace mediasoupclient
 
 		auto offer = this->remoteSdp->GetSdp();
 
-		MSC_DEBUG("calling pc->setRemoteDescription():\n%s", offer.c_str());
+		NORMAL_EX_LOG("calling pc->setRemoteDescription():\n%s", offer.c_str());
 
 		// May throw.
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::OFFER, offer);
@@ -645,7 +645,7 @@ namespace mediasoupclient
 		if (!this->transportReady)
 			this->SetupTransport("client", localSdpObject);
 
-		MSC_DEBUG("calling pc->SetLocalDescription():\n%s", answer.c_str());
+		NORMAL_EX_LOG("calling pc->SetLocalDescription():\n%s", answer.c_str());
 
 		// May throw.
 		this->pc->SetLocalDescription(PeerConnection::SdpType::ANSWER, answer);
@@ -657,7 +657,7 @@ namespace mediasoupclient
 		  });
 
 		if (transceiverIt == transceivers.end())
-			MSC_THROW_ERROR("new RTCRtpTransceiver not found");
+			ERROR_EX_LOG("new RTCRtpTransceiver not found");
 
 		auto& transceiver = *transceiverIt;
 
@@ -676,8 +676,8 @@ namespace mediasoupclient
 	Handler::DataChannel RecvHandler::ReceiveDataChannel(
 	  const std::string& label, webrtc::DataChannelInit dataChannelInit)
 	{
-		MSC_TRACE();
-
+		 
+		using namespace chen;
 		uint16_t streamId = this->nextSendSctpStreamId;
 
 		dataChannelInit.negotiated = true;
@@ -707,7 +707,7 @@ namespace mediasoupclient
 			this->remoteSdp->RecvSctpAssociation();
 			auto sdpOffer = this->remoteSdp->GetSdp();
 
-			MSC_DEBUG("calling pc->setRemoteDescription() [offer:%s]", sdpOffer.c_str());
+			NORMAL_EX_LOG("calling pc->setRemoteDescription() [offer:%s]", sdpOffer.c_str());
 
 			// May throw.
 			this->pc->SetRemoteDescription(PeerConnection::SdpType::OFFER, sdpOffer);
@@ -721,7 +721,7 @@ namespace mediasoupclient
 				this->SetupTransport("client", localSdpObject);
 			}
 
-			MSC_DEBUG("calling pc->setLocalDescription() [answer: %s]", sdpAnswer.c_str());
+			NORMAL_EX_LOG("calling pc->setLocalDescription() [answer: %s]", sdpAnswer.c_str());
 
 			// May throw.
 			this->pc->SetLocalDescription(PeerConnection::SdpType::ANSWER, sdpAnswer);
@@ -740,24 +740,23 @@ namespace mediasoupclient
 
 	void RecvHandler::StopReceiving(const std::string& localId)
 	{
-		MSC_TRACE();
-
-		MSC_DEBUG("[localId:%s]", localId.c_str());
+		using namespace chen;
+		NORMAL_EX_LOG("[localId:%s]", localId.c_str());
 
 		auto localIdIt = this->mapMidTransceiver.find(localId);
 
 		if (localIdIt == this->mapMidTransceiver.end())
-			MSC_THROW_ERROR("associated RtpTransceiver not found");
+			ERROR_EX_LOG("associated RtpTransceiver not found");
 
 		auto& transceiver = localIdIt->second;
 
-		MSC_DEBUG("disabling mid:%s", transceiver->mid().value().c_str());
+		NORMAL_EX_LOG("disabling mid:%s", transceiver->mid().value().c_str());
 
 		this->remoteSdp->CloseMediaSection(transceiver->mid().value());
 
 		auto offer = this->remoteSdp->GetSdp();
 
-		MSC_DEBUG("calling pc->setRemoteDescription():\n%s", offer.c_str());
+		NORMAL_EX_LOG("calling pc->setRemoteDescription():\n%s", offer.c_str());
 
 		// May throw.
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::OFFER, offer);
@@ -767,7 +766,7 @@ namespace mediasoupclient
 		// May throw.
 		auto answer = this->pc->CreateAnswer(options);
 
-		MSC_DEBUG("calling pc->SetLocalDescription():\n%s", answer.c_str());
+		NORMAL_EX_LOG("calling pc->SetLocalDescription():\n%s", answer.c_str());
 
 		// May throw.
 		this->pc->SetLocalDescription(PeerConnection::SdpType::ANSWER, answer);
@@ -775,14 +774,14 @@ namespace mediasoupclient
 
 	json RecvHandler::GetReceiverStats(const std::string& localId)
 	{
-		MSC_TRACE();
-
-		MSC_DEBUG("[localId:%s]", localId.c_str());
+		 
+		using namespace chen;
+		NORMAL_EX_LOG("[localId:%s]", localId.c_str());
 
 		auto localIdIt = this->mapMidTransceiver.find(localId);
 
 		if (localIdIt == this->mapMidTransceiver.end())
-			MSC_THROW_ERROR("associated RtpTransceiver not found");
+			ERROR_EX_LOG("associated RtpTransceiver not found");
 
 		auto& transceiver = localIdIt->second;
 
@@ -794,7 +793,7 @@ namespace mediasoupclient
 
 	void RecvHandler::RestartIce(const json& iceParameters)
 	{
-		MSC_TRACE();
+		 
 
 		// Provide the remote SDP handler with new remote ICE parameters.
 		this->remoteSdp->UpdateIceParameters(iceParameters);
@@ -803,8 +802,8 @@ namespace mediasoupclient
 			return;
 
 		auto offer = this->remoteSdp->GetSdp();
-
-		MSC_DEBUG("calling pc->setRemoteDescription():\n%s", offer.c_str());
+		using namespace chen;
+		NORMAL_EX_LOG("calling pc->setRemoteDescription():\n%s", offer.c_str());
 
 		// May throw.
 		this->pc->SetRemoteDescription(PeerConnection::SdpType::OFFER, offer);
@@ -814,7 +813,7 @@ namespace mediasoupclient
 		// May throw.
 		auto answer = this->pc->CreateAnswer(options);
 
-		MSC_DEBUG("calling pc->SetLocalDescription():\n%s", answer.c_str());
+		NORMAL_EX_LOG("calling pc->SetLocalDescription():\n%s", answer.c_str());
 
 		// May throw.
 		this->pc->SetLocalDescription(PeerConnection::SdpType::ANSWER, answer);
@@ -825,7 +824,7 @@ namespace mediasoupclient
 
 static void fillJsonRtpEncodingParameters(json& jsonEncoding, const webrtc::RtpEncodingParameters& encoding)
 {
-	MSC_TRACE();
+	 
 
 	jsonEncoding["active"] = encoding.active;
 

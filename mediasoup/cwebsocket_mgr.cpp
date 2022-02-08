@@ -1,5 +1,5 @@
 #include "cwebsocket_mgr.h"
-#include "Broadcaster.hpp"
+ 
 #include "clog.h"
 namespace chen
 {
@@ -46,7 +46,8 @@ namespace chen
 
 		if (!m_ws)
 		{
-			RTC_LOG(LS_ERROR) << "ws connect failed !!! ws_url = " << ws_url;
+			//RTC_LOG(LS_ERROR) << "ws connect failed !!! ws_url = " << ws_url;
+			ERROR_EX_LOG("ws connect mediasoup failed !!! ws_url = %s", ws_url.c_str());
 			return false;
 		}
 		if (m_ws)

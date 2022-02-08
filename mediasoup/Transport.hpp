@@ -3,7 +3,7 @@
 
 #include "Consumer.hpp"
 #include "DataConsumer.hpp"
-#include "DataProducer.hpp"
+ 
 #include "Handler.hpp"
 #include "Producer.hpp"
 
@@ -88,8 +88,7 @@ namespace mediasoupclient
 	};
 
 	class SendTransport : public Transport,
-	                      public Producer::PrivateListener,
-	                      public DataProducer::PrivateListener
+	                      public Producer::PrivateListener 
 	{
 	public:
 		/* Public Listener API */
@@ -134,14 +133,7 @@ namespace mediasoupclient
 		  const nlohmann::json* codecOptions,
 		  const nlohmann::json& appData = nlohmann::json::object());
 
-		DataProducer* ProduceData(
-		  DataProducer::Listener* listener,
-		  const std::string& label      = "",
-		  const std::string& protocol   = "",
-		  bool ordered                  = true,
-		  int maxRetransmits            = 0,
-		  int maxPacketLifeTime         = 0,
-		  const nlohmann::json& appData = nlohmann::json::object());
+		
 
 		/* Virtual methods inherited from Transport. */
 	public:
@@ -149,8 +141,7 @@ namespace mediasoupclient
 
 		/* Virtual methods inherited from Producer::PrivateListener. */
 	public:
-		void OnClose(Producer* producer) override;
-		void OnClose(DataProducer* dataProducer) override;
+		void OnClose(Producer* producer) override; 
 		void OnReplaceTrack(const Producer* producer, webrtc::MediaStreamTrackInterface* track) override;
 		void OnSetMaxSpatialLayer(const Producer* producer, uint8_t maxSpatialLayer) override;
 		nlohmann::json OnGetStats(const Producer* producer) override;
@@ -159,8 +150,7 @@ namespace mediasoupclient
 		// Listener instance.
 		Listener* listener;
 		// Map of Producers indexed by id.
-		std::unordered_map<std::string, Producer*> producers;
-		std::unordered_map<std::string, DataProducer*> dataProducers;
+		std::unordered_map<std::string, Producer*> producers; 
 		// Whether we can produce audio/video based on computed extended RTP
 		// capabilities.
 		const std::map<std::string, bool>* canProduceByKind{ nullptr };

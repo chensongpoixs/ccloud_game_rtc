@@ -1,21 +1,21 @@
 #define MSC_CLASS "Device"
 
 #include "Device.hpp"
-#include "Logger.hpp"
-#include "MediaSoupClientErrors.hpp"
+ 
+ 
 #include "ortc.hpp"
-
+#include "clog.h"
 using json = nlohmann::json;
 
 namespace mediasoupclient
 {
+	using namespace chen;
 	/**
 	 * Whether the Device is loaded.
 	 */
 	bool Device::IsLoaded() const
 	{
-		MSC_TRACE();
-
+		 
 		return this->loaded;
 	}
 
@@ -47,10 +47,10 @@ namespace mediasoupclient
 	 */
 	const json& Device::GetRtpCapabilities() const
 	{
-		MSC_TRACE();
+		 
 
 		if (!this->loaded)
-			MSC_THROW_INVALID_STATE_ERROR("not loaded");
+			ERROR_EX_LOG("not loaded");
 
 		return this->recvRtpCapabilities;
 	}
@@ -60,10 +60,9 @@ namespace mediasoupclient
 	 */
 	const json& Device::GetSctpCapabilities() const
 	{
-		MSC_TRACE();
-
+		 
 		if (!this->loaded)
-			MSC_THROW_INVALID_STATE_ERROR("not loaded");
+			ERROR_EX_LOG("not loaded");
 
 		return this->sctpCapabilities;
 	}
@@ -73,11 +72,10 @@ namespace mediasoupclient
 	 */
 	void Device::Load(json routerRtpCapabilities, const PeerConnection::Options* peerConnectionOptions)
 	{
-		MSC_TRACE();
-
+		 
 		if (this->loaded)
 		{
-			MSC_THROW_INVALID_STATE_ERROR("already loaded");
+			ERROR_EX_LOG("already loaded");
 		}
 
 		// This may throw.
@@ -86,7 +84,7 @@ namespace mediasoupclient
 		// Get Native RTP capabilities.
 		auto nativeRtpCapabilities = Handler::GetNativeRtpCapabilities(peerConnectionOptions);
 
-		MSC_DEBUG("got native RTP capabilities:\n%s", nativeRtpCapabilities.dump(4).c_str());
+		NORMAL_EX_LOG("got native RTP capabilities:\n%s", nativeRtpCapabilities.dump(4).c_str());
 
 		// This may throw.
 		ortc::validateRtpCapabilities(nativeRtpCapabilities);
@@ -95,7 +93,7 @@ namespace mediasoupclient
 		this->extendedRtpCapabilities =
 		  ortc::getExtendedRtpCapabilities(nativeRtpCapabilities, routerRtpCapabilities);
 
-		MSC_DEBUG("got extended RTP capabilities:\n%s", this->extendedRtpCapabilities.dump(4).c_str());
+		NORMAL_EX_LOG("got extended RTP capabilities:\n%s", this->extendedRtpCapabilities.dump(4).c_str());
 
 		// Check whether we can produce audio/video.
 		this->canProduceByKind["audio"] = ortc::canSend("audio", this->extendedRtpCapabilities);
@@ -104,7 +102,7 @@ namespace mediasoupclient
 		// Generate our receiving RTP capabilities for receiving media.
 		this->recvRtpCapabilities = ortc::getRecvRtpCapabilities(this->extendedRtpCapabilities);
 
-		MSC_DEBUG("got receiving RTP capabilities:\n%s", this->recvRtpCapabilities.dump(4).c_str());
+		NORMAL_EX_LOG("got receiving RTP capabilities:\n%s", this->recvRtpCapabilities.dump(4).c_str());
 
 		// This may throw.
 		ortc::validateRtpCapabilities(this->recvRtpCapabilities);
@@ -112,12 +110,12 @@ namespace mediasoupclient
 		// Generate our SCTP capabilities.
 		this->sctpCapabilities = Handler::GetNativeSctpCapabilities();
 
-		MSC_DEBUG("got receiving SCTP capabilities:\n%s", this->sctpCapabilities.dump(4).c_str());
+		NORMAL_EX_LOG("got receiving SCTP capabilities:\n%s", this->sctpCapabilities.dump(4).c_str());
 
 		// This may throw.
 		ortc::validateSctpCapabilities(this->sctpCapabilities);
 
-		MSC_DEBUG("succeeded");
+		NORMAL_EX_LOG("succeeded");
 
 		this->loaded = true;
 	}
@@ -128,12 +126,12 @@ namespace mediasoupclient
 	 */
 	bool Device::CanProduce(const std::string& kind)
 	{
-		MSC_TRACE();
+	 
 
 		if (!this->loaded)
-			MSC_THROW_INVALID_STATE_ERROR("not loaded");
+			ERROR_EX_LOG("not loaded");
 		else if (kind != "audio" && kind != "video")
-			MSC_THROW_TYPE_ERROR("invalid kind");
+			ERROR_EX_LOG("invalid kind");
 
 		return this->canProduceByKind[kind];
 	}
@@ -148,12 +146,11 @@ namespace mediasoupclient
 	  const PeerConnection::Options* peerConnectionOptions,
 	  const json& appData) const
 	{
-		MSC_TRACE();
-
+		 
 		if (!this->loaded)
-			MSC_THROW_INVALID_STATE_ERROR("not loaded");
+			ERROR_EX_LOG("not loaded");
 		else if (!appData.is_object())
-			MSC_THROW_TYPE_ERROR("appData must be a JSON object");
+			ERROR_EX_LOG("appData must be a JSON object");
 
 		// Validate arguments.
 		ortc::validateIceParameters(const_cast<json&>(iceParameters));
@@ -190,8 +187,7 @@ namespace mediasoupclient
 	  const PeerConnection::Options* peerConnectionOptions,
 	  const json& appData) const
 	{
-		MSC_TRACE();
-
+		 
 		return Device::CreateSendTransport(
 		  listener, id, iceParameters, iceCandidates, dtlsParameters, nullptr, peerConnectionOptions, appData);
 	}
@@ -206,12 +202,11 @@ namespace mediasoupclient
 	  const PeerConnection::Options* peerConnectionOptions,
 	  const json& appData) const
 	{
-		MSC_TRACE();
-
+		 
 		if (!this->loaded)
-			MSC_THROW_INVALID_STATE_ERROR("not loaded");
+			ERROR_EX_LOG("not loaded");
 		else if (!appData.is_object())
-			MSC_THROW_TYPE_ERROR("appData must be a JSON object");
+			ERROR_EX_LOG("appData must be a JSON object");
 
 		// Validate arguments.
 		ortc::validateIceParameters(const_cast<json&>(iceParameters));
@@ -245,8 +240,7 @@ namespace mediasoupclient
 	  const PeerConnection::Options* peerConnectionOptions,
 	  const json& appData) const
 	{
-		MSC_TRACE();
-
+		 
 		return Device::CreateRecvTransport(
 		  listener, id, iceParameters, iceCandidates, dtlsParameters, nullptr, peerConnectionOptions, appData);
 	}

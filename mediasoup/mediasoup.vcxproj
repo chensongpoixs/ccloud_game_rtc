@@ -130,15 +130,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Broadcaster.cpp" />
-    <ClCompile Include="capture.cpp" />
     <ClCompile Include="casync_log.cpp" />
     <ClCompile Include="ccfg.cpp" />
     <ClCompile Include="cclient.cpp" />
-    <ClCompile Include="ccloud_rendering.cpp" />
     <ClCompile Include="cconfig.cpp" />
     <ClCompile Include="cdesktop_capture.cpp" />
-    <ClCompile Include="chttp_mgr.cpp" />
     <ClCompile Include="cinput_device.cpp" />
     <ClCompile Include="cinput_device_event.cpp" />
     <ClCompile Include="cint2str.cpp" />
@@ -153,20 +149,15 @@
     <ClCompile Include="cwebsocket_session.cpp" />
     <ClCompile Include="cwindow_util.cpp" />
     <ClCompile Include="DataConsumer.cpp" />
-    <ClCompile Include="DataProducer.cpp" />
-    <ClCompile Include="desktop_capture.cc" />
     <ClCompile Include="desktop_capture_source.cc" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="grammar.cpp" />
     <ClCompile Include="Handler.cpp" />
-    <ClCompile Include="httplib.cc" />
-    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mediasoupclient.cpp" />
     <ClCompile Include="ortc.cpp" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="PeerConnection.cpp" />
-    <ClCompile Include="peerConnectionUtils.cpp" />
     <ClCompile Include="Producer.cpp" />
     <ClCompile Include="scalabilityMode.cpp" />
     <ClCompile Include="sdp\MediaSection.cpp" />
@@ -177,16 +168,12 @@
     <ClCompile Include="wsclient.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Broadcaster.hpp" />
-    <ClInclude Include="capture.h" />
     <ClInclude Include="cassertion_macros.h" />
     <ClInclude Include="casync_log.h" />
     <ClInclude Include="ccfg.h" />
     <ClInclude Include="cclient.h" />
-    <ClInclude Include="ccloud_rendering.h" />
     <ClInclude Include="cconfig.h" />
     <ClInclude Include="cdesktop_capture.h" />
-    <ClInclude Include="chttp_mgr.h" />
     <ClInclude Include="cinput_device.h" />
     <ClInclude Include="cinput_device_event.h" />
     <ClInclude Include="cint2str.h" />
@@ -205,20 +192,13 @@
     <ClInclude Include="cwebsocket_session.h" />
     <ClInclude Include="cwindow_util.h" />
     <ClInclude Include="DataConsumer.hpp" />
-    <ClInclude Include="DataProducer.hpp" />
-    <ClInclude Include="desktop_capture.h" />
     <ClInclude Include="desktop_capture_source.h" />
     <ClInclude Include="Device.hpp" />
-    <ClInclude Include="Exception.hpp" />
     <ClInclude Include="Handler.hpp" />
-    <ClInclude Include="httplib.h" />
     <ClInclude Include="json.hpp" />
-    <ClInclude Include="Logger.hpp" />
     <ClInclude Include="mediasoupclient.hpp" />
-    <ClInclude Include="MediaSoupClientErrors.hpp" />
     <ClInclude Include="ortc.hpp" />
     <ClInclude Include="PeerConnection.hpp" />
-    <ClInclude Include="peerConnectionUtils.hpp" />
     <ClInclude Include="Producer.hpp" />
     <ClInclude Include="scalabilityMode.hpp" />
     <ClInclude Include="sdptransform.hpp" />
