@@ -5,6 +5,7 @@
 #include "ccfg.h"
 #include "cwebsocket_mgr.h"
 #include "cdesktop_capture.h"
+#include "cdevice.h"
 #include "pc/video_track_source.h"
 namespace chen {
 
@@ -194,7 +195,7 @@ namespace chen {
 		{
 			return true;
 		}
-		nlohmann::json nativeRtpCapabilities = mediasoupclient::Handler::GetNativeRtpCapabilities(nullptr);
+		nlohmann::json nativeRtpCapabilities = deivce::GetNativeRtpCapabilities();
 
 		m_extendedRtpCapabilities = mediasoupclient::ortc::getExtendedRtpCapabilities(nativeRtpCapabilities, routerRtpCapabilities);
 		
@@ -202,7 +203,7 @@ namespace chen {
 		m_recvRtpCapabilities = mediasoupclient::ortc::getRecvRtpCapabilities(m_extendedRtpCapabilities);
 
 
-		m_sctpCapabilities = mediasoupclient::Handler::GetNativeSctpCapabilities();
+		m_sctpCapabilities = deivce::GetNativeSctpCapabilities();
 		m_loaded = true;
 		return true;
 	}

@@ -13,8 +13,8 @@
 #include <memory>
 #include "cclient.h"
 #include "cdesktop_capture.h"
-#include "PeerConnection.hpp"
  
+#include "csession_description.h"
 #include "pc/video_track_source.h"
 namespace chen {
 
@@ -64,37 +64,7 @@ namespace chen {
 
 
 
-	class cSetSessionDescriptionObserver : public webrtc::SetSessionDescriptionObserver
-	{
-	public:
-		cSetSessionDescriptionObserver() = default;
-		~cSetSessionDescriptionObserver() override = default;
-
-		std::future<void> GetFuture()
-		{
-			return  promise.get_future();
-		}
-		void Reject(const std::string& error)
-		{
-			 promise.set_exception(std::make_exception_ptr(std::runtime_error(error.c_str())));
-		}
-
-		/* Virtual methods inherited from webrtc::SetSessionDescriptionObserver. */
-	public:
-		void OnSuccess() override
-		{
-			 promise.set_value();
-		}
-		void OnFailure(webrtc::RTCError error) override
-		{
-			auto message = std::string(error.message());
-
-			 Reject(message);
-		}
-
-	private:
-		std::promise<void> promise;
-	};
+	
 	ctransport::ctransport( std::string transport_id, cclient* ptr):m_transport_id ( transport_id), m_client_ptr(ptr)
 	{}
 	bool ctransport::init(const std::string &transport_id,  const nlohmann::json& extendedRtpCapabilities,  
@@ -137,13 +107,7 @@ namespace chen {
 		m_peer_connection = m_peer_connection_factory->CreatePeerConnection(config, nullptr, nullptr, this);
 
 		nlohmann::json iceParameters_ = iceParameters;
-		/*	NORMAL_EX_LOG("iceParameters_ = %s", iceParameters_.dump().c_str());
-			NORMAL_EX_LOG("iceCandidates = %s", iceCandidates.dump().c_str());
-			NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
-			NORMAL_EX_LOG("sctpParameters = %s", sctpParameters.dump().c_str());*/
-		/*const nlohmann::json& iceCandidates,
-		const nlohmann::json& dtlsParameters,
-		const nlohmann::json& sctpParameters*/
+		 
 		mediasoupclient::Sdp::RemoteSdp* removesdp_ptr = new mediasoupclient::Sdp::RemoteSdp(iceParameters_, iceCandidates, dtlsParameters, sctpParameters);
 		m_remote_sdp.reset( removesdp_ptr );
 		m_transport_id = transport_id;

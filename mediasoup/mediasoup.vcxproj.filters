@@ -18,19 +18,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Consumer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DataConsumer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Device.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="grammar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mediasoupclient.cpp">
@@ -42,16 +33,10 @@
     <ClCompile Include="parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PeerConnection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Producer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="scalabilityMode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Transport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="writer.cpp">
@@ -126,18 +111,15 @@
     <ClCompile Include="cdesktop_capture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cdevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="csession_description.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Consumer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DataConsumer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Device.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Handler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="json.hpp">
@@ -149,9 +131,6 @@
     <ClInclude Include="ortc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PeerConnection.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Producer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -159,9 +138,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sdptransform.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Transport.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils.hpp">
@@ -249,6 +225,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cdesktop_capture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cdevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="csession_description.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
