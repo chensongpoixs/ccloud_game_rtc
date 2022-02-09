@@ -120,14 +120,15 @@ namespace chen {
 	//  A data buffer was successfully received.
 	void cdataconsumer::OnMessage(const webrtc::DataBuffer& buffer)
 	{
-		NORMAL_EX_LOG("DataConsumer -------------------------------------------------");
+		std::string s = std::string(buffer.data.data<char>(), buffer.data.size());
+		NORMAL_EX_LOG("DataConsumer -------------- %s -----------------------------------", s.c_str());
 		//this->listener->OnMessage(this, buffer);
 	}
 
 	// The data channel's buffered_amount has changed.
 	void cdataconsumer::OnBufferedAmountChange(uint64_t /*sentDataSize*/)
 	{
-		 
+		NORMAL_EX_LOG("");
 		// Should not happen on consumer.
 	}
 }

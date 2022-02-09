@@ -6,6 +6,7 @@
 #include <memory>
 #include "sdp/RemoteSdp.hpp"
 #include "api/create_peerconnection_factory.h"
+#include "clog.h"
 namespace chen {
 	enum ERecv_Type
 	{
@@ -17,7 +18,7 @@ namespace chen {
 	class cclient;
 	class cdataconsumer;
 	class ctransport : public webrtc::PeerConnectionObserver /*好玩东西给webrtc封装这个里面   */,
-		public webrtc::CreateSessionDescriptionObserver
+		public webrtc::CreateSessionDescriptionObserver 
 	{
 		struct cDataConsmer
 		{
@@ -52,7 +53,7 @@ namespace chen {
 		bool webrtc_connect_recv_setup_call();
 
 
-
+		void add_webrtc_consmer_transport();
 		/// recv data conumser
 		
 		bool  webrtc_create_consumer(const std::string & id, const std::string & dataconsumerId, const std::string & label);
@@ -67,7 +68,10 @@ namespace chen {
 		//
 
 		void OnSignalingChange(
-			webrtc::PeerConnectionInterface::SignalingState new_state) override {}
+			webrtc::PeerConnectionInterface::SignalingState new_state) override 
+		{
+			NORMAL_EX_LOG("OnSignalingChange");
+		}
 
 
 		// 好家伙  webrtc封装太好 ^_^  接口定义 PeerConnectionObserver
@@ -78,14 +82,29 @@ namespace chen {
 		void OnRemoveTrack(
 			rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver) override;
 		void OnDataChannel(
-			rtc::scoped_refptr<webrtc::DataChannelInterface> channel) override {}
-		void OnRenegotiationNeeded() override {}
+			rtc::scoped_refptr<webrtc::DataChannelInterface> channel) override 
+		{
+			NORMAL_EX_LOG("OnDataChannel");
+		}
+		void OnRenegotiationNeeded() override 
+		{
+			NORMAL_EX_LOG("OnRenegotiationNeeded");
+		}
 		void OnIceConnectionChange(
-			webrtc::PeerConnectionInterface::IceConnectionState new_state) override {}
+			webrtc::PeerConnectionInterface::IceConnectionState new_state) override 
+		{
+			NORMAL_EX_LOG("OnIceConnectionChange");
+		}
 		void OnIceGatheringChange(
-			webrtc::PeerConnectionInterface::IceGatheringState new_state) override {}
+			webrtc::PeerConnectionInterface::IceGatheringState new_state) override 
+		{
+			NORMAL_EX_LOG("OnIceGatheringChange");
+		}
 		void OnIceCandidate(const webrtc::IceCandidateInterface* candidate) override;
-		void OnIceConnectionReceivingChange(bool receiving) override {}
+		void OnIceConnectionReceivingChange(bool receiving) override 
+		{
+			NORMAL_EX_LOG("OnIceConnectionReceivingChange");
+		}
 	public:
 		// CreateSessionDescriptionObserver implementation.
 		void OnSuccess(webrtc::SessionDescriptionInterface* desc) override;

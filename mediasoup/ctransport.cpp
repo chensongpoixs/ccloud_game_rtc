@@ -318,6 +318,73 @@ namespace chen {
 
 		return true;
 	}
+
+
+	void ctransport::add_webrtc_consmer_transport()
+	{
+		if (m_recving == ERecv_Success)
+		{
+			return;
+		}
+		if (m_dataconsmers.empty())
+		{
+			m_recving = ERecv_Success;
+			return ;
+		}
+		{
+			cDataConsmer cdata = m_dataconsmers.front();
+			m_dataconsmers.pop_front();
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_cosumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>()));
+			if (!pi.second)
+			{
+				ERROR_EX_LOG("create data channel insert failed !!!");
+				 
+			}
+			else
+			{
+				/* clang-format off */
+				nlohmann::json sctpStreamParameters =
+				{
+					{ "streamId", cdata.m_id    },
+				{ "ordered",  false }
+				};
+				(pi.first->second)->init(cdata.m_id, cdata.m_dataconsumerId, webrtcDataChannel, sctpStreamParameters, "stcp");
+
+			}
+
+		}
+
+		while (!m_dataconsmers.empty())
+		{
+			cDataConsmer cdata = m_dataconsmers.front();
+			m_dataconsmers.pop_front();
+
+			webrtc::DataChannelInit dataChannelInit;
+			dataChannelInit.protocol = "chat";
+			dataChannelInit.negotiated = true;
+			dataChannelInit.id = ++m_streamId;
+			webrtcDataChannel = m_peer_connection->CreateDataChannel(cdata.m_lable, &dataChannelInit);
+			if (!webrtcDataChannel.get())
+			{
+				ERROR_EX_LOG("create data channel failed !!!");
+				continue ;
+			}
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_cosumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>()));
+			if (!pi.second)
+			{
+				ERROR_EX_LOG("create data channel insert failed !!!");
+				continue; ;
+			}
+			/* clang-format off */
+			nlohmann::json sctpStreamParameters =
+			{
+				{ "streamId", dataChannelInit.id                },
+			{ "ordered",  dataChannelInit.ordered }
+			};
+			(pi.first->second)->init(cdata.m_id, cdata.m_dataconsumerId, webrtcDataChannel, sctpStreamParameters, "stcp");
+		}
+		m_recving = ERecv_Success;
+	}
 	bool ctransport::webrtc_connect_recv_setup_call()
 	{
 		std::string offer = m_offer;
@@ -344,8 +411,11 @@ namespace chen {
 		}
 
 		m_peer_connection->SetLocalDescription(observer, sessionDescription);
+		//m_client_ptr->async_produce();
+		//return true;
 		if (m_dataconsmers.empty())
 		{
+			m_recving = ERecv_Success;
 			return true;
 		}
 		{
@@ -360,8 +430,8 @@ namespace chen {
 			/* clang-format off */
 			nlohmann::json sctpStreamParameters =
 			{
-				{ "streamId", cdata.m_id               },
-			{ "ordered",  false }
+				{ "streamId", cdata.m_id    },
+				{ "ordered",  false }
 			};
 			(pi.first->second)->init(cdata.m_id, cdata.m_dataconsumerId, webrtcDataChannel, sctpStreamParameters, "stcp");
 
@@ -381,13 +451,13 @@ namespace chen {
 			if (!webrtcDataChannel.get())
 			{
 				ERROR_EX_LOG("create data channel failed !!!");
-				return false;
+				continue;;
 			}
 			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_cosumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>()));
 			if (!pi.second)
 			{
 				ERROR_EX_LOG("create data channel insert failed !!!");
-				return false;
+				continue;;
 			}
 			/* clang-format off */
 			nlohmann::json sctpStreamParameters =
@@ -397,6 +467,8 @@ namespace chen {
 			};
 			(pi.first->second)->init(cdata.m_id, cdata.m_dataconsumerId, webrtcDataChannel, sctpStreamParameters, "stcp");
 		}
+		//
+		m_client_ptr->async_produce();
 		m_recving = ERecv_Success;
 		return true;
 	}
@@ -486,7 +558,7 @@ namespace chen {
 			ERROR_EX_LOG("create data channel failed !!!");
 			return false;
 		}
-		
+		webrtc::PeerConnectionInterface::SignalingState state = m_peer_connection->signaling_state();
 		m_remote_sdp->RecvSctpAssociation();
 		std::string sdpoffer = m_remote_sdp->GetSdp();
 		{
@@ -514,23 +586,28 @@ namespace chen {
 
 			m_peer_connection->SetRemoteDescription(observer, sessionDescription);
 			future.get();
+			webrtc::PeerConnectionInterface::SignalingState state = m_peer_connection->signaling_state();
 		}
 		
 		{
-		 
-			//chen::CreateSessionDescriptionObserver* sessionDescriptionObserver =
-			//	new rtc::RefCountedObject<chen::CreateSessionDescriptionObserver>();
-			//rtc::scoped_refptr<cSetSessionDescriptionObserver> observer(
-				//new rtc::RefCountedObject<cSetSessionDescriptionObserver>());
+			webrtc::PeerConnectionInterface::SignalingState state = m_peer_connection->signaling_state();
+			//m_peer_connection->ChangeSignalingState(webrtc::PeerConnectionInterface::kHaveRemotePrAnswer);
+			chen::CreateSessionDescriptionObserver* sessionDescriptionObserver =
+				new rtc::RefCountedObject<chen::CreateSessionDescriptionObserver>();
+			rtc::scoped_refptr<cSetSessionDescriptionObserver> observer(
+				new rtc::RefCountedObject<cSetSessionDescriptionObserver>());
 			webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
-			//auto future = sessionDescriptionObserver->GetFuture();
-			m_peer_connection->CreateAnswer(this, options);
-			//std::string offer = future.get();
-			//m_offer = offer;
+			auto future = sessionDescriptionObserver->GetFuture();
+			m_peer_connection->CreateAnswer(sessionDescriptionObserver, options);
+			std::string offer = future.get();
+			m_offer = offer;
+			{
+				webrtc::PeerConnectionInterface::SignalingState statew = m_peer_connection->signaling_state();
+			}
 			m_recving = ERecv_Recving;
 			NORMAL_EX_LOG("recv create answer !!!");
 			//nlohmann::json localsdpobject =  sdptransform::parse(sdp);
-			//m_client_ptr->transportofferasner(m_send, true);
+			m_client_ptr->transportofferasner(m_send, true);
 		}
 		//m_peer_connection->SetRemoteDescription()
 		
@@ -563,14 +640,20 @@ namespace chen {
 		rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
 		const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>&
 		streams)
-	{}
+	{
+		NORMAL_EX_LOG("OnAddTrack");
+	}
 	void ctransport::OnRemoveTrack(
 		rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver)
-	{}
+	{
+		NORMAL_EX_LOG("OnRemoveTrack");
+	}
 	 
 	 
 	void ctransport::OnIceCandidate(const webrtc::IceCandidateInterface* candidate)
-	{}
+	{
+		NORMAL_EX_LOG("OnIceCandidate");
+	}
 	 
  
 	// CreateSessionDescriptionObserver implementation.

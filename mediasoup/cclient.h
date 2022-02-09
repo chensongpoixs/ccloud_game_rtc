@@ -85,6 +85,8 @@ namespace chen {
 		bool server_reply_new_dataconsumer(uint64 id);
 
 
+	public:
+		bool async_produce();
 	private:
 		void _presssmsg(std::list<std::string> & msgs);
 	private:
@@ -101,6 +103,7 @@ namespace chen {
 		std::map<uint64, client_protoo_msg> m_client_protoo_msg_call;
 		std::map<std::string, server_protoo_msg> m_server_protoo_msg_call;
 
+		time_t							m_async_data_consumer_t;
 	};
 }
 

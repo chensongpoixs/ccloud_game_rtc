@@ -93,6 +93,7 @@ namespace chen {
 			case EMediasoup_Request_Consumer_Webrtc_Transport:
 			{
 				m_recv_transport->webrtc_connect_recv_setup_call();
+				m_status = EMediasoup_WebSocket;
 				break;
 			}
 			case EMediasoup_Request_Send_Connect_Set:
@@ -130,6 +131,10 @@ namespace chen {
 			//}
 			case EMediasoup_WebSocket: // wait server msg 
 			{
+				/*if ( m_recv_transport && m_async_data_consumer_t > ::time(NULL))
+				{
+					m_recv_transport->add_webrtc_consmer_transport();
+				}*/
 				g_websocket_mgr.presssmsg(msgs);
 				
 				
@@ -178,7 +183,7 @@ namespace chen {
 		{
 			std::string msg = std::move(msgs.front());
 			msgs.pop_front();
-			NORMAL_EX_LOG("server ====> msg = %s", msg.c_str());
+			//NORMAL_EX_LOG("server ====> msg = %s", msg.c_str());
 			nlohmann::json response = nlohmann::json::parse(msg);
 
 			if (response.find("notification") != response.end())
@@ -420,8 +425,8 @@ namespace chen {
 	{
 		NORMAL_EX_LOG("  router rtp capabilities --> ");
 		_load(msg["data"]);
-		m_status = EMediasoup_Request_Create_Recv_Webrtc_Transport;
-		//m_status = EMediasoup_Request_Create_Send_Webrtc_Transport; // 
+		//m_status = EMediasoup_Request_Create_Recv_Webrtc_Transport;
+		m_status = EMediasoup_Request_Create_Send_Webrtc_Transport; // 
 		return true;
 	}
 
@@ -450,7 +455,7 @@ namespace chen {
 
 			NORMAL_EX_LOG("data.value().dump().c_str() = %s\n json_iceParameters = %s\n dtlsParameters = %s", new_data.dump().c_str(), json_iceParameters.dump().c_str(), dtlsParameters.value().dump().c_str());
 	 
-			/*if (!m_send_transport)
+			if (!m_send_transport)
 			{
 				m_send_transport = new rtc::RefCountedObject<ctransport>(transport_id, this );
 				m_send_transport->init(true, transport_id, m_extendedRtpCapabilities,
@@ -460,8 +465,7 @@ namespace chen {
 					json_sctpParameters);
 				m_status =  EMediasoup_Request_Create_Recv_Webrtc_Transport;
 			}
-			else */
-				if (!m_recv_transport)
+			else if (!m_recv_transport)
 			{
 
 				m_recv_transport = new rtc::RefCountedObject<ctransport>(transport_id, this);
@@ -544,6 +548,12 @@ namespace chen {
 		};
 		g_websocket_mgr.send(reply_datacosumer.dump());
 
+		return true;
+	}
+	bool cclient:: async_produce()
+	{
+		m_send_transport->webrtc_connect_transport_offer(nullptr);
+		//m_async_data_consumer_t = ::time(NULL) + 50;
 		return true;
 	}
 }
