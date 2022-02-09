@@ -150,7 +150,6 @@
     <ClCompile Include="cwebsocket_mgr.cpp" />
     <ClCompile Include="cwebsocket_session.cpp" />
     <ClCompile Include="cwindow_util.cpp" />
-    <ClCompile Include="DataConsumer.cpp" />
     <ClCompile Include="desktop_capture_source.cc" />
     <ClCompile Include="grammar.cpp" />
     <ClCompile Include="main.cpp" />
@@ -190,7 +189,6 @@
     <ClInclude Include="cwebsocket_mgr.h" />
     <ClInclude Include="cwebsocket_session.h" />
     <ClInclude Include="cwindow_util.h" />
-    <ClInclude Include="DataConsumer.hpp" />
     <ClInclude Include="desktop_capture_source.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="mediasoupclient.hpp" />
