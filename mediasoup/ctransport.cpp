@@ -13,7 +13,7 @@
 #include <memory>
 #include "cclient.h"
 #include "cdesktop_capture.h"
- 
+#include "cdataconsumer.h"
 #include "csession_description.h"
 #include "pc/video_track_source.h"
 namespace chen {
@@ -65,9 +65,9 @@ namespace chen {
 
 
 	
-	ctransport::ctransport( std::string transport_id, cclient* ptr):m_transport_id ( transport_id), m_client_ptr(ptr)
+	ctransport::ctransport( std::string transport_id, cclient* ptr):m_transport_id ( transport_id), m_client_ptr(ptr) , m_streamId(0), m_recving(ERecv_None)
 	{}
-	bool ctransport::init(const std::string &transport_id,  const nlohmann::json& extendedRtpCapabilities,  
+	bool ctransport::init(bool send, const std::string &transport_id,  const nlohmann::json& extendedRtpCapabilities,  
 		const nlohmann::json& iceParameters,
 		const nlohmann::json& iceCandidates,
 		const nlohmann::json& dtlsParameters,
@@ -111,15 +111,17 @@ namespace chen {
 		mediasoupclient::Sdp::RemoteSdp* removesdp_ptr = new mediasoupclient::Sdp::RemoteSdp(iceParameters_, iceCandidates, dtlsParameters, sctpParameters);
 		m_remote_sdp.reset( removesdp_ptr );
 		m_transport_id = transport_id;
-		
-		m_sendingRtpParametersByKind = {
-			{ "video", mediasoupclient::ortc::getSendingRtpParameters("video", extendedRtpCapabilities) }
-		};
-		m_sendingRemoteRtpParametersByKind ={
-			{"video", mediasoupclient::ortc::getSendingRemoteRtpParameters("video", extendedRtpCapabilities)}
-		};
-		m_track = m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), CCapturerTrackSource::Create());
-
+		m_send = send;
+		if (send)
+		{
+			m_sendingRtpParametersByKind = {
+				{ "video", mediasoupclient::ortc::getSendingRtpParameters("video", extendedRtpCapabilities) }
+			};
+			m_sendingRemoteRtpParametersByKind = {
+				{"video", mediasoupclient::ortc::getSendingRemoteRtpParameters("video", extendedRtpCapabilities)}
+			};
+			m_track = m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), CCapturerTrackSource::Create());
+		}
 		return true;
 	}
 
@@ -168,6 +170,7 @@ namespace chen {
  
 	bool ctransport::webrtc_connect_transport_setup_connect(const std::string & localDtlsRole)
 	{
+		NORMAL_EX_LOG("localDtlsRole = %s", localDtlsRole.c_str());
 		//const webrtc::SessionDescriptionInterface* desc = m_peer_connection ->local_description();
 		std::string sdp = m_offer;
 
@@ -299,7 +302,7 @@ namespace chen {
 				}
 
 				m_peer_connection->SetRemoteDescription(observer, sessionDescription);
-
+				//observer->OnSuccess();
 				  future.get();
 				   
 			}
@@ -315,7 +318,88 @@ namespace chen {
 
 		return true;
 	}
+	bool ctransport::webrtc_connect_recv_setup_call()
+	{
+		std::string offer = m_offer;
 
+		webrtc::SdpParseError error;
+		webrtc::SessionDescriptionInterface* sessionDescription;
+		rtc::scoped_refptr<cSetSessionDescriptionObserver> observer(
+			new rtc::RefCountedObject<cSetSessionDescriptionObserver>());
+
+		std::string  typeStr = "answer";
+		auto future = observer->GetFuture();
+
+		sessionDescription = webrtc::CreateSessionDescription(typeStr, offer, &error);
+		if (sessionDescription == nullptr)
+		{
+			/*MSC_WARN(
+				"webrtc::CreateSessionDescription failed [%s]: %s",
+				error.line.c_str(),
+				error.description.c_str());*/
+
+			observer->Reject(error.description);
+			future.get();
+			return false;
+		}
+
+		m_peer_connection->SetLocalDescription(observer, sessionDescription);
+		if (m_dataconsmers.empty())
+		{
+			return true;
+		}
+		{
+			cDataConsmer cdata = m_dataconsmers.front();
+			m_dataconsmers.pop_front();
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_cosumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>()));
+			if (!pi.second)
+			{
+				ERROR_EX_LOG("create data channel insert failed !!!");
+				return false;
+			}
+			/* clang-format off */
+			nlohmann::json sctpStreamParameters =
+			{
+				{ "streamId", cdata.m_id               },
+			{ "ordered",  false }
+			};
+			(pi.first->second)->init(cdata.m_id, cdata.m_dataconsumerId, webrtcDataChannel, sctpStreamParameters, "stcp");
+
+
+		}
+
+		while (!m_dataconsmers.empty())
+		{
+			cDataConsmer cdata = m_dataconsmers.front();
+			m_dataconsmers.pop_front();
+
+			webrtc::DataChannelInit dataChannelInit;
+			dataChannelInit.protocol = "chat";
+			dataChannelInit.negotiated = true;
+			dataChannelInit.id = ++m_streamId;
+			webrtcDataChannel = m_peer_connection->CreateDataChannel(cdata.m_lable, &dataChannelInit);
+			if (!webrtcDataChannel.get())
+			{
+				ERROR_EX_LOG("create data channel failed !!!");
+				return false;
+			}
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_cosumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>()));
+			if (!pi.second)
+			{
+				ERROR_EX_LOG("create data channel insert failed !!!");
+				return false;
+			}
+			/* clang-format off */
+			nlohmann::json sctpStreamParameters =
+			{
+				{ "streamId", dataChannelInit.id                },
+			{ "ordered",  dataChannelInit.ordered }
+			};
+			(pi.first->second)->init(cdata.m_id, cdata.m_dataconsumerId, webrtcDataChannel, sctpStreamParameters, "stcp");
+		}
+		m_recving = ERecv_Success;
+		return true;
+	}
 
 
 	bool ctransport::webrtc_transport_produce(const std::string & producerId)
@@ -339,6 +423,135 @@ namespace chen {
 		}
 		return true;
 	}
+
+	/////////////////////////////////////////////////////////////////
+
+	bool  ctransport::webrtc_create_consumer(const std::string & id, const std::string & dataconsumerId, const std::string & label)
+	{
+		NORMAL_EX_LOG("id = %s, datacnsumerid = %s, label = %s", id.c_str(), dataconsumerId.c_str(), label.c_str());
+		
+		if (m_recving == ERecv_Success)
+		{
+			webrtc::DataChannelInit dataChannelInit;
+			dataChannelInit.protocol = "chat";
+			dataChannelInit.negotiated = true;
+			dataChannelInit.id = ++m_streamId;
+			webrtcDataChannel = m_peer_connection->CreateDataChannel(label, &dataChannelInit);
+			if (!webrtcDataChannel.get())
+			{
+				ERROR_EX_LOG("create data channel failed !!!");
+				return false;
+			}
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_cosumsers.insert(std::make_pair(id, std::make_shared<cdataconsumer>()));
+			if (!pi.second)
+			{
+				ERROR_EX_LOG("create data channel insert failed !!!");
+				return false;
+			}
+			/* clang-format off */
+			nlohmann::json sctpStreamParameters =
+			{
+				{ "streamId", dataChannelInit.id                },
+			{ "ordered",  dataChannelInit.ordered }
+			};
+			(pi.first->second)->init(id, dataconsumerId, webrtcDataChannel, sctpStreamParameters, "stcp");
+			return true;
+		}
+		else if (m_recving == ERecv_Recving)
+		{
+			cDataConsmer Datacs;
+			Datacs.m_id = id;
+			Datacs.m_lable = label;
+			Datacs.m_dataconsumerId = dataconsumerId;
+			m_dataconsmers.push_back(Datacs);
+			return true;
+		}
+		cDataConsmer Datacs;
+		Datacs.m_id = id;
+		Datacs.m_lable = label;
+		Datacs.m_dataconsumerId = dataconsumerId;
+		m_dataconsmers.push_back(Datacs);
+		webrtc::DataChannelInit dataChannelInit;
+		dataChannelInit.protocol = "chat";
+		dataChannelInit.negotiated = true;
+		dataChannelInit.id = ++m_streamId;
+		bool setremotesdp = false;
+		if (!webrtcDataChannel)
+		{
+			setremotesdp = true;
+		}
+		webrtcDataChannel = m_peer_connection->CreateDataChannel(label, &dataChannelInit);
+		if (!webrtcDataChannel.get())
+		{
+			ERROR_EX_LOG("create data channel failed !!!");
+			return false;
+		}
+		
+		m_remote_sdp->RecvSctpAssociation();
+		std::string sdpoffer = m_remote_sdp->GetSdp();
+		{
+			webrtc::SdpParseError error;
+			webrtc::SessionDescriptionInterface* sessionDescription;
+			rtc::scoped_refptr<cSetSessionDescriptionObserver> observer(
+				new rtc::RefCountedObject<cSetSessionDescriptionObserver>());
+
+			std::string typeStr = "offer";
+			auto future = observer->GetFuture();
+
+			sessionDescription = webrtc::CreateSessionDescription(typeStr, sdpoffer, &error);
+			if (sessionDescription == nullptr)
+			{
+				/*MSC_WARN(
+				"webrtc::CreateSessionDescription failed [%s]: %s",
+				error.line.c_str(),
+				error.description.c_str());*/
+
+				observer->Reject(error.description);
+				future.get();
+				return false;
+			}
+
+
+			m_peer_connection->SetRemoteDescription(observer, sessionDescription);
+			future.get();
+		}
+		
+		{
+		 
+			//chen::CreateSessionDescriptionObserver* sessionDescriptionObserver =
+			//	new rtc::RefCountedObject<chen::CreateSessionDescriptionObserver>();
+			//rtc::scoped_refptr<cSetSessionDescriptionObserver> observer(
+				//new rtc::RefCountedObject<cSetSessionDescriptionObserver>());
+			webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
+			//auto future = sessionDescriptionObserver->GetFuture();
+			m_peer_connection->CreateAnswer(this, options);
+			//std::string offer = future.get();
+			//m_offer = offer;
+			m_recving = ERecv_Recving;
+			NORMAL_EX_LOG("recv create answer !!!");
+			//nlohmann::json localsdpobject =  sdptransform::parse(sdp);
+			//m_client_ptr->transportofferasner(m_send, true);
+		}
+		//m_peer_connection->SetRemoteDescription()
+		
+		
+		//std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_cosumsers.insert(std::make_pair(id, std::make_shared<cdataconsumer>()));
+		//if (!pi.second)
+		//{
+		//	ERROR_EX_LOG("create data channel insert failed !!!");
+		//	return false;
+		//}
+		///* clang-format off */
+		//nlohmann::json sctpStreamParameters =
+		//{
+		//	{ "streamId", dataChannelInit.id                },
+		//{ "ordered",  dataChannelInit.ordered }
+		//};
+		//(pi.first->second)->init(id, dataconsumerId, webrtcDataChannel, sctpStreamParameters,  "stcp");
+		// m_data_cosumsers.insert(std::make_pair(id, cdataconsumer())
+		return true;
+	}
+
 	//
 	// PeerConnectionObserver implementation.
 	//
@@ -368,10 +581,10 @@ namespace chen {
 		desc->ToString(&sdp);
 		m_offer = sdp;
 		//nlohmann::json localsdpobject =  sdptransform::parse(sdp);
-		m_client_ptr->transportofferasner(true);
+		m_client_ptr->transportofferasner(m_send, true);
 	}
 	void ctransport::OnFailure(webrtc::RTCError error)
 	{
-		m_client_ptr->transportofferasner(false);
+		m_client_ptr->transportofferasner(m_send, false);
 	}
 }

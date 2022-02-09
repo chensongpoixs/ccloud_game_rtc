@@ -12,7 +12,7 @@ namespace chen {
 		cSetSessionDescriptionObserver() = default;
 		~cSetSessionDescriptionObserver() override = default;
 
-		std::future<void> GetFuture()
+		std::future<bool> GetFuture()
 		{
 			return  promise.get_future();
 		}
@@ -25,7 +25,7 @@ namespace chen {
 	public:
 		void OnSuccess() override
 		{
-			promise.set_value();
+			promise.set_value(true);
 		}
 		void OnFailure(webrtc::RTCError error) override
 		{
@@ -35,7 +35,7 @@ namespace chen {
 		}
 
 	private:
-		std::promise<void> promise;
+		std::promise<bool> promise;
 	};
 
 

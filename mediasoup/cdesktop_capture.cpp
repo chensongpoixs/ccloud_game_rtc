@@ -65,7 +65,7 @@ namespace chen {
 		webrtc::DesktopCapturer::Result result,
 		std::unique_ptr<webrtc::DesktopFrame> frame) {
 		//RTC_LOG(LS_INFO) << "new Frame";
-		NORMAL_EX_LOG(" new Frame ");
+		//NORMAL_EX_LOG(" new Frame ");
 		static auto timestamp =
 			std::chrono::duration_cast<std::chrono::milliseconds>(
 				std::chrono::system_clock::now().time_since_epoch())
@@ -78,7 +78,7 @@ namespace chen {
 			.count();
 		if (timestamp_curr - timestamp > 1000) 
 		{
-			NORMAL_EX_LOG("FPS = %u, count = %lu", cnt);
+			//NORMAL_EX_LOG("FPS = %u, count = %lu", cnt);
 			//RTC_LOG(LS_INFO) << "FPS: " << cnt << ", " << frame->rect().width() << ", " << frame->rect().height();
 			//RTC_LOG(LS_INFO) << "[width = " << frame->size().width() << "][height = " << frame->size().height() << "]";
 			cnt = 0;
@@ -88,7 +88,7 @@ namespace chen {
 		// Convert DesktopFrame to VideoFrame
 		if (result != webrtc::DesktopCapturer::Result::SUCCESS) 
 		{
-			NORMAL_EX_LOG("Capture frame failed , result = %d", result);
+			WARNING_EX_LOG("Capture frame failed , result = %d", result);
 			//RTC_LOG(LS_ERROR) << "Capture frame faiiled, result: " << result;
 			return;
 		}

@@ -114,6 +114,9 @@
     <ClCompile Include="csession_description.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cdataconsumer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataConsumer.hpp">
@@ -225,6 +228,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="csession_description.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cdataconsumer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
