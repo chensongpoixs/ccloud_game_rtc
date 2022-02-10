@@ -26,8 +26,40 @@ namespace chen {
 	static const char * WEBSOCKET_PROTOO_RESPONSE = "response";
 	static const char * WEBSOCKET_PROTOO_NOTIFICATION = "notification";
 	static const char * WEBSOCKET_PROTOO_OK = "ok";
+
+
+
+
+
+
+
 	/////////////////////////////////////////webrtc////////////////////////////////////////////////////////////
 	static const char * WEBRTC_SERVER = "server";
+	static const char * WEBRTC_CLIENT = "client";
+
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define  WEBSOCKET_PROTOO_CHECK_RESPONSE()  if (msg.find(WEBSOCKET_PROTOO_OK) == msg.end())\
+	{\
+		ERROR_EX_LOG(" [msg = %s] not find 'ok' failed !!!", msg.dump().c_str());\
+		return false;\
+	}\
+	if (msg.find(WEBSOCKET_PROTOO_DATA) == msg.end())\
+	{\
+		ERROR_EX_LOG("  [msg = %s] not find 'data' failed !!!", msg.dump().c_str());\
+		return false;\
+	}\
+	bool  ok = msg[WEBSOCKET_PROTOO_OK].get<bool>();\
+	if (!ok)\
+	{\
+		ERROR_EX_LOG("  not ok  [msg = %s] !!!", msg.dump().c_str());\
+		return false;\
+	}
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 	cclient::cclient():m_id(100000),m_loaded(false), m_stoped(false), m_status(EMediasoup_None), m_produce_consumer(true){}
 	cclient::~cclient(){}
@@ -96,7 +128,11 @@ namespace chen {
 				// websocket connect success -> 
 				// 1. wait  server 处理能力
 				// 1.1 load -> 
-				_send_create_webrtc_transport();
+				if (!_send_create_webrtc_transport())
+				{
+					m_status = EMediasoup_Reset;
+					continue;
+				}
 				// 1.2 创建Send WebRTC transport id -> 
 				m_status = EMediasoup_WebSocket;
 				break;
@@ -196,7 +232,7 @@ namespace chen {
 				_clear_register();
 				m_produce_consumer = true;
 				cur_time = ::time(NULL) + g_cfg.get_uint32(ECI_WebSocket_Reconnect);
-				NORMAL_EX_LOG("reconnect  wait [%u] s ...", g_cfg.get_uint32(ECI_WebSocket_Reconnect));
+				NORMAL_EX_LOG("reconnect  wait [%u s]  ...", g_cfg.get_uint32(ECI_WebSocket_Reconnect));
 				m_status = EMediasoup_Wait;
 				break;
 			}
@@ -259,7 +295,11 @@ namespace chen {
 				}
 				else
 				{
-					(this->*(iter->second))(response);
+					if (!(this->*(iter->second))(response));
+					{
+						m_status = EMediasoup_Reset;
+						return;
+					}
 					m_client_protoo_msg_call.erase(iter);
 				}
 			}
@@ -507,13 +547,8 @@ namespace chen {
 	}
 	bool cclient::_server_RouterRtpCapabilities(const  nlohmann::json & msg)
 	{
-		//NORMAL_EX_LOG("  router rtp capabilities --> ");
-		if (msg.find(WEBSOCKET_PROTOO_DATA) == msg.end())
-		{
-			WARNING_EX_LOG("RouterRtpCapabilities websocket protoo [msg = %s]not find 'data' failed !!!", msg.dump().c_str());
-			m_status = EMediasoup_Reset;
-			return false;
-		}
+		WEBSOCKET_PROTOO_CHECK_RESPONSE();
+		
 		nlohmann::json data_rtp = msg[WEBSOCKET_PROTOO_DATA];
 		if (!mediasoupclient:: ortc::validateRtpCapabilities(data_rtp))
 		{
@@ -534,52 +569,61 @@ namespace chen {
 
 	bool cclient::_server_create_webrtc_transport(const  nlohmann::json & msg)
 	{
-		NORMAL_EX_LOG(" server create webrtc --> ");
-		std::string  transport_id = msg["data"]["id"];
- 
-		auto data = msg.find("data");//find
-		if (!data->is_object())
+		//NORMAL_EX_LOG(" server create webrtc --> ");
+		WEBSOCKET_PROTOO_CHECK_RESPONSE();
+		  
+		nlohmann::json new_data = msg[WEBSOCKET_PROTOO_DATA];
+		if (new_data.find("id") == new_data.end())
 		{
-			// error --> 
+			ERROR_EX_LOG("_server_create_webrtc_transport [msg = %s] not find 'data.id' failed !!!", msg.dump().c_str());
+
 			return false;
 		}
-		nlohmann::json new_data = data.value();
 		auto iceParameters = new_data.find("iceParameters");
 		auto iceCandidates = new_data.find("iceCandidates");
 		auto dtlsParameters = new_data.find("dtlsParameters");
 		auto sctpParameters = new_data.find("sctpParameters");
+
+		if (iceParameters == new_data.end())
+		{
+			ERROR_EX_LOG("_server_create_webrtc_transport [msg = %s] not find 'data.iceParameters' failed !!!", msg.dump().c_str());
+
+			return false;
+		}
+		std::string  transport_id = new_data["id"];
+		
 		nlohmann::json json_iceParameters = iceParameters.value();
 		nlohmann::json json_iceCandidates = iceCandidates.value();
 		nlohmann::json json_dtlsParameters = dtlsParameters.value();
 		nlohmann::json json_sctpParameters = sctpParameters.value();
 
-			NORMAL_EX_LOG("data.value().dump().c_str() = %s\n json_iceParameters = %s\n dtlsParameters = %s", new_data.dump().c_str(), json_iceParameters.dump().c_str(), dtlsParameters.value().dump().c_str());
+			//NORMAL_EX_LOG("data.value().dump().c_str() = %s\n json_iceParameters = %s\n dtlsParameters = %s", new_data.dump().c_str(), json_iceParameters.dump().c_str(), dtlsParameters.value().dump().c_str());
 	 
-			if (!m_send_transport)
-			{
-				m_send_transport = new rtc::RefCountedObject<csend_transport>(transport_id, this );
-				m_send_transport->init( transport_id, m_extendedRtpCapabilities,
-					json_iceParameters,
-					json_iceCandidates,
-					json_dtlsParameters,
-					json_sctpParameters);
-				m_status =  EMediasoup_Request_Create_Recv_Webrtc_Transport;
-			}
-			else if (!m_recv_transport)
-			{
+		if (!m_send_transport)
+		{
+			m_send_transport = new rtc::RefCountedObject<csend_transport>(transport_id, this);
+			m_send_transport->init(transport_id, m_extendedRtpCapabilities,
+				json_iceParameters,
+				json_iceCandidates,
+				json_dtlsParameters,
+				json_sctpParameters);
+			m_status = EMediasoup_Request_Create_Recv_Webrtc_Transport;
+		}
+		else if (!m_recv_transport)
+		{
 
-				m_recv_transport = new rtc::RefCountedObject<ctransport>(transport_id, this);
-				m_recv_transport->init( transport_id, m_extendedRtpCapabilities,
-					json_iceParameters,
-					json_iceCandidates,
-					json_dtlsParameters,
-					json_sctpParameters);
-				m_status =  EMediasoup_Request_Join_Room;
-			}
-			else
-			{
-				ERROR_EX_LOG(" not find  transport id = %s", transport_id.c_str());
-			}
+			m_recv_transport = new rtc::RefCountedObject<ctransport>(transport_id, this);
+			m_recv_transport->init(transport_id, m_extendedRtpCapabilities,
+				json_iceParameters,
+				json_iceCandidates,
+				json_dtlsParameters,
+				json_sctpParameters);
+			m_status = EMediasoup_Request_Join_Room;
+		}
+		else
+		{
+			ERROR_EX_LOG(" not find  transport id = %s", transport_id.c_str());
+		}
 		
 		
 				 
@@ -589,19 +633,27 @@ namespace chen {
 	}
 	bool cclient::_server_connect_webrtc_transport(const  nlohmann::json & msg)
 	{
+		WEBSOCKET_PROTOO_CHECK_RESPONSE();
 		m_status = EMediasoup_Request_Produce_Webrtc_Transport  ;
 		return true;
 	}
 	bool cclient::_server_recv_connect_webrtc_transport(const  nlohmann::json & msg)
 	{
+		WEBSOCKET_PROTOO_CHECK_RESPONSE();
 		m_status = EMediasoup_Request_Consumer_Webrtc_Transport;
 		return true;
 	}
 	bool cclient::_server_produce_webrtc_transport(const  nlohmann::json & msg)
 	{
-		std::string produce_id = msg["data"]["id"];
-		NORMAL_EX_LOG("produce_id = %s", produce_id.c_str());
-		
+		WEBSOCKET_PROTOO_CHECK_RESPONSE();
+
+		nlohmann::json data = msg[WEBSOCKET_PROTOO_DATA];
+		if (data.find("id") == data.end())
+		{
+			ERROR_EX_LOG("[msg = %s] not find  data.id failed !!!", msg.dump().c_str());
+			return false;
+		}
+		std::string produce_id = data["id"]; 
 		m_send_transport->webrtc_transport_produce(produce_id);
 		
 		m_status = EMediasoup_WebSocket;
@@ -612,6 +664,7 @@ namespace chen {
 
 	bool cclient::_server_join_room(const  nlohmann::json & msg)
 	{
+		WEBSOCKET_PROTOO_CHECK_RESPONSE();
 		m_send_transport->webrtc_connect_transport_offer(nullptr);
 		//m_status = EMediasoup_WebSocket; 
 		return true;
