@@ -1,5 +1,6 @@
-#include "cdataconsumer.h"
+﻿#include "cdataconsumer.h"
 #include "clog.h"
+#include "crecv_transport.h"
 namespace chen {
 
 
@@ -19,6 +20,11 @@ namespace chen {
 	}
 	void cdataconsumer::Destroy()
 	{
+		if (dataChannel)
+		{
+			//dataChannel->UnregisterObserver();
+			//dataChannel->Close();
+		}
 	}
 	/**
 	* DataConsumer id.
@@ -112,6 +118,8 @@ namespace chen {
 		case webrtc::DataChannelInterface::DataState::kClosed:
 			//this->listener->OnClose(this);
 			NORMAL_EX_LOG("id = %s, OnClose", id.c_str());
+			//m_transport->close();
+			m_transport->close_dataconsumer(id);
 			break;
 		default:
 			ERROR_EX_LOG("unknown state %s", webrtc::DataChannelInterface::DataStateString(state));

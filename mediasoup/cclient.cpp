@@ -7,6 +7,8 @@
 #include "cdesktop_capture.h"
 #include "cdevice.h"
 #include "pc/video_track_source.h"
+#include "crecv_transport.h"
+#include "csend_transport.h"
 namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
@@ -81,6 +83,7 @@ namespace chen {
 			return false;
 		}
 		m_server_protoo_msg_call.insert(std::make_pair("newDataConsumer", &cclient::server_request_new_dataconsumer));
+		m_server_notification_protoo_msg_call.insert(std::make_pair("peerClosed", &cclient::_notification_peer_closed));
 		return true;
 	}
 	void cclient::Loop()
@@ -220,12 +223,12 @@ namespace chen {
 				// destory all websocket, webrtc destroy --> ok !!
 				if (m_recv_transport)
 				{
-					m_recv_transport->Destory();
+					m_recv_transport->Destroy();
 					m_recv_transport = nullptr;
 				}
 				if (m_send_transport)
 				{
-					m_send_transport->Destory();
+					m_send_transport->Destroy();
 					m_send_transport = nullptr;
 				}
 				g_websocket_mgr.destroy();
@@ -278,6 +281,26 @@ namespace chen {
 			if (response.find(WEBSOCKET_PROTOO_NOTIFICATION) != response.end())
 			{
 				//NORMAL_EX_LOG("notification --> msg = %s", msg);
+				auto method_iter = response.find(WEBSOCKET_PROTOO_METHOD);
+				if (method_iter == response.end())
+				{
+					WARNING_EX_LOG("notification websocket protoo not find method name  msg = %s", response.dump().c_str());
+					continue;
+				}
+				std::string method = response[WEBSOCKET_PROTOO_METHOD];
+				std::map<std::string, server_protoo_msg>::iterator iter = m_server_notification_protoo_msg_call.find(method);
+				if (iter != m_server_notification_protoo_msg_call.end())
+				{
+
+					(this->*(iter->second))(response);
+					//server_request_new_dataconsumer(response);
+				}
+				else
+				{
+					//_default_replay(response);
+					//WARNING_EX_LOG("server request client not find method  response = %s", response.dump().c_str());
+				}
+
 			}
 			else if (response.find(WEBSOCKET_PROTOO_RESPONSE) != response.end())//response
 			{
@@ -295,7 +318,7 @@ namespace chen {
 				}
 				else
 				{
-					if (!(this->*(iter->second))(response));
+					if (!(this->*(iter->second))(response))
 					{
 						m_status = EMediasoup_Reset;
 						return;
@@ -377,7 +400,6 @@ namespace chen {
 	{
 		if (success)
 		{
-			//
 			if (send)
 			{
 				m_status = EMediasoup_Request_Send_Connect_Set;
@@ -386,7 +408,11 @@ namespace chen {
 			{
 				m_status = EMediasoup_Request_Recv_Connect_Set;;
 			}
-			
+		}
+		else
+		{
+			m_status = EMediasoup_Reset;
+			ERROR_EX_LOG("- EMediasoup_Reset --recv send = %d failed !!!", send);
 		}
 	}
 	bool cclient::_send_router_rtpcapabilities()
@@ -612,7 +638,7 @@ namespace chen {
 		else if (!m_recv_transport)
 		{
 
-			m_recv_transport = new rtc::RefCountedObject<ctransport>(transport_id, this);
+			m_recv_transport = new rtc::RefCountedObject<crecv_transport>(transport_id, this);
 			m_recv_transport->init(transport_id, m_extendedRtpCapabilities,
 				json_iceParameters,
 				json_iceCandidates,
@@ -682,8 +708,23 @@ namespace chen {
 			server_reply_new_dataconsumer(id);
 			return false;
 		}*/
+
+		nlohmann::json data = msg[WEBSOCKET_PROTOO_DATA];
+		std::string peerId;
+		auto peerIditer = data.find("peerId");
+		if (peerIditer != data.end() && !peerIditer.value().is_null())
+		{
+			peerId = data["peerId"].get<std::string>();
+		}
 		
 		std::string dataProducerId = msg["data"]["dataProducerId"];
+		if (!peerId.empty())
+		{
+			if (!m_peerid_dataconsumer.insert(std::make_pair(peerId, transport_id)).second)
+			{
+				WARNING_EX_LOG("insert peerId = data failed !!!", peerId.c_str());
+			}
+		}
 		uint16_t streamId = msg["data"]["sctpStreamParameters"]["streamId"].get<uint16_t>();
 		if (m_produce_consumer)
 		{
@@ -697,7 +738,22 @@ namespace chen {
 		return true;
 	}
 
-	 
+	bool cclient::_notification_peer_closed(const nlohmann::json & msg)
+	{
+		std::string peerId = msg[WEBSOCKET_PROTOO_DATA]["peerId"];
+		NORMAL_EX_LOG("peerId = %s exit ", peerId.c_str());
+		/*std::map < std::string, std::string>::iterator iter =  m_peerid_dataconsumer.find(peerId);
+		if (iter != m_peerid_dataconsumer.end())
+		{
+			m_recv_transport->close_dataconsumer(iter->second);
+			m_peerid_dataconsumer.erase(iter->first);
+		}
+		else
+		{
+			WARNING_EX_LOG("not find peerId = %s failed !!!", peerId.c_str());
+		}*/
+		return true;
+	}
 	bool cclient::server_reply_new_dataconsumer(uint64 id)
 	{
 		 

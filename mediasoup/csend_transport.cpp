@@ -24,31 +24,7 @@ namespace chen {
 
 
 
-	class CCapturerTrackSource : public webrtc::VideoTrackSource {
-	public:
-		static rtc::scoped_refptr<CCapturerTrackSource> Create() {  
-			std::unique_ptr<  DesktopCapture> capturer(  DesktopCapture::Create(60,0));
-			if (capturer) 
-			{
-				capturer->StartCapture();
-				return new
-					rtc::RefCountedObject<CCapturerTrackSource>(std::move(capturer));
-			}
-			return nullptr;
-		}
-
-	protected:
-		explicit CCapturerTrackSource(
-			std::unique_ptr< DesktopCapture> capturer)
-			: VideoTrackSource(/*remote=*/false), capturer_(std::move(capturer)) {}
-
-	private:
-		rtc::VideoSourceInterface<webrtc::VideoFrame>* source() override {
-			return capturer_.get();
-		}
-		//std::unique_ptr<webrtc::test::VcmCapturer> capturer_;
-		std::unique_ptr< DesktopCapture> capturer_;
-	};
+	
 
 
 
@@ -60,7 +36,7 @@ namespace chen {
 		const nlohmann::json& dtlsParameters,
 		const nlohmann::json& sctpParameters)
 	{
-		m_send = true;
+		 
 		if (!ctransport::init(transport_id, extendedRtpCapabilities, iceParameters, iceCandidates, dtlsParameters, sctpParameters))
 		{
 			ERROR_EX_LOG("send transport init failed !!!");
@@ -73,12 +49,31 @@ namespace chen {
 		m_sendingRemoteRtpParametersByKind = {
 			{"video", mediasoupclient::ortc::getSendingRemoteRtpParameters("video", extendedRtpCapabilities)}
 		};
-		m_track = m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), CCapturerTrackSource::Create());
+		m_capturer_ptr = CCapturerTrackSource::Create();
+		m_track = m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), m_capturer_ptr);
 
 		return true;
 	}
 
-
+	void csend_transport::Destroy()
+	{
+		if (m_transceiver)
+		{
+			
+			m_transceiver->sender()->SetTrack(nullptr);
+			m_peer_connection->RemoveTrack(m_transceiver->sender());
+			m_remote_sdp->CloseMediaSection(m_transceiver->mid().value());
+			m_transceiver = nullptr;
+		}
+		if (m_capturer_ptr)
+		{
+			m_capturer_ptr->stop();
+			m_capturer_ptr = nullptr;
+		}
+		
+		m_peer_connection = nullptr;
+		m_peer_connection_factory = nullptr;
+	}
 	 bool csend_transport::webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track)
 	{
 		  if (!m_track)
@@ -118,6 +113,31 @@ namespace chen {
 		  m_peer_connection->CreateOffer(this, options);
 		  return true;
 	}
+
+
+	 bool csend_transport::webrtc_transport_produce(const std::string & producerId)
+	 {
+		 //const std::string & id, const std::string & localId, webrtc::RtpSenderInterface* rtpSender,
+		 /*webrtc::MediaStreamTrackInterface* track,
+		 const nlohmann::json& rtpParameters*/
+		 std::shared_ptr<cproducer> producer_ptr = std::make_shared<cproducer>(producerId, m_transceiver->mid().value(), m_transceiver->sender(), m_track, m_sendingRtpParametersByKind[m_track->kind()]);
+		 if (!producer_ptr)
+		 {
+			 ERROR_EX_LOG("alloc producer failed !!!");
+			 return false;
+		 }
+
+
+
+		 if (!m_producers.insert(std::make_pair(producer_ptr->GetId(), producer_ptr)).second)
+		 {
+			 ERROR_EX_LOG("producer map ->  insert failed producer id = %s", producer_ptr->GetId().c_str());
+			 return false;
+		 }
+		 return true;
+	 }
+
+
 
 	 bool   csend_transport::webrtc_connect_transport_setup_connect_server_call()
 	 {
@@ -237,5 +257,18 @@ namespace chen {
 
 		 return true;
 	 }
+	 // CreateSessionDescriptionObserver implementation.
+	 void csend_transport::OnSuccess(webrtc::SessionDescriptionInterface* desc)
+	 {
+		 std::string sdp;
 
+		 desc->ToString(&sdp);
+		 m_offer = sdp;
+		 //nlohmann::json localsdpobject =  sdptransform::parse(sdp);
+		 m_client_ptr->transportofferasner(true, true);
+	 }
+	 void csend_transport::OnFailure(webrtc::RTCError error)
+	 {
+		 m_client_ptr->transportofferasner(true, false);
+	 }
 }

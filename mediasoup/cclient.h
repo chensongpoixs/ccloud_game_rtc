@@ -5,10 +5,12 @@
 #include <string>
 #include "json.hpp"
 #include "ctransport.h"
-#include "csend_transport.h"
+//#include "csend_transport.h"
+//#include "crecv_transport.h"
 namespace chen {
 
-
+	class csend_transport;
+	class crecv_transport;
 	enum EMediasoup_Type
 	{
 		EMediasoup_None = 0,
@@ -40,8 +42,9 @@ namespace chen {
 	class cclient
 	{
 	private:
-		typedef bool(cclient::*server_protoo_msg)(const  nlohmann::json & msg);
 		typedef bool (cclient::*client_protoo_msg)(const  nlohmann::json & msg);
+		typedef bool(cclient::*server_protoo_msg)(const  nlohmann::json & msg);
+		 
 	public:
 		cclient();
 		~cclient();
@@ -86,7 +89,8 @@ namespace chen {
 		// 请求客户端响应的
 	public:
 		bool server_request_new_dataconsumer(const  nlohmann::json & msg);
-
+	private:
+		bool _notification_peer_closed(const nlohmann::json & msg);
 	public:
 		bool server_reply_new_dataconsumer(uint64 id);
 
@@ -109,16 +113,18 @@ namespace chen {
 		EMediasoup_Type			m_status;
 		nlohmann::json	m_extendedRtpCapabilities;
 		nlohmann::json	m_recvRtpCapabilities;
-		nlohmann::json	m_sctpCapabilities;;
+		nlohmann::json	m_sctpCapabilities;
 		
-		rtc::scoped_refptr<csend_transport>	 m_send_transport{nullptr};
-		rtc::scoped_refptr<ctransport>	 m_recv_transport{nullptr};
+		rtc::scoped_refptr<csend_transport>	 m_send_transport;
+		rtc::scoped_refptr<crecv_transport>	 m_recv_transport ;
 		std::map<uint64, client_protoo_msg> m_client_protoo_msg_call;
 		std::map<std::string, server_protoo_msg> m_server_protoo_msg_call;
+		std::map < std::string, server_protoo_msg> m_server_notification_protoo_msg_call;
 
 		time_t							m_async_data_consumer_t;
 
 		bool							m_produce_consumer; //首先生产 在消费
+		std::map < std::string, std::string>	m_peerid_dataconsumer;
 	};
 }
 

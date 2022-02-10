@@ -1,7 +1,7 @@
-#ifndef _C_SEND_TRANSPORT_H_
+﻿#ifndef _C_SEND_TRANSPORT_H_
 #define _C_SEND_TRANSPORT_H_
 #include "ctransport.h"
-
+#include "ccapturer_tracksource.h"
 #include <string>
 
 namespace chen {
@@ -16,13 +16,24 @@ namespace chen {
 			const nlohmann::json& dtlsParameters,
 			const nlohmann::json& sctpParameters);
 
-
-		virtual bool webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track);
-
-		bool webrtc_connect_transport_setup_connect_server_call();
+		void Destroy();
 	public:
-		//const std::string& get_kind() const { return m_track->kind(); }
+
+
+		 bool webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track);
+		 bool webrtc_transport_produce(const std::string & producerId);
+		bool webrtc_connect_transport_setup_connect_server_call();
+		// TODO@chensong 20220210 比较神奇的地方 必须要拷贝  原来是栈上空间 是会释放的  这是webrtc线程异步操作的结果 
+		std::string get_kind() { return m_track->kind(); }
+		const nlohmann::json& get_sending_rtpParameters() const { return m_sendingRtpParametersByKind[m_track->kind()]; }
+	public:
+		// CreateSessionDescriptionObserver implementation.
+		void OnSuccess(webrtc::SessionDescriptionInterface* desc) override;
+		void OnFailure(webrtc::RTCError error) override;
 	private:
+		rtc::scoped_refptr<webrtc::VideoTrackInterface> m_track;
+		rtc::scoped_refptr<CCapturerTrackSource>		m_capturer_ptr;
+		webrtc::RtpTransceiverInterface* m_transceiver;
 	};
 
 }

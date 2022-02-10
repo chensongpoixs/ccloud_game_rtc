@@ -8,12 +8,7 @@
 #include "api/create_peerconnection_factory.h"
 #include "clog.h"
 namespace chen {
-	enum ERecv_Type
-	{
-		ERecv_None = 0,
-		ERecv_Recving ,
-		ERecv_Success
-	};
+	
 	class cproducer;
 	class cclient;
 	class cdataconsumer;
@@ -21,15 +16,7 @@ namespace chen {
 		public webrtc::CreateSessionDescriptionObserver 
 	{
 		
-		struct cDataConsmer
-		{
-			std::string m_id;
-			std::string m_lable;
-			std::string m_stream;
-			std::string m_dataconsumerId;
-			cDataConsmer() : m_id(""), m_stream(""), m_lable(""), m_dataconsumerId("")
-			{}
-		};
+		
 	public:
 		ctransport( std::string transport_id, cclient *ptr);
 		//ctransport() {}
@@ -41,34 +28,33 @@ namespace chen {
 			const nlohmann::json& dtlsParameters,
 			const nlohmann::json& sctpParameters);
 		
-		virtual void Destory();
+	 
 
 		// connect --> webrtc 
-		virtual bool webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track);
+		// bool webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track);
 		bool webrtc_connect_transport_setup_connect(const std::string & localDtlsRole);
 		// send connect localdes [[[[ --> produce -->
 		//bool   webrtc_connect_transport_setup_connect_server_call();
 
-		bool webrtc_transport_produce(const std::string & producerId);
+		//bool webrtc_transport_produce(const std::string & producerId);
 
 
 		// recv --> 
-		bool webrtc_connect_recv_setup_call();
+		//bool webrtc_connect_recv_setup_call();
 
 
-		void add_webrtc_consmer_transport();
+		/*void add_webrtc_consmer_transport();
 		/// recv data conumser
 		
 		bool  webrtc_create_consumer(const std::string & id, const std::string & dataconsumerId, const std::string & label);
 
 		bool webrtc_consumer_wait(const std::string & id, const std::string & dataconsumerId, const std::string & label);
 	
-		void webrtc_create_all_wait_consumer();
+		void webrtc_create_all_wait_consumer();*/
 	public:
 		 const std::string&  get_transportId() const { return m_transport_id; }
-		 // TODO@chensong 20220210 比较神奇的地方 必须要拷贝  原来是栈上空间 是会释放的  这是webrtc线程异步操作的结果 
-		  std::string get_kind()  { return m_track->kind(); }
-		const nlohmann::json& get_sending_rtpParameters() const { return m_sendingRtpParametersByKind[m_track->kind()]; }
+		
+		
 	public:
 
 		//
@@ -128,8 +114,7 @@ namespace chen {
 		std::unique_ptr<rtc::Thread> m_workerThread;
 		std::unique_ptr<mediasoupclient::Sdp::RemoteSdp>	 m_remote_sdp;
 		std::string											 m_transport_id;
-		rtc::scoped_refptr<webrtc::VideoTrackInterface> m_track;
-		webrtc::RtpTransceiverInterface* m_transceiver;
+		
 
 		// TODO@chensong 20220207 
 		nlohmann::json					m_sendingRtpParametersByKind;
@@ -141,13 +126,13 @@ namespace chen {
 		cclient		*						m_client_ptr;
 		std::string							m_offer;
 		uint32								m_streamId;
-		std::map<std::string, std::shared_ptr<cdataconsumer>> m_data_cosumsers;
+		std::map<std::string, std::shared_ptr<cdataconsumer>> m_data_consumsers;
 
 		rtc::scoped_refptr<webrtc::DataChannelInterface> webrtcDataChannel;
-		bool								m_send;
-		ERecv_Type								m_recving;
+		//bool								m_send;
+		//ERecv_Type								m_recving;
 		
-		std::list<cDataConsmer>							m_dataconsmers;
+		//std::list<cDataConsmer>							m_dataconsmers;
 		
 	};
 }

@@ -1,4 +1,4 @@
-#ifndef _C_DATA_CONSUMER_H_
+﻿#ifndef _C_DATA_CONSUMER_H_
 #define _C_DATA_CONSUMER_H_
 //#include "cnoncopyable.h"
 #include <map>
@@ -11,15 +11,17 @@
 #include "cnet_types.h"
 #include <api/data_channel_interface.h>
 #include "json.hpp"
+//#include "crecv_transport.h"
 namespace chen {
-
+	class crecv_transport;
 	class cdataconsumer : public  webrtc::DataChannelObserver
 	{
 	public:
-		cdataconsumer()
+		cdataconsumer( crecv_transport * transport_ptr)
 			:id("")
 			, dataProducerId("")
 			, dataChannel(nullptr)
+			, m_transport(transport_ptr)
 		{}
 		//~cdataconsumer();
 		bool init(const std::string& id,
@@ -53,6 +55,7 @@ namespace chen {
 	 
 		nlohmann::json sctpParameters;
 		nlohmann::json appData;
+		  crecv_transport * m_transport;
 	};
 }
 

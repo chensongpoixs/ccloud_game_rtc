@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="sdp">
       <UniqueIdentifier>{c8180a02-652e-409a-a0d1-12759abacd36}</UniqueIdentifier>
     </Filter>
@@ -31,6 +27,9 @@
     </Filter>
     <Filter Include="cfg">
       <UniqueIdentifier>{8d05bc61-9085-4728-9170-b71ca723f8c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="capturer">
+      <UniqueIdentifier>{459cc414-2c7f-43cb-bebc-e7c322b790aa}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -106,9 +105,6 @@
     <ClCompile Include="cdataconsumer.cpp">
       <Filter>webrtc</Filter>
     </ClCompile>
-    <ClCompile Include="cdesktop_capture.cpp">
-      <Filter>webrtc</Filter>
-    </ClCompile>
     <ClCompile Include="csession_description.cpp">
       <Filter>webrtc</Filter>
     </ClCompile>
@@ -116,9 +112,6 @@
       <Filter>webrtc</Filter>
     </ClCompile>
     <ClCompile Include="cproducer.cpp">
-      <Filter>webrtc</Filter>
-    </ClCompile>
-    <ClCompile Include="desktop_capture_source.cc">
       <Filter>webrtc</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
@@ -133,6 +126,18 @@
     </ClCompile>
     <ClCompile Include="csend_transport.cpp">
       <Filter>webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="cwebsocket_protoo.cpp">
+      <Filter>websocket</Filter>
+    </ClCompile>
+    <ClCompile Include="cdesktop_capture.cpp">
+      <Filter>capturer</Filter>
+    </ClCompile>
+    <ClCompile Include="desktop_capture_source.cc">
+      <Filter>capturer</Filter>
+    </ClCompile>
+    <ClCompile Include="ccapturer_tracksource.cpp">
+      <Filter>capturer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -226,9 +231,6 @@
     <ClInclude Include="cdataconsumer.h">
       <Filter>webrtc</Filter>
     </ClInclude>
-    <ClInclude Include="cdesktop_capture.h">
-      <Filter>webrtc</Filter>
-    </ClInclude>
     <ClInclude Include="cproducer.h">
       <Filter>webrtc</Filter>
     </ClInclude>
@@ -236,9 +238,6 @@
       <Filter>webrtc</Filter>
     </ClInclude>
     <ClInclude Include="ctransport.h">
-      <Filter>webrtc</Filter>
-    </ClInclude>
-    <ClInclude Include="desktop_capture_source.h">
       <Filter>webrtc</Filter>
     </ClInclude>
     <ClInclude Include="ccfg.h">
@@ -252,6 +251,18 @@
     </ClInclude>
     <ClInclude Include="csend_transport.h">
       <Filter>webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="cwebsocket_protoo.h">
+      <Filter>websocket</Filter>
+    </ClInclude>
+    <ClInclude Include="cdesktop_capture.h">
+      <Filter>capturer</Filter>
+    </ClInclude>
+    <ClInclude Include="desktop_capture_source.h">
+      <Filter>capturer</Filter>
+    </ClInclude>
+    <ClInclude Include="ccapturer_tracksource.h">
+      <Filter>capturer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

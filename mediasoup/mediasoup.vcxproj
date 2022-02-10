@@ -131,6 +131,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />
+    <ClCompile Include="ccapturer_tracksource.cpp" />
     <ClCompile Include="ccfg.cpp" />
     <ClCompile Include="cclient.cpp" />
     <ClCompile Include="cconfig.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="ctime_api.cpp" />
     <ClCompile Include="ctransport.cpp" />
     <ClCompile Include="cwebsocket_mgr.cpp" />
+    <ClCompile Include="cwebsocket_protoo.cpp" />
     <ClCompile Include="cwebsocket_session.cpp" />
     <ClCompile Include="cwindow_util.cpp" />
     <ClCompile Include="desktop_capture_source.cc" />
@@ -168,6 +170,7 @@
   <ItemGroup>
     <ClInclude Include="cassertion_macros.h" />
     <ClInclude Include="casync_log.h" />
+    <ClInclude Include="ccapturer_tracksource.h" />
     <ClInclude Include="ccfg.h" />
     <ClInclude Include="cclient.h" />
     <ClInclude Include="cconfig.h" />
@@ -191,6 +194,7 @@
     <ClInclude Include="ctime_const.h" />
     <ClInclude Include="ctransport.h" />
     <ClInclude Include="cwebsocket_mgr.h" />
+    <ClInclude Include="cwebsocket_protoo.h" />
     <ClInclude Include="cwebsocket_session.h" />
     <ClInclude Include="cwindow_util.h" />
     <ClInclude Include="desktop_capture_source.h" />
