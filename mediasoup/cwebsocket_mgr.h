@@ -34,7 +34,7 @@ namespace chen
 		~cwebsocket_mgr();
 	public:
 		bool init(std::string ws_url, std::string organ);
-		void start();
+		bool startup();
 		void destroy();
 		
 		void send(const std::string & message);
@@ -47,6 +47,8 @@ namespace chen
 		virtual void OnClose();
 	private:
 		void _work_thread();
+
+		void _clear_all_msg();
 	private:
 		//cwebsocket_mgr &operator= (const cwebsocket_mgr&);
 		//cnoncopyable(cnoncopyable&&);

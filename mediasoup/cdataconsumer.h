@@ -27,6 +27,7 @@ namespace chen {
 			rtc::scoped_refptr<webrtc::DataChannelInterface> dataChannel,
 			const nlohmann::json& sctpStreamParameters,
 			const nlohmann::json& appData_);
+		void Destroy();
 	public:
 		const std::string& GetId() const;
 		std::string GetLocalId() const;

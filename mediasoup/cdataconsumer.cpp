@@ -17,7 +17,9 @@ namespace chen {
 		dataChannel->RegisterObserver(this);
 		return true;
 	}
-
+	void cdataconsumer::Destroy()
+	{
+	}
 	/**
 	* DataConsumer id.
 	*/

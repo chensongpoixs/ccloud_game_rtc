@@ -9,6 +9,25 @@
 #include "pc/video_track_source.h"
 namespace chen {
 
+	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
+	static const char * MEDIASOUP_REQUEST_METHOD_GETROUTERRTPCAPABILITIES = "getRouterRtpCapabilities";
+	static const char * MEDIASOUP_REQUEST_METHOD_CREATEWEBRTCTRANSPORT = "createWebRtcTransport";
+	static const char * MEDIASOUP_REQUEST_METHOD_CONNECTWEBRTCTRANSPORT = "connectWebRtcTransport";
+	static const char * MEDIASOUP_REQUEST_METHOD_PRODUCE = "produce";
+	static const char * MEDIASOUP_REQUEST_METHOD_JOIN = "join";
+	
+	
+	////////////////////////////////////////websocket protoo /////////////////////////////////////////////////////////////////
+	
+	static const char * WEBSOCKET_PROTOO_METHOD = "method";
+	static const char * WEBSOCKET_PROTOO_ID = "id";
+	static const char * WEBSOCKET_PROTOO_DATA = "data";
+	static const char * WEBSOCKET_PROTOO_REQUEST = "request";
+	static const char * WEBSOCKET_PROTOO_RESPONSE = "response";
+	static const char * WEBSOCKET_PROTOO_NOTIFICATION = "notification";
+	static const char * WEBSOCKET_PROTOO_OK = "ok";
+	/////////////////////////////////////////webrtc////////////////////////////////////////////////////////////
+	static const char * WEBRTC_SERVER = "server";
 
 	cclient::cclient():m_id(100000),m_loaded(false), m_stoped(false), m_status(EMediasoup_None){}
 	cclient::~cclient(){}
@@ -37,7 +56,7 @@ namespace chen {
 		std::string ws_url = "ws://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port)) + "/?roomId=" + g_cfg.get_string(ECI_Room_Name) + "&peerId=" + g_cfg.get_string(ECI_Client_Name);//ws://127.0.0.1:8888/?roomId=chensong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
 		std::string origin = "http://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port));
 		std::list<std::string> msgs;
-		
+		time_t cur_time = ::time(NULL);
 		while (!m_stoped)
 		{
 			switch (m_status)
@@ -51,11 +70,20 @@ namespace chen {
 				{
 					//RTC_LOG(LS_ERROR) << "weboscket connect failed !!! url = " << ws_url;
 					WARNING_EX_LOG("weboscket connect url = %s failed !!!   ", ws_url.c_str());
-					break;
+					m_status = EMediasoup_Reset;
+					continue;;
 				}
-				g_websocket_mgr.start();
-
-				_send_router_rtpcapabilities();
+				 
+				if (!g_websocket_mgr.startup())
+				{
+					m_status = EMediasoup_Reset;
+					continue;
+				}
+				if (!_send_router_rtpcapabilities())
+				{
+					m_status = EMediasoup_Reset;
+					continue;
+				}
 				m_status = EMediasoup_WebSocket;
 				// 1.1 获取服务器的处理能力
 				// 2. connect failed wait 5s..
@@ -116,25 +144,9 @@ namespace chen {
 				m_status = EMediasoup_WebSocket;
 				break;
 			}
-			//case 5:
-			//{
-			//	// 1. wait Join Room 
-			//	// 
-			//	m_status = EMediasoup_WebSocket;
-			//	break;
-			//}
-			//case 6:
-			//{
-			//	// loop --> 信息
-			//	m_status = EMediasoup_WebSocket;
-			//	break;
-			//}
 			case EMediasoup_WebSocket: // wait server msg 
 			{
-				/*if ( m_recv_transport && m_async_data_consumer_t > ::time(NULL))
-				{
-					m_recv_transport->add_webrtc_consmer_transport();
-				}*/
+				
 				g_websocket_mgr.presssmsg(msgs);
 				
 				
@@ -166,33 +178,79 @@ namespace chen {
 				m_status = EMediasoup_WebSocket_Init;
 				break;
 			}
-			
+			case EMediasoup_Reset:
+			case EMediasoup_Destory:
+			{
+				// destory all websocket, webrtc destroy --> ok !!
+				if (m_recv_transport)
+				{
+					m_recv_transport->Destory();
+					m_recv_transport = nullptr;
+				}
+				if (m_send_transport)
+				{
+					m_send_transport->Destory();
+					m_send_transport = nullptr;
+				}
+				g_websocket_mgr.destroy();
+				_clear_register();
+				cur_time = ::time(NULL) + g_cfg.get_uint32(ECI_WebSocket_Reconnect);
+				NORMAL_EX_LOG("reconnect  wait [%u] s ...", g_cfg.get_uint32(ECI_WebSocket_Reconnect));
+				m_status = EMediasoup_Wait;
+				break;
+			}
+			case  EMediasoup_Wait:
+			{
+				if (cur_time < ::time(NULL))
+				{
+					m_status = EMediasoup_WebSocket_Init;
+				}
+				break;
+			}
 			default:
 			{
 				ERROR_EX_LOG("client not find status = %u", m_status);
 			}
 				break;
 			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			
 		}
 		
 	}
 	void cclient::_presssmsg(std::list<std::string> & msgs)
 	{
-
+		nlohmann::json response;
 		while (!msgs.empty() && g_websocket_mgr.get_status() == CWEBSOCKET_MESSAGE)
 		{
 			std::string msg = std::move(msgs.front());
 			msgs.pop_front();
 			//NORMAL_EX_LOG("server ====> msg = %s", msg.c_str());
-			nlohmann::json response = nlohmann::json::parse(msg);
-
-			if (response.find("notification") != response.end())
+			
+			try
+			{
+				response = nlohmann::json::parse(msg);
+			}
+			catch (const std::exception&)
+			{
+				ERROR_EX_LOG("websocket protoo [msg = %s] json parse failed !!!", msg.c_str());
+				continue;
+			}
+			
+			 
+			if (response.find(WEBSOCKET_PROTOO_NOTIFICATION) != response.end())
 			{
 				//NORMAL_EX_LOG("notification --> msg = %s", msg);
 			}
-			else if (response.find("response") != response.end())//response
+			else if (response.find(WEBSOCKET_PROTOO_RESPONSE) != response.end())//response
 			{
-				uint64 id = response["id"];
+				auto id_iter = response.find(WEBSOCKET_PROTOO_ID);
+				if (id_iter == response.end())
+				{
+					WARNING_EX_LOG("websocket protoo response not find 'id' [response = %s] filed !!! ", response.dump().c_str());
+					continue;
+				}
+				uint64 id = response["id"].get<uint64>();
 				std::map<uint64, client_protoo_msg>::const_iterator iter = m_client_protoo_msg_call.find(id);
 				if (iter == m_client_protoo_msg_call.end())
 				{
@@ -204,10 +262,16 @@ namespace chen {
 					m_client_protoo_msg_call.erase(iter);
 				}
 			}
-			else if (response.find("request") != response.end())
+			else if (response.find(WEBSOCKET_PROTOO_REQUEST) != response.end())
 			{
 				//服务器请求客户端响应的请求
-				std::string method = response["method"];
+				auto method_iter = response.find(WEBSOCKET_PROTOO_METHOD);
+				if (method_iter == response.end())
+				{
+					WARNING_EX_LOG("websocket protoo not find method name  msg = %s", response.dump().c_str());
+					continue;
+				}
+				std::string method = response[WEBSOCKET_PROTOO_METHOD];
 				std::map<std::string, server_protoo_msg>::iterator iter =  m_server_protoo_msg_call.find(method);
 				if (iter != m_server_protoo_msg_call.end())
 				{
@@ -217,7 +281,8 @@ namespace chen {
 				}
 				else
 				{
-					WARNING_EX_LOG("server request client not find method  response = %s", response.dump().c_str());
+					_default_replay(response);
+					//WARNING_EX_LOG("server request client not find method  response = %s", response.dump().c_str());
 				}
 			}
 			else
@@ -237,15 +302,32 @@ namespace chen {
 		{
 			return true;
 		}
-		nlohmann::json nativeRtpCapabilities = deivce::GetNativeRtpCapabilities();
+		nlohmann::json nativeRtpCapabilities;
+		if (!deivce::GetNativeRtpCapabilities(nativeRtpCapabilities))
+		{
+			ERROR_EX_LOG("GetNativeRtpCapabilities failed !!!");
+			return false;
+		}
+		try {
 
-		m_extendedRtpCapabilities = mediasoupclient::ortc::getExtendedRtpCapabilities(nativeRtpCapabilities, routerRtpCapabilities);
 		
-		// Generate our receiving RTP capabilities for receiving media.
-		m_recvRtpCapabilities = mediasoupclient::ortc::getRecvRtpCapabilities(m_extendedRtpCapabilities);
+			if (!mediasoupclient::ortc::getExtendedRtpCapabilities(m_extendedRtpCapabilities, nativeRtpCapabilities, routerRtpCapabilities))
+			{
+				ERROR_EX_LOG("getExtendedRtpCapabilities failed !!!");
+				return false;
+			}
+		
+			// Generate our receiving RTP capabilities for receiving media.
+			m_recvRtpCapabilities = mediasoupclient::ortc::getRecvRtpCapabilities(m_extendedRtpCapabilities);
 
 
-		m_sctpCapabilities = deivce::GetNativeSctpCapabilities();
+			m_sctpCapabilities = deivce::GetNativeSctpCapabilities();
+		}
+		catch (...)
+		{
+			ERROR_EX_LOG("_load [routerRtpCapabilities = %s ]failed !!!", routerRtpCapabilities.dump().c_str());
+			return false;
+		}
 		m_loaded = true;
 		return true;
 	}
@@ -268,15 +350,12 @@ namespace chen {
 	}
 	bool cclient::_send_router_rtpcapabilities()
 	{
-	
-		nlohmann::json router_rtpcapabilities =
+		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_GETROUTERRTPCAPABILITIES, nlohmann::json::object()))
 		{
-			{"request",true},
-		{"id" , ++m_id}, //  
-		{"method" , "getRouterRtpCapabilities"}, //方法
-		{"data" , nlohmann::json::object()}
-		};
-		g_websocket_mgr.send(router_rtpcapabilities.dump());
+			WARNING_EX_LOG("send request router rtcpcapabilities failed !!!");
+			return false;
+		}
+	
 		m_client_protoo_msg_call.insert(std::make_pair(m_id, &cclient::_server_RouterRtpCapabilities));
 		
 
@@ -298,15 +377,12 @@ namespace chen {
 			{	"sctpCapabilities", m_sctpCapabilities }
 
 			};
-			nlohmann::json create_webrtc_transport =
+			if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_CREATEWEBRTCTRANSPORT, data))
 			{
-				{"request",true},
-				{"id" , ++m_id}, //  
-				{"method" , "createWebRtcTransport"}, //方法
-				{"data" , data}
-			};
-			
-			g_websocket_mgr.send(create_webrtc_transport.dump());
+				WARNING_EX_LOG("send request create send webrtc transport  failed !!!");
+				return false;
+			}
+			 
 		}
 		else
 		{
@@ -318,15 +394,13 @@ namespace chen {
 				{	"sctpCapabilities", m_sctpCapabilities }
 
 			};
-			nlohmann::json create_webrtc_transport =
-			{
-				{"request",true},
-				{"id" , ++m_id}, //  
-				{"method" , "createWebRtcTransport"}, //方法
-				{"data" , data}
-			};
 
-			g_websocket_mgr.send(create_webrtc_transport.dump());
+			if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_CREATEWEBRTCTRANSPORT, data))
+			{
+				WARNING_EX_LOG("send request create recv webrtc transport  failed !!!");
+				return false;
+			}
+			 
 		}
 		
 		m_client_protoo_msg_call.insert(std::make_pair(m_id, &cclient::_server_create_webrtc_transport));
@@ -337,7 +411,7 @@ namespace chen {
 		std::string str = dtlsparameters["role"];
 		NORMAL_EX_LOG("connect webrtc -> role = %s", str.c_str());
 		std::string transportId;
-		if (str == "server")
+		if (str == WEBRTC_SERVER)
 		{
 			transportId = m_send_transport->get_transportId();
 		}
@@ -350,20 +424,25 @@ namespace chen {
 			{"transportId", transportId},
 		{"dtlsParameters", dtlsparameters}
 		};
-		nlohmann::json connect_webrtc_transport =
+		 
+	 
+		
+		if (str == WEBRTC_SERVER)
 		{
-			{"request",true},
-		 {"id" , ++m_id}, //  
-		 {"method" , "connectWebRtcTransport"}, //方法
-		 {"data" , data }
-		};
-		g_websocket_mgr.send(connect_webrtc_transport.dump());
-		if (str == "server")
-		{
+			if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_CONNECTWEBRTCTRANSPORT, data))
+			{
+				WARNING_EX_LOG("send request connect recv webrtc transport  failed !!!");
+				return false;
+			}
 			m_client_protoo_msg_call.insert(std::make_pair(m_id, &cclient::_server_connect_webrtc_transport));
 		}
 		else
 		{
+			if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_CONNECTWEBRTCTRANSPORT, data))
+			{
+				WARNING_EX_LOG("send request connect recv webrtc transport  failed !!!");
+				return false;
+			}
 			m_client_protoo_msg_call.insert(std::make_pair(m_id, &cclient::_server_recv_connect_webrtc_transport));
 		}
 		
@@ -375,21 +454,19 @@ namespace chen {
 	{
 		nlohmann::json rtpParameters = 
 		{
-			{"transportId", m_send_transport->get_transportId()},
-			{"kind", m_send_transport->get_kind()}, 
-			{"rtpParameters", m_send_transport->get_sending_rtpParameters()},
-		{"appData", nlohmann::json::object()}
+			//{"transportId", m_send_transport->get_transportId()},
+			//{"kind", m_send_transport->get_kind()}, 
+			//{"rtpParameters", m_send_transport->get_sending_rtpParameters()},
+			{"appData", nlohmann::json::object()}
 		};
-		nlohmann::json produce_webrtc_transport =
+		 
+		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_PRODUCE, rtpParameters))
 		{
-			{"request",true},
-		{"id" , ++m_id}, //  
-		{"method" , "produce"}, //方法
-		{"data" , rtpParameters}
-		};
-
-		NORMAL_EX_LOG("produce_webrtc_transport = %s", produce_webrtc_transport.dump().c_str());
-		g_websocket_mgr.send(produce_webrtc_transport.dump());
+			WARNING_EX_LOG("send request connect recv webrtc transport  failed !!!");
+			return false;
+		}
+		 
+		 
 		m_client_protoo_msg_call.insert(std::make_pair(m_id, &cclient::_server_produce_webrtc_transport));
 		//m_status = EMediasoup_WebSocket;
 		return true;
@@ -409,22 +486,39 @@ namespace chen {
 		{"rtpCapabilities", m_recvRtpCapabilities},
 		{"sctpCapabilities", m_sctpCapabilities.dump()}
 		};
-		nlohmann::json join_room =
+
+		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_JOIN, rtpParameters))
 		{
-			{"request",true},
-		{"id" , ++m_id}, //  
-		{"method" , "join"}, //方法
-		{"data" , rtpParameters}
-		};
-		g_websocket_mgr.send(join_room.dump());
+			WARNING_EX_LOG("send request join room   failed !!!");
+			return false;
+		}
+		 
 		m_client_protoo_msg_call.insert(std::make_pair(m_id, &cclient::_server_join_room));
 		//m_status = EMediasoup_WebSocket;
 		return true;
 	}
 	bool cclient::_server_RouterRtpCapabilities(const  nlohmann::json & msg)
 	{
-		NORMAL_EX_LOG("  router rtp capabilities --> ");
-		_load(msg["data"]);
+		//NORMAL_EX_LOG("  router rtp capabilities --> ");
+		if (msg.find(WEBSOCKET_PROTOO_DATA) == msg.end())
+		{
+			WARNING_EX_LOG("RouterRtpCapabilities websocket protoo [msg = %s]not find 'data' failed !!!", msg.dump().c_str());
+			m_status = EMediasoup_Reset;
+			return false;
+		}
+		nlohmann::json data_rtp = msg[WEBSOCKET_PROTOO_DATA];
+		if (!mediasoupclient:: ortc::validateRtpCapabilities(data_rtp))
+		{
+			WARNING_EX_LOG("RouterRtpCapabilities validate rtp capabilities [data = %s] failed !!!", data_rtp.dump().c_str());
+			m_status = EMediasoup_Reset;
+			return false;
+		}
+		if (!_load(data_rtp))
+		{
+			WARNING_EX_LOG("RouterRtpCapabilities _load[data_rtp = %s] failed !!!", data_rtp.dump().c_str());
+			m_status = EMediasoup_Reset;
+			return false;
+		}
 		//m_status = EMediasoup_Request_Create_Recv_Webrtc_Transport;
 		m_status = EMediasoup_Request_Create_Send_Webrtc_Transport; // 
 		return true;
@@ -434,9 +528,7 @@ namespace chen {
 	{
 		NORMAL_EX_LOG(" server create webrtc --> ");
 		std::string  transport_id = msg["data"]["id"];
-
-	//	auto data_json_values
-		//nlohmann::json data_json_values = msg.get<nlohmann::json::object>("data");
+ 
 		auto data = msg.find("data");//find
 		if (!data->is_object())
 		{
@@ -457,8 +549,8 @@ namespace chen {
 	 
 			if (!m_send_transport)
 			{
-				m_send_transport = new rtc::RefCountedObject<ctransport>(transport_id, this );
-				m_send_transport->init(true, transport_id, m_extendedRtpCapabilities,
+				m_send_transport = new rtc::RefCountedObject<csend_transport>(transport_id, this );
+				m_send_transport->init( transport_id, m_extendedRtpCapabilities,
 					json_iceParameters,
 					json_iceCandidates,
 					json_dtlsParameters,
@@ -469,7 +561,7 @@ namespace chen {
 			{
 
 				m_recv_transport = new rtc::RefCountedObject<ctransport>(transport_id, this);
-				m_recv_transport->init(false, transport_id, m_extendedRtpCapabilities,
+				m_recv_transport->init( transport_id, m_extendedRtpCapabilities,
 					json_iceParameters,
 					json_iceCandidates,
 					json_dtlsParameters,
@@ -484,9 +576,7 @@ namespace chen {
 		
 				 
 		
-		//m_send_transport->webrtc_connect_transport_offer(nullptr);
-		//m_send_transport->webrtc_connect_transport_setup_connect("server");
-		//m_status = 2;
+		 
 		return true;
 	}
 	bool cclient::_server_connect_webrtc_transport(const  nlohmann::json & msg)
@@ -539,15 +629,11 @@ namespace chen {
 	 
 	bool cclient::server_reply_new_dataconsumer(uint64 id)
 	{
-		nlohmann::json  reply_datacosumer = 
+		 
+		if (!_reply_server(id))
 		{
-			{"response",true}, 
-			{"id",id}, 
-			{"ok" , true}, 
-			{"data", nlohmann::json::object()}
-		};
-		g_websocket_mgr.send(reply_datacosumer.dump());
-
+			WARNING_EX_LOG("reply new dataconsumer failed !!!");
+		}
 		return true;
 	}
 	bool cclient:: async_produce()
@@ -555,5 +641,64 @@ namespace chen {
 		m_send_transport->webrtc_connect_transport_offer(nullptr);
 		//m_async_data_consumer_t = ::time(NULL) + 50;
 		return true;
+	}
+
+
+
+	bool cclient::_send_request_mediasoup(  const std::string& method, const nlohmann::json & data)
+	{
+		if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
+		{
+			WARNING_EX_LOG("websocket mgr status = %d !!!", g_websocket_mgr.get_status());
+			return false;
+		}
+		nlohmann::json request_data =
+		{
+			{WEBSOCKET_PROTOO_REQUEST  ,true},
+			{WEBSOCKET_PROTOO_ID , ++m_id}, //  
+			{WEBSOCKET_PROTOO_METHOD , method}, //方法
+			{WEBSOCKET_PROTOO_DATA , data}
+		};
+		g_websocket_mgr.send(request_data.dump());
+		return true;
+	}
+
+
+	bool cclient::_reply_server(uint64 id)
+	{
+		if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
+		{
+			WARNING_EX_LOG("websocket mgr status = %d !!!", g_websocket_mgr.get_status());
+			return false;
+		}
+		nlohmann::json  reply =
+		{
+			{WEBSOCKET_PROTOO_RESPONSE,true},
+			{WEBSOCKET_PROTOO_ID,id},
+			{WEBSOCKET_PROTOO_OK , true},
+			{WEBSOCKET_PROTOO_DATA, nlohmann::json::object()}
+		};
+		g_websocket_mgr.send(reply.dump());
+		return true;
+	}
+	void cclient::_clear_register()
+	{
+		m_client_protoo_msg_call.clear();
+	}
+	bool cclient::_default_replay(const nlohmann::json & reply)
+	{
+		auto iter =  reply.find(WEBSOCKET_PROTOO_ID);
+		if (iter != reply.end())
+		{
+			uint64 id = reply[WEBSOCKET_PROTOO_ID].get<uint64>();
+			if (!_reply_server(id))
+			{
+				WARNING_EX_LOG("reply send failed  msg = %s", reply.dump().c_str());
+				return false;
+			}
+			return true;
+		}
+		WARNING_EX_LOG("reply not find 'id' failed  msg = %s", reply.dump().c_str());
+		return false;
 	}
 }

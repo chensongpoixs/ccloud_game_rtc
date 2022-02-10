@@ -16,6 +16,8 @@ namespace chen {
 			webrtc::MediaStreamTrackInterface* track,
 			const nlohmann::json& rtpParameters );
 
+
+		void Destroy();
 	public:
 
 		const std::string& GetId() const;

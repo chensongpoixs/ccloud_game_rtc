@@ -20,6 +20,7 @@ namespace chen {
 	class ctransport : public webrtc::PeerConnectionObserver /*好玩东西给webrtc封装这个里面   */,
 		public webrtc::CreateSessionDescriptionObserver 
 	{
+		
 		struct cDataConsmer
 		{
 			std::string m_id;
@@ -35,21 +36,23 @@ namespace chen {
 		//~ctransport() {}
 	public:
 
-		bool init(bool send, const std::string &transport_id, const nlohmann::json& extendedRtpCapabilities,   const nlohmann::json& iceParameters,
+		bool init( const std::string &transport_id, const nlohmann::json& extendedRtpCapabilities,   const nlohmann::json& iceParameters,
 			const nlohmann::json& iceCandidates,
 			const nlohmann::json& dtlsParameters,
 			const nlohmann::json& sctpParameters);
 		
-
+		virtual void Destory();
 
 		// connect --> webrtc 
-		bool webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track);
+		virtual bool webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track);
 		bool webrtc_connect_transport_setup_connect(const std::string & localDtlsRole);
-		// send connect localdes
-		bool   webrtc_connect_transport_setup_connect_server_call();
+		// send connect localdes [[[[ --> produce -->
+		//bool   webrtc_connect_transport_setup_connect_server_call();
 
 		bool webrtc_transport_produce(const std::string & producerId);
 
+
+		// recv --> 
 		bool webrtc_connect_recv_setup_call();
 
 
@@ -59,7 +62,7 @@ namespace chen {
 		bool  webrtc_create_consumer(const std::string & id, const std::string & dataconsumerId, const std::string & label);
 	public:
 		 std::string  get_transportId() const { return m_transport_id; }
-		 std::string get_kind() const { return m_track->kind(); }
+		 
 		nlohmann::json get_sending_rtpParameters() const { return m_sendingRtpParametersByKind[m_track->kind()]; }
 	public:
 
@@ -112,7 +115,7 @@ namespace chen {
 	private:
 		ctransport(const ctransport&);
 		ctransport& operator =(const ctransport&);
-	private:
+	protected:
 		rtc::scoped_refptr<webrtc::PeerConnectionInterface> m_peer_connection;
 		rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> m_peer_connection_factory;
 		std::unique_ptr<rtc::Thread> m_networkThread;

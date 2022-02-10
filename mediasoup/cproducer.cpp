@@ -17,7 +17,9 @@ namespace chen {
 		rtpSender(rtpSender), track(track), rtpParameters(rtpParameters)
 	{
 	}
-
+	void cproducer::Destroy()
+	{
+	}
 	const std::string& cproducer::GetId() const
 	{
 		return id;

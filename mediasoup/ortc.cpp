@@ -34,12 +34,15 @@ namespace mediasoupclient
 		 * fields with default values.
 		 * It throws if invalid.
 		 */
-		void validateRtpCapabilities(json& caps)
+		bool validateRtpCapabilities(json& caps)
 		{
 		 
 			using namespace chen;
 			if (!caps.is_object())
+			{
 				ERROR_EX_LOG("caps is not an object");
+				return false;
+			}
 
 			auto codecsIt           = caps.find("codecs");
 			auto headerExtensionsIt = caps.find("headerExtensions");
@@ -48,6 +51,7 @@ namespace mediasoupclient
 			if (codecsIt != caps.end() && !codecsIt->is_array())
 			{
 				ERROR_EX_LOG("caps.codecs is not an array");
+				return false;
 			}
 			else if (codecsIt == caps.end())
 			{
@@ -57,13 +61,17 @@ namespace mediasoupclient
 
 			for (auto& codec : *codecsIt)
 			{
-				validateRtpCodecCapability(codec);
+				if (!validateRtpCodecCapability(codec))
+				{
+					return false;
+				}
 			}
 
 			// headerExtensions is optional. If unset, fill with an empty array.
 			if (headerExtensionsIt != caps.end() && !headerExtensionsIt->is_array())
 			{
 				ERROR_EX_LOG("caps.headerExtensions is not an array");
+				return false;
 			}
 			else if (headerExtensionsIt == caps.end())
 			{
@@ -73,8 +81,13 @@ namespace mediasoupclient
 
 			for (auto& ext : *headerExtensionsIt)
 			{
-				validateRtpHeaderExtension(ext);
+				if (!validateRtpHeaderExtension(ext))
+				{
+					ERROR_EX_LOG("validateRtpHeaderExtension");
+					return false;
+				}
 			}
+			return true;
 		}
 
 		/**
@@ -82,7 +95,7 @@ namespace mediasoupclient
 		 * fields with default values.
 		 * It throws if invalid.
 		 */
-		void validateRtpCodecCapability(json& codec)
+		bool validateRtpCodecCapability(json& codec)
 		{
 			using namespace chen;
 
@@ -90,7 +103,10 @@ namespace mediasoupclient
 			  "^(audio|video)/(.+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
 			if (!codec.is_object())
+			{
 				ERROR_EX_LOG("codec is not an object");
+				return false;
+			}
 
 			auto mimeTypeIt             = codec.find("mimeType");
 			auto preferredPayloadTypeIt = codec.find("preferredPayloadType");
@@ -101,25 +117,37 @@ namespace mediasoupclient
 
 			// mimeType is mandatory.
 			if (mimeTypeIt == codec.end() || !mimeTypeIt->is_string())
+			{
 				ERROR_EX_LOG("missing codec.mimeType");
+				return false;
+			}
 
 			std::smatch mimeTypeMatch;
 			std::string regexTarget = mimeTypeIt->get<std::string>();
 			std::regex_match(regexTarget, mimeTypeMatch, MimeTypeRegex);
 
 			if (mimeTypeMatch.empty())
+			{
 				ERROR_EX_LOG("invalid codec.mimeType");
+				return false;
+			}
 
 			// Just override kind with media component of mimeType.
 			codec["kind"] = mimeTypeMatch[1].str();
 
 			// preferredPayloadType is optional.
 			if (preferredPayloadTypeIt != codec.end() && !preferredPayloadTypeIt->is_number_integer())
+			{
 				ERROR_EX_LOG("invalid codec.preferredPayloadType");
+				return false;
+			}
 
 			// clockRate is mandatory.
 			if (clockRateIt == codec.end() || !clockRateIt->is_number_integer())
-				ERROR_EX_LOG("missing codec.clockRate");
+			{
+				ERROR_EX_LOG("missing codec.clockRate");;
+				return false;
+			}
 
 			// channels is optional. If unset, set it to 1 (just if audio).
 			if (codec["kind"] == "audio")
@@ -146,13 +174,19 @@ namespace mediasoupclient
 				auto& value     = it.value();
 
 				if (!value.is_string() && !value.is_number() && value != nullptr)
+				{
 					ERROR_EX_LOG("invalid codec parameter");
+					return false;
+				}
 
 				// Specific parameters validation.
 				if (key == "apt")
 				{
 					if (!value.is_number_integer())
+					{
 						ERROR_EX_LOG("invalid codec apt parameter");
+						return false;
+					}
 				}
 			}
 
@@ -167,6 +201,7 @@ namespace mediasoupclient
 			{
 				validateRtcpFeedback(fb);
 			}
+			return true;
 		}
 
 		/**
@@ -174,23 +209,32 @@ namespace mediasoupclient
 		 * fields with default values.
 		 * It throws if invalid.
 		 */
-		void validateRtcpFeedback(json& fb)
+		bool validateRtcpFeedback(json& fb)
 		{
 		 
 			using namespace chen;
 			if (!fb.is_object())
+			{
 				ERROR_EX_LOG("fb is not an object");
+				return false;
+			}
 
 			auto typeIt      = fb.find("type");
 			auto parameterIt = fb.find("parameter");
 
 			// type is mandatory.
 			if (typeIt == fb.end() || !typeIt->is_string())
+			{
 				ERROR_EX_LOG("missing fb.type");
+				return false;
+			}
 
 			// parameter is optional. If unset set it to an empty string.
 			if (parameterIt == fb.end() || !parameterIt->is_string())
+			{
 				fb["parameter"] = "";
+			}
+			return true;
 		}
 
 		/**
@@ -198,12 +242,15 @@ namespace mediasoupclient
 		 * fields with default values.
 		 * It throws if invalid.
 		 */
-		void validateRtpHeaderExtension(json& ext)
+		bool validateRtpHeaderExtension(json& ext)
 		{
 			 
 			using namespace chen;
 			if (!ext.is_object())
+			{
 				ERROR_EX_LOG("ext is not an object");
+				return false;
+			}
 
 			auto kindIt             = ext.find("kind");
 			auto uriIt              = ext.find("uri");
@@ -219,27 +266,47 @@ namespace mediasoupclient
 			std::string kind = kindIt->get<std::string>();
 
 			if (!kind.empty() && kind != "audio" && kind != "video")
+			{
 				ERROR_EX_LOG("invalid ext.kind");
+				return false;
+			}
 
 			// uri is mandatory.
 			if (uriIt == ext.end() || !uriIt->is_string() || uriIt->get<std::string>().empty())
+			{
 				ERROR_EX_LOG("missing ext.uri");
+				return false;
+			}
 
 			// preferredId is mandatory.
 			if (preferredIdIt == ext.end() || !preferredIdIt->is_number_integer())
+			{
 				ERROR_EX_LOG("missing ext.preferredId");
+				return false;
+			}
 
 			// preferredEncrypt is optional. If unset set it to false.
 			if (preferredEncryptIt != ext.end() && !preferredEncryptIt->is_boolean())
+			{
 				ERROR_EX_LOG("invalid ext.preferredEncrypt");
+				return false;
+			}
 			else if (preferredEncryptIt == ext.end())
+			{
 				ext["preferredEncrypt"] = false;
+			}
 
 			// direction is optional. If unset set it to sendrecv.
 			if (directionIt != ext.end() && !directionIt->is_string())
+			{
 				ERROR_EX_LOG("invalid ext.direction");
+				return false;
+			}
 			else if (directionIt == ext.end())
+			{
 				ext["direction"] = "sendrecv";
+			}
+			return true;
 		}
 
 		/**
@@ -326,7 +393,7 @@ namespace mediasoupclient
 		 * fields with default values.
 		 * It throws if invalid.
 		 */
-		void validateRtpCodecParameters(json& codec)
+		bool validateRtpCodecParameters(json& codec)
 		{
 			 
 			using namespace chen;
@@ -334,7 +401,10 @@ namespace mediasoupclient
 			  "^(audio|video)/(.+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
 			if (!codec.is_object())
+			{
 				ERROR_EX_LOG("codec is not an object");
+				return false;
+			}
 
 			auto mimeTypeIt     = codec.find("mimeType");
 			auto payloadTypeIt  = codec.find("payloadType");
@@ -345,22 +415,34 @@ namespace mediasoupclient
 
 			// mimeType is mandatory.
 			if (mimeTypeIt == codec.end() || !mimeTypeIt->is_string())
+			{
 				ERROR_EX_LOG("missing codec.mimeType");
+				return false;
+			}
 
 			std::smatch mimeTypeMatch;
 			std::string regexTarget = mimeTypeIt->get<std::string>();
 			std::regex_match(regexTarget, mimeTypeMatch, MimeTypeRegex);
 
 			if (mimeTypeMatch.empty())
+			{
 				ERROR_EX_LOG("invalid codec.mimeType");
+				return false;
+			}
 
 			// payloadType is mandatory.
 			if (payloadTypeIt == codec.end() || !payloadTypeIt->is_number_integer())
+			{
 				ERROR_EX_LOG("missing codec.payloadType");
+				return false;
+			}
 
 			// clockRate is mandatory.
 			if (clockRateIt == codec.end() || !clockRateIt->is_number_integer())
+			{
 				ERROR_EX_LOG("missing codec.clockRate");
+				return false;
+			}
 
 			// Retrieve media kind from mimeType.
 			auto kind = mimeTypeMatch[1].str();
@@ -390,13 +472,19 @@ namespace mediasoupclient
 				auto& value     = it.value();
 
 				if (!value.is_string() && !value.is_number() && value != nullptr)
+				{
 					ERROR_EX_LOG("invalid codec parameter");
+					return false;
+				}
 
 				// Specific parameters validation.
 				if (key == "apt")
 				{
 					if (!value.is_number_integer())
+					{
 						ERROR_EX_LOG("invalid codec apt parameter");
+						return false;
+					}
 				}
 			}
 
@@ -409,8 +497,12 @@ namespace mediasoupclient
 
 			for (auto& fb : *rtcpFeedbackIt)
 			{
-				validateRtcpFeedback(fb);
+				if (!validateRtcpFeedback(fb))
+				{
+					return false;
+				}
 			}
+			return true;
 		}
 
 		/**
@@ -961,19 +1053,28 @@ namespace mediasoupclient
 		/**
 		 * Generate extended RTP capabilities for sending and receiving.
 		 */
-		json getExtendedRtpCapabilities(json& localCaps, json& remoteCaps)
+		bool  getExtendedRtpCapabilities(nlohmann::json& extendedRtpCapabilities, json& localCaps, json& remoteCaps)
 		{
 			 
-
+			using namespace chen;
 			// This may throw.
-			validateRtpCapabilities(localCaps);
-			validateRtpCapabilities(remoteCaps);
+			if (!validateRtpCapabilities(localCaps))
+			{
+
+				ERROR_EX_LOG("validateRtpCapabilities localCaps failed !!!");
+				return false;
+			}
+			if (!validateRtpCapabilities(remoteCaps))
+			{
+				ERROR_EX_LOG("validateRtpCapabilities remoteCaps failed !!!");
+				return false;
+			}
 
 			static const std::regex MimeTypeRegex(
 			  "^(audio|video)/(.+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
 			// clang-format off
-			json extendedRtpCapabilities =
+			extendedRtpCapabilities =
 			{
 				{ "codecs",           json::array() },
 				{ "headerExtensions", json::array() }
@@ -1097,7 +1198,7 @@ namespace mediasoupclient
 				extendedRtpCapabilities["headerExtensions"].push_back(extendedExt);
 			}
 
-			return extendedRtpCapabilities;
+			return true;
 		}
 
 		/**

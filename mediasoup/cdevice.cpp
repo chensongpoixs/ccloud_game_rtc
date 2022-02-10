@@ -279,6 +279,12 @@ namespace chen {
 
 			return future.get();
 		}
+
+		void Destroy()
+		{
+			peerConnectionFactory = nullptr;
+			pc = nullptr;
+		}
 	private:
 		// Signaling and worker threads.
 		std::unique_ptr<rtc::Thread> networkThread;
@@ -307,7 +313,7 @@ namespace chen {
 
 			return caps;
 		}
-		  nlohmann::json GetNativeRtpCapabilities()
+		 bool GetNativeRtpCapabilities(nlohmann::json & nativeRtpCapabilities)
 		{
 			  std::unique_ptr< PrivateListener> privateListener(
 				  new  PrivateListener());
@@ -321,9 +327,29 @@ namespace chen {
 
 			// May throw.
 			std::string  offer = pc->CreateOffer();
-			nlohmann::json sdpObject =  sdptransform::parse(offer);
-			nlohmann::json nativeRtpCapabilities = mediasoupclient:: Sdp::Utils::extractRtpCapabilities(sdpObject);
-			return nativeRtpCapabilities;
+			nlohmann::json sdpObject  ;
+			try
+			{
+				sdpObject =  sdptransform::parse(offer);
+			}  
+			catch (...)
+			{
+				ERROR_EX_LOG("json CreateOffer parse  failed  [offer = %s] !!!", offer.c_str());
+				return false;
+			}
+			
+			 
+			try 
+			{
+				  nativeRtpCapabilities = mediasoupclient::Sdp::Utils::extractRtpCapabilities(sdpObject);
+				 
+			}
+			catch (...)
+			{
+				ERROR_EX_LOG(" json extractRtpCapabilities parse failed  [offer = %s] !!!", offer.c_str());
+				return false;
+			}
+			return true;
 		}
 		//bool load(nlohmann::json routerRtpCapabilities)
 		//{

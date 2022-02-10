@@ -18,56 +18,12 @@
 #include "pc/video_track_source.h"
 namespace chen {
 
-	class CCapturerTrackSource : public webrtc::VideoTrackSource {
-	public:
-		static rtc::scoped_refptr<CCapturerTrackSource> Create() {
-			/*const size_t kWidth = 640;
-			const size_t kHeight = 480;
-			const size_t kFps = 30;
-			std::unique_ptr<webrtc::test::VcmCapturer> capturer;
-			std::unique_ptr<webrtc::VideoCaptureModule::DeviceInfo> info(
-			webrtc::VideoCaptureFactory::CreateDeviceInfo());
-			if (!info) {
-			return nullptr;
-			}
-			int num_devices = info->NumberOfDevices();
-			for (int i = 0; i < num_devices; ++i) {
-			capturer = absl::WrapUnique(
-			webrtc::test::VcmCapturer::Create(kWidth, kHeight, kFps, i));
-			if (capturer) {
-			return new
-			rtc::RefCountedObject<CapturerTrackSource>(std::move(capturer));
-			}
-			}*/
-			std::unique_ptr<  DesktopCapture> capturer(  DesktopCapture::Create(25,0));
-			if (capturer) 
-			{
-				capturer->StartCapture();
-				return new
-					rtc::RefCountedObject<CCapturerTrackSource>(std::move(capturer));
-			}
-			return nullptr;
-		}
-
-	protected:
-		explicit CCapturerTrackSource(
-			std::unique_ptr< DesktopCapture> capturer)
-			: VideoTrackSource(/*remote=*/false), capturer_(std::move(capturer)) {}
-
-	private:
-		rtc::VideoSourceInterface<webrtc::VideoFrame>* source() override {
-			return capturer_.get();
-		}
-		//std::unique_ptr<webrtc::test::VcmCapturer> capturer_;
-		std::unique_ptr< DesktopCapture> capturer_;
-	};
-
-
+	
 
 	
-	ctransport::ctransport( std::string transport_id, cclient* ptr):m_transport_id ( transport_id), m_client_ptr(ptr) , m_streamId(0), m_recving(ERecv_None)
+	ctransport::ctransport( std::string transport_id, cclient* ptr):m_transport_id ( transport_id), m_client_ptr(ptr) , m_streamId(0), m_recving(ERecv_None), m_send(false)
 	{}
-	bool ctransport::init(bool send, const std::string &transport_id,  const nlohmann::json& extendedRtpCapabilities,  
+	bool ctransport::init( const std::string &transport_id,  const nlohmann::json& extendedRtpCapabilities,  
 		const nlohmann::json& iceParameters,
 		const nlohmann::json& iceCandidates,
 		const nlohmann::json& dtlsParameters,
@@ -111,8 +67,8 @@ namespace chen {
 		mediasoupclient::Sdp::RemoteSdp* removesdp_ptr = new mediasoupclient::Sdp::RemoteSdp(iceParameters_, iceCandidates, dtlsParameters, sctpParameters);
 		m_remote_sdp.reset( removesdp_ptr );
 		m_transport_id = transport_id;
-		m_send = send;
-		if (send)
+		
+		/*if (send)
 		{
 			m_sendingRtpParametersByKind = {
 				{ "video", mediasoupclient::ortc::getSendingRtpParameters("video", extendedRtpCapabilities) }
@@ -121,10 +77,13 @@ namespace chen {
 				{"video", mediasoupclient::ortc::getSendingRemoteRtpParameters("video", extendedRtpCapabilities)}
 			};
 			m_track = m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), CCapturerTrackSource::Create());
-		}
+		}*/
 		return true;
 	}
+	void ctransport::Destory()
+	{
 
+	}
 	bool ctransport::webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track)
 	{
 		//track = createVideoTrack(std::to_string(rtc::CreateRandomId()));
@@ -195,130 +154,7 @@ namespace chen {
 	}
 
 
-	bool   ctransport::webrtc_connect_transport_setup_connect_server_call()
-	{
-
-
-		json& sendingRtpParameters = m_sendingRtpParametersByKind[m_track->kind()];
-		{
-			//const webrtc::SessionDescriptionInterface* desc = m_peer_connection->local_description();
-			std::string offer = m_offer;
-
-			//desc->ToString(&offer);
-
-
-			//m_peer_connection->SetLocalDescription(PeerConnection::SdpType::OFFER, offer);
-
-			webrtc::SdpParseError error;
-			webrtc::SessionDescriptionInterface* sessionDescription;
-			rtc::scoped_refptr<cSetSessionDescriptionObserver> observer(
-				new rtc::RefCountedObject<cSetSessionDescriptionObserver>());
-			auto future = observer->GetFuture();
-			std::string typeStr = "offer";
-			sessionDescription = webrtc::CreateSessionDescription(typeStr, offer, &error);
-			if (!sessionDescription)
-			{
-				ERROR_EX_LOG("webrtc connect transport setup connect server create offer  session description failed !!!");
-				observer->Reject(error.description);
-				future.get();
-				return false;
-			}
-			m_peer_connection->SetLocalDescription(observer, sessionDescription);
-			future.get();
-		}
-
-
-		{
-			 
-			sendingRtpParameters["mid"] = m_transceiver->mid().value();
-		
-			const webrtc::SessionDescriptionInterface* desc = m_peer_connection->local_description();
-			std::string offer;
-
-			desc->ToString(&offer);
-			const mediasoupclient::Sdp::RemoteSdp::MediaSectionIdx mediaSectionIdx = m_remote_sdp->GetNextMediaSectionIdx();
-			nlohmann::json localSdpObject = sdptransform::parse(offer);
-
-
-
-			nlohmann::json& offerMediaObject = localSdpObject["media"][mediaSectionIdx.idx];
-
-
-			// Set RTCP CNAME.
-			sendingRtpParameters["rtcp"]["cname"] = mediasoupclient::Sdp::Utils::getCname(offerMediaObject);
-
-			// Set RTP encodings by parsing the SDP offer if no encodings are given.
-			
-			sendingRtpParameters["encodings"] = mediasoupclient::Sdp::Utils::getRtpEncodings(offerMediaObject);
-			
-			// If VP8 and there is effective simulcast, add scalabilityMode to each encoding.
-			std::string  mimeType = sendingRtpParameters["codecs"][0]["mimeType"].get<std::string>();
-
-			std::transform(mimeType.begin(), mimeType.end(), mimeType.begin(), ::tolower);
-
-			// clang-format off
-			if (
-				sendingRtpParameters["encodings"].size() > 1 &&
-				(mimeType == "video/vp8" || mimeType == "video/h264")
-				)
-				// clang-format on
-			{
-				for (auto& encoding : sendingRtpParameters["encodings"])
-				{
-					encoding["scalabilityMode"] = "S1T3";
-				}
-			}
-			m_remote_sdp ->Send(
-				offerMediaObject,
-				mediaSectionIdx.reuseMid,
-				sendingRtpParameters,
-				 m_sendingRemoteRtpParametersByKind[m_track->kind()],
-				nullptr);
-
-			std::string answer = m_remote_sdp->GetSdp();
-
-
-			{
-				webrtc::SdpParseError error;
-				webrtc::SessionDescriptionInterface* sessionDescription;
-				rtc::scoped_refptr<cSetSessionDescriptionObserver> observer(
-					new rtc::RefCountedObject<cSetSessionDescriptionObserver>());
-			
-				std::string typeStr = "answer";
-				auto future         = observer->GetFuture();
-
-				sessionDescription = webrtc::CreateSessionDescription(typeStr, answer, &error);
-				if (sessionDescription == nullptr)
-				{
-					/*MSC_WARN(
-						"webrtc::CreateSessionDescription failed [%s]: %s",
-						error.line.c_str(),
-						error.description.c_str());*/
-
-					observer->Reject(error.description);
-					future.get();
-					ERROR_EX_LOG("webrtc connect transport setup connect server create answer session description failed !!!");
-					return false;
-				}
-
-				m_peer_connection->SetRemoteDescription(observer, sessionDescription);
-				//observer->OnSuccess();
-				  future.get();
-				   
-			}
-			//m_peer_connection->SetRemoteDescription();
-
-		}
-
-
-
-		// send to websocket produce --> 
-
-
-
-		return true;
-	}
-
+	
 
 	void ctransport::add_webrtc_consmer_transport()
 	{
@@ -415,6 +251,7 @@ namespace chen {
 		//return true;
 		if (m_dataconsmers.empty())
 		{
+			m_client_ptr->async_produce();
 			m_recving = ERecv_Success;
 			return true;
 		}

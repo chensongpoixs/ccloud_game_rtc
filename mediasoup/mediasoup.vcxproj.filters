@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
@@ -16,26 +12,32 @@
     <Filter Include="sdp">
       <UniqueIdentifier>{c8180a02-652e-409a-a0d1-12759abacd36}</UniqueIdentifier>
     </Filter>
+    <Filter Include="client">
+      <UniqueIdentifier>{26539cdc-e407-4fc1-889d-54fb648fd936}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="log">
+      <UniqueIdentifier>{0fce081d-41a4-49e8-aded-dd09da0d61be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{54d36727-b1c5-48e0-a707-227b5ae169c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="device">
+      <UniqueIdentifier>{e615e443-7ce7-4595-886b-b8dc911c1028}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="json_util">
+      <UniqueIdentifier>{2c08809a-59e9-445b-b532-94a762eb48c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="websocket">
+      <UniqueIdentifier>{43c8a0ee-1945-446b-b7b3-34beb517b8d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="webrtc">
+      <UniqueIdentifier>{7522c48e-5e65-49a6-901d-053818c768a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cfg">
+      <UniqueIdentifier>{8d05bc61-9085-4728-9170-b71ca723f8c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="grammar.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mediasoupclient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ortc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="parser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="scalabilityMode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="writer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sdp\MediaSection.cpp">
       <Filter>sdp</Filter>
     </ClCompile>
@@ -45,98 +47,99 @@
     <ClCompile Include="sdp\Utils.cpp">
       <Filter>sdp</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ccfg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cconfig.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cint2str.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cnet_types.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cwebsocket_mgr.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="desktop_capture_source.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wsclient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cwebsocket_session.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cosd_util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cwindow_util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cinput_device.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cinput_device_event.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="cclient.cpp">
+      <Filter>client</Filter>
     </ClCompile>
     <ClCompile Include="casync_log.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>log</Filter>
     </ClCompile>
     <ClCompile Include="clog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ctime_api.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cproducer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ctransport.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cclient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cdesktop_capture.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>log</Filter>
     </ClCompile>
     <ClCompile Include="cdevice.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>device</Filter>
     </ClCompile>
-    <ClCompile Include="csession_description.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="cinput_device.cpp">
+      <Filter>device</Filter>
+    </ClCompile>
+    <ClCompile Include="cinput_device_event.cpp">
+      <Filter>device</Filter>
+    </ClCompile>
+    <ClCompile Include="cint2str.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="cosd_util.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="cnet_types.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="ctime_api.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="cwindow_util.cpp">
+      <Filter>device</Filter>
+    </ClCompile>
+    <ClCompile Include="parser.cpp">
+      <Filter>json_util</Filter>
+    </ClCompile>
+    <ClCompile Include="scalabilityMode.cpp">
+      <Filter>json_util</Filter>
+    </ClCompile>
+    <ClCompile Include="writer.cpp">
+      <Filter>json_util</Filter>
+    </ClCompile>
+    <ClCompile Include="ortc.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="grammar.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="mediasoupclient.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="wsclient.cpp">
+      <Filter>websocket</Filter>
+    </ClCompile>
+    <ClCompile Include="cwebsocket_session.cpp">
+      <Filter>websocket</Filter>
+    </ClCompile>
+    <ClCompile Include="cwebsocket_mgr.cpp">
+      <Filter>websocket</Filter>
     </ClCompile>
     <ClCompile Include="cdataconsumer.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="cdesktop_capture.cpp">
+      <Filter>webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="csession_description.cpp">
+      <Filter>webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="ctransport.cpp">
+      <Filter>webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="cproducer.cpp">
+      <Filter>webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="desktop_capture_source.cc">
+      <Filter>webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ccfg.cpp">
+      <Filter>cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="cconfig.cpp">
+      <Filter>cfg</Filter>
+    </ClCompile>
+    <ClCompile Include="crecv_transport.cpp">
+      <Filter>webrtc</Filter>
+    </ClCompile>
+    <ClCompile Include="csend_transport.cpp">
+      <Filter>webrtc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="json.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mediasoupclient.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ortc.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="scalabilityMode.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sdptransform.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="version.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sdp\MediaSection.hpp">
       <Filter>sdp</Filter>
     </ClInclude>
@@ -146,86 +149,113 @@
     <ClInclude Include="sdp\Utils.hpp">
       <Filter>sdp</Filter>
     </ClInclude>
-    <ClInclude Include="ccfg.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="cclient.h">
+      <Filter>client</Filter>
     </ClInclude>
-    <ClInclude Include="cconfig.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="version.hpp">
+      <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="cint2str.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Utils.hpp">
+      <Filter>json_util</Filter>
     </ClInclude>
-    <ClInclude Include="cnet_types.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="sdptransform.hpp">
+      <Filter>json_util</Filter>
     </ClInclude>
-    <ClInclude Include="cwebsocket_mgr.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="scalabilityMode.hpp">
+      <Filter>json_util</Filter>
     </ClInclude>
-    <ClInclude Include="desktop_capture_source.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="ortc.hpp">
+      <Filter>json_util</Filter>
     </ClInclude>
-    <ClInclude Include="wsclient.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="json.hpp">
+      <Filter>json_util</Filter>
     </ClInclude>
-    <ClInclude Include="cwebsocket_session.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cosd_util.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="mediasoupclient.hpp">
+      <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="cwindow_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cinput_device.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cprotocol.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cassertion_macros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cinput_device_event.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cint_point.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="casync_log.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="clog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="clog_define.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ctime_api.h">
-      <Filter>Header Files</Filter>
+      <Filter>device</Filter>
     </ClInclude>
     <ClInclude Include="ctime_const.h">
-      <Filter>Header Files</Filter>
+      <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="cproducer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="ctime_api.h">
+      <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="ctransport.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="cprotocol.h">
+      <Filter>device</Filter>
     </ClInclude>
-    <ClInclude Include="cclient.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="cosd_util.h">
+      <Filter>util</Filter>
     </ClInclude>
-    <ClInclude Include="cdesktop_capture.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="cnet_types.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="clog_define.h">
+      <Filter>log</Filter>
+    </ClInclude>
+    <ClInclude Include="clog.h">
+      <Filter>log</Filter>
+    </ClInclude>
+    <ClInclude Include="cint2str.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="cinput_device.h">
+      <Filter>device</Filter>
+    </ClInclude>
+    <ClInclude Include="cinput_device_event.h">
+      <Filter>device</Filter>
     </ClInclude>
     <ClInclude Include="cdevice.h">
-      <Filter>Header Files</Filter>
+      <Filter>device</Filter>
     </ClInclude>
-    <ClInclude Include="csession_description.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="cint_point.h">
+      <Filter>device</Filter>
+    </ClInclude>
+    <ClInclude Include="casync_log.h">
+      <Filter>log</Filter>
+    </ClInclude>
+    <ClInclude Include="cassertion_macros.h">
+      <Filter>device</Filter>
+    </ClInclude>
+    <ClInclude Include="cwebsocket_mgr.h">
+      <Filter>websocket</Filter>
+    </ClInclude>
+    <ClInclude Include="cwebsocket_session.h">
+      <Filter>websocket</Filter>
+    </ClInclude>
+    <ClInclude Include="wsclient.h">
+      <Filter>websocket</Filter>
     </ClInclude>
     <ClInclude Include="cdataconsumer.h">
-      <Filter>Header Files</Filter>
+      <Filter>webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="cdesktop_capture.h">
+      <Filter>webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="cproducer.h">
+      <Filter>webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="csession_description.h">
+      <Filter>webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="ctransport.h">
+      <Filter>webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="desktop_capture_source.h">
+      <Filter>webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="ccfg.h">
+      <Filter>cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="cconfig.h">
+      <Filter>cfg</Filter>
+    </ClInclude>
+    <ClInclude Include="crecv_transport.h">
+      <Filter>webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="csend_transport.h">
+      <Filter>webrtc</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

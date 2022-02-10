@@ -5,6 +5,7 @@
 #include <string>
 #include "json.hpp"
 #include "ctransport.h"
+#include "csend_transport.h"
 namespace chen {
 
 
@@ -27,6 +28,11 @@ namespace chen {
 		EMediasoup_WebSocket_Close,
 		EMediasoup_WebSocket_Destory,
 		EMediasoup_WebSocket_Wait,
+		//////////////////////////////////////////
+
+		EMediasoup_Reset, //
+		EMediasoup_Destory,
+		EMediasoup_Wait,
 		//EMediasoup_
 	};
 
@@ -84,11 +90,18 @@ namespace chen {
 	public:
 		bool server_reply_new_dataconsumer(uint64 id);
 
-
+		bool _default_replay(const nlohmann::json & reply);
 	public:
 		bool async_produce();
 	private:
 		void _presssmsg(std::list<std::string> & msgs);
+
+	private:
+		bool _send_request_mediasoup( const std::string& method, const nlohmann::json & data);
+		bool _reply_server(uint64 id);
+
+	private:
+		void _clear_register();
 	private:
 		uint64			m_id;
 		bool			m_loaded;
@@ -98,7 +111,7 @@ namespace chen {
 		nlohmann::json	m_recvRtpCapabilities;
 		nlohmann::json	m_sctpCapabilities;;
 		
-		rtc::scoped_refptr<ctransport>	 m_send_transport{nullptr};
+		rtc::scoped_refptr<csend_transport>	 m_send_transport{nullptr};
 		rtc::scoped_refptr<ctransport>	 m_recv_transport{nullptr};
 		std::map<uint64, client_protoo_msg> m_client_protoo_msg_call;
 		std::map<std::string, server_protoo_msg> m_server_protoo_msg_call;

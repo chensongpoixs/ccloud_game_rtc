@@ -8,7 +8,7 @@ namespace chen {
 	namespace deivce
 	{
 		nlohmann::json  GetNativeSctpCapabilities();
-		nlohmann::json GetNativeRtpCapabilities();
+		bool  GetNativeRtpCapabilities(nlohmann::json & nativeRtpCapabilities);
 	}
 }
 

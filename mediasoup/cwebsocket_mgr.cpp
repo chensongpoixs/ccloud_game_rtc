@@ -27,7 +27,7 @@ namespace chen
 		{
 			return false;
 		}
-		m_stoped.store(false);
+		
 		m_status.store(CWEBSOCKET_CONNECTING);
 #ifdef _WIN32
 		INT rc;
@@ -55,22 +55,23 @@ namespace chen
 			m_status.store(CWEBSOCKET_CONNECTED);
 		}
 
-	
+		m_stoped.store(false);
 		
 		
 
 
 		return true;
 	}
-	void cwebsocket_mgr::start()
+	bool cwebsocket_mgr::startup()
 	{
 		if (m_status != CWEBSOCKET_CONNECTED || m_stoped || !m_ws)
 		{
-			//assert(-1);
+			WARNING_EX_LOG("websocket status = %d, m_stoped = %d", m_status.load(), m_stoped.load());
+			return false;
 		}
 		m_status.store(CWEBSOCKET_MESSAGE);
 		m_thread = std::thread(&cwebsocket_mgr::_work_thread, this);
-		
+		return true;
 	}
 	void cwebsocket_mgr::destroy()
 	{
@@ -81,6 +82,7 @@ namespace chen
 		{
 			m_thread.join();
 		}
+		_clear_all_msg();
 	}
 
 	void cwebsocket_mgr::send(const std::string & message)
@@ -97,6 +99,18 @@ namespace chen
 			m_recv_msgs.clear();
 		}
 	}
+	void cwebsocket_mgr::_clear_all_msg()
+	{
+		{
+			clock_guard lock(m_recv_msg_mutex);
+			m_recv_msgs.clear();
+		}
+		
+		{
+			clock_guard lock(m_mutex);
+			m_send_msgs.clear();
+		}
+	}
 	void cwebsocket_mgr::_work_thread()
 	{
 		 
@@ -111,7 +125,7 @@ namespace chen
 
 					std::string & send_message = m_send_msgs.front();
 					m_ws->send(send_message);
-					NORMAL_EX_LOG("websocket send msg = [%s]", send_message.c_str());
+					//NORMAL_EX_LOG("websocket send msg = [%s]", send_message.c_str());
 					m_send_msgs.pop_front();
 				}
 

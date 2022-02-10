@@ -8,12 +8,12 @@ namespace mediasoupclient
 {
 	namespace ortc
 	{
-		void validateRtpCapabilities(nlohmann::json& caps);
-		void validateRtpCodecCapability(nlohmann::json& codec);
-		void validateRtcpFeedback(nlohmann::json& fb);
-		void validateRtpHeaderExtension(nlohmann::json& ext);
+		bool validateRtpCapabilities(nlohmann::json& caps);
+		bool validateRtpCodecCapability(nlohmann::json& codec);
+		bool validateRtcpFeedback(nlohmann::json& fb);
+		bool validateRtpHeaderExtension(nlohmann::json& ext);
 		void validateRtpParameters(nlohmann::json& params);
-		void validateRtpCodecParameters(nlohmann::json& codec);
+		bool validateRtpCodecParameters(nlohmann::json& codec);
 		void validateRtpHeaderExtensionParameters(nlohmann::json& ext);
 		void validateRtpEncodingParameters(nlohmann::json& encoding);
 		void validateRtcpParameters(nlohmann::json& rtcp);
@@ -25,7 +25,7 @@ namespace mediasoupclient
 		void validateIceCandidates(nlohmann::json& params);
 		void validateDtlsParameters(nlohmann::json& params);
 		void validateProducerCodecOptions(nlohmann::json& params);
-		nlohmann::json getExtendedRtpCapabilities(nlohmann::json& localCaps, nlohmann::json& remoteCaps);
+		bool getExtendedRtpCapabilities(nlohmann::json& extendedRtpCapabilities, nlohmann::json& localCaps, nlohmann::json& remoteCaps);
 		nlohmann::json getRecvRtpCapabilities(const nlohmann::json& extendedRtpCapabilities);
 		nlohmann::json getSendingRtpParameters(
 		  const std::string& kind, const nlohmann::json& extendedRtpCapabilities);
