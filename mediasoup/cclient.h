@@ -125,6 +125,7 @@ namespace chen {
 
 		bool							m_produce_consumer; //首先生产 在消费
 		std::map < std::string, std::string>	m_peerid_dataconsumer;
+		time_t m_reconnect_wait ;
 	};
 }
 

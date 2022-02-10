@@ -92,6 +92,7 @@ namespace chen {
 		std::string origin = "http://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port));
 		std::list<std::string> msgs;
 		time_t cur_time = ::time(NULL);
+	
 		while (!m_stoped)
 		{
 			switch (m_status)
@@ -196,8 +197,16 @@ namespace chen {
 
 				if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
 				{
-					m_status = EMediasoup_WebSocket_Close;
+					m_status = EMediasoup_Reset;
 					msgs.clear();
+				}
+				if (m_reconnect_wait && g_cfg.get_int32(ECI_ReconnectWait) > 0)
+				{
+					if (m_reconnect_wait < ::time(NULL))
+					{
+						m_status = EMediasoup_Reset;
+						m_reconnect_wait = 0;
+					}
 				}
 				break;
 			}
@@ -247,12 +256,14 @@ namespace chen {
 				}
 				break;
 			}
+			
 			default:
 			{
 				ERROR_EX_LOG("client not find status = %u", m_status);
 			}
 				break;
 			}
+			//if ()
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			
 		}
@@ -692,6 +703,10 @@ namespace chen {
 	{
 		WEBSOCKET_PROTOO_CHECK_RESPONSE();
 		m_send_transport->webrtc_connect_transport_offer(nullptr);
+		if (g_cfg.get_int32(ECI_ReconnectWait) > 0)
+		{
+			m_reconnect_wait = ::time(NULL) + g_cfg.get_int32(ECI_ReconnectWait);
+		}
 		//m_status = EMediasoup_WebSocket; 
 		return true;
 	}
