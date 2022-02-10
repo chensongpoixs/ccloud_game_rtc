@@ -61,9 +61,9 @@ namespace chen {
 		
 		bool  webrtc_create_consumer(const std::string & id, const std::string & dataconsumerId, const std::string & label);
 	public:
-		 std::string  get_transportId() const { return m_transport_id; }
+		 const std::string&  get_transportId() const { return m_transport_id; }
 		 
-		nlohmann::json get_sending_rtpParameters() const { return m_sendingRtpParametersByKind[m_track->kind()]; }
+		const nlohmann::json& get_sending_rtpParameters() const { return m_sendingRtpParametersByKind[m_track->kind()]; }
 	public:
 
 		//

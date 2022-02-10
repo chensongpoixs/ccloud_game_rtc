@@ -225,7 +225,7 @@ namespace chen {
 		{
 			std::string msg = std::move(msgs.front());
 			msgs.pop_front();
-			//NORMAL_EX_LOG("server ====> msg = %s", msg.c_str());
+			NORMAL_EX_LOG("server ====> msg = %s", msg.c_str());
 			
 			try
 			{
@@ -276,7 +276,7 @@ namespace chen {
 				if (iter != m_server_protoo_msg_call.end())
 				{
 					
-					(this->*(iter->second))(response);
+					//(this->*(iter->second))(response);
 					//server_request_new_dataconsumer(response);
 				}
 				else
@@ -446,21 +446,35 @@ namespace chen {
 			m_client_protoo_msg_call.insert(std::make_pair(m_id, &cclient::_server_recv_connect_webrtc_transport));
 		}
 		
-		m_status = EMediasoup_WebSocket;
+		//m_status = EMediasoup_WebSocket;
 		return true;
 	}
 
 	bool cclient::_send_produce_webrtc_transport()
 	{
-		nlohmann::json rtpParameters = 
+		nlohmann::json data = nlohmann::json::object();
+		
+		try
 		{
-			//{"transportId", m_send_transport->get_transportId()},
-			//{"kind", m_send_transport->get_kind()}, 
-			//{"rtpParameters", m_send_transport->get_sending_rtpParameters()},
-			{"appData", nlohmann::json::object()}
-		};
+			std::string transportId = m_send_transport->get_transportId();
+			std::string kind = m_send_transport->get_kind();
+			nlohmann::json rtp = m_send_transport->get_sending_rtpParameters();
+			data =
+			{
+				{"transportId", transportId},
+				{"kind", kind},
+				{"rtpParameters", rtp},
+				{"appData", nlohmann::json::object()}
+			};
+		} 
+		catch (const std::exception& e)
+		{
+			ERROR_EX_LOG("");
+			return false;
+		}
+		
 		 
-		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_PRODUCE, rtpParameters))
+		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_PRODUCE, data))
 		{
 			WARNING_EX_LOG("send request connect recv webrtc transport  failed !!!");
 			return false;
@@ -601,8 +615,8 @@ namespace chen {
 
 	bool cclient::_server_join_room(const  nlohmann::json & msg)
 	{
-		//m_send_transport->webrtc_connect_transport_offer(nullptr);
-		m_status = EMediasoup_WebSocket; 
+		m_send_transport->webrtc_connect_transport_offer(nullptr);
+		//m_status = EMediasoup_WebSocket; 
 		return true;
 	}
 
