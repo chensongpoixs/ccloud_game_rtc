@@ -29,7 +29,7 @@ namespace chen {
 	/////////////////////////////////////////webrtc////////////////////////////////////////////////////////////
 	static const char * WEBRTC_SERVER = "server";
 
-	cclient::cclient():m_id(100000),m_loaded(false), m_stoped(false), m_status(EMediasoup_None){}
+	cclient::cclient():m_id(100000),m_loaded(false), m_stoped(false), m_status(EMediasoup_None), m_produce_consumer(true){}
 	cclient::~cclient(){}
 
 	
@@ -194,6 +194,7 @@ namespace chen {
 				}
 				g_websocket_mgr.destroy();
 				_clear_register();
+				m_produce_consumer = true;
 				cur_time = ::time(NULL) + g_cfg.get_uint32(ECI_WebSocket_Reconnect);
 				NORMAL_EX_LOG("reconnect  wait [%u] s ...", g_cfg.get_uint32(ECI_WebSocket_Reconnect));
 				m_status = EMediasoup_Wait;
@@ -276,7 +277,7 @@ namespace chen {
 				if (iter != m_server_protoo_msg_call.end())
 				{
 					
-					//(this->*(iter->second))(response);
+					(this->*(iter->second))(response);
 					//server_request_new_dataconsumer(response);
 				}
 				else
@@ -454,24 +455,17 @@ namespace chen {
 	{
 		nlohmann::json data = nlohmann::json::object();
 		
-		try
+		
+		std::string transportId = m_send_transport->get_transportId();
+		std::string kind = m_send_transport->get_kind();
+		nlohmann::json rtp = m_send_transport->get_sending_rtpParameters();
+		data =
 		{
-			std::string transportId = m_send_transport->get_transportId();
-			std::string kind = m_send_transport->get_kind();
-			nlohmann::json rtp = m_send_transport->get_sending_rtpParameters();
-			data =
-			{
-				{"transportId", transportId},
-				{"kind", kind},
-				{"rtpParameters", rtp},
-				{"appData", nlohmann::json::object()}
-			};
-		} 
-		catch (const std::exception& e)
-		{
-			ERROR_EX_LOG("");
-			return false;
-		}
+			{"transportId", transportId},
+			{"kind", kind},
+			{"rtpParameters", rtp},
+			{"appData", nlohmann::json::object()}
+		};
 		
 		 
 		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_PRODUCE, data))
@@ -609,7 +603,10 @@ namespace chen {
 		NORMAL_EX_LOG("produce_id = %s", produce_id.c_str());
 		
 		m_send_transport->webrtc_transport_produce(produce_id);
+		
 		m_status = EMediasoup_WebSocket;
+		m_produce_consumer = false;
+		m_recv_transport->webrtc_create_all_wait_consumer();
 		return true;
 	}
 
@@ -635,7 +632,14 @@ namespace chen {
 		
 		std::string dataProducerId = msg["data"]["dataProducerId"];
 		uint16_t streamId = msg["data"]["sctpStreamParameters"]["streamId"].get<uint16_t>();
-		m_recv_transport->webrtc_create_consumer(transport_id, dataProducerId, std::to_string(streamId));
+		if (m_produce_consumer)
+		{
+			m_recv_transport->webrtc_consumer_wait(transport_id, dataProducerId, std::to_string(streamId));
+		}
+		else
+		{
+			m_recv_transport->webrtc_create_consumer(transport_id, dataProducerId, std::to_string(streamId));
+		}
 		server_reply_new_dataconsumer(id);
 		return true;
 	}
@@ -652,7 +656,7 @@ namespace chen {
 	}
 	bool cclient:: async_produce()
 	{
-		m_send_transport->webrtc_connect_transport_offer(nullptr);
+		//m_send_transport->webrtc_connect_transport_offer(nullptr);
 		//m_async_data_consumer_t = ::time(NULL) + 50;
 		return true;
 	}

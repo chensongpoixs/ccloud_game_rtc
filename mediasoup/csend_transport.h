@@ -21,7 +21,7 @@ namespace chen {
 
 		bool webrtc_connect_transport_setup_connect_server_call();
 	public:
-		const std::string& get_kind() const { return m_track->kind(); }
+		//const std::string& get_kind() const { return m_track->kind(); }
 	private:
 	};
 

@@ -117,6 +117,8 @@ namespace chen {
 		std::map<std::string, server_protoo_msg> m_server_protoo_msg_call;
 
 		time_t							m_async_data_consumer_t;
+
+		bool							m_produce_consumer; //首先生产 在消费
 	};
 }
 

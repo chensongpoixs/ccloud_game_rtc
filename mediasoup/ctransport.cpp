@@ -305,7 +305,7 @@ namespace chen {
 			(pi.first->second)->init(cdata.m_id, cdata.m_dataconsumerId, webrtcDataChannel, sctpStreamParameters, "stcp");
 		}
 		//
-		m_client_ptr->async_produce();
+		//m_client_ptr->async_produce();
 		m_recving = ERecv_Success;
 		return true;
 	}
@@ -465,7 +465,26 @@ namespace chen {
 		// m_data_cosumsers.insert(std::make_pair(id, cdataconsumer())
 		return true;
 	}
-
+	bool ctransport::webrtc_consumer_wait(const std::string & id, const std::string & dataconsumerId, const std::string & label)
+	{
+		cDataConsmer Datacs;
+		Datacs.m_id = id;
+		Datacs.m_lable = label;
+		Datacs.m_dataconsumerId = dataconsumerId;
+		m_dataconsmers.push_back(Datacs);
+		return true;
+	}
+	void ctransport::webrtc_create_all_wait_consumer()
+	{
+		std::list<cDataConsmer>	temp_data = std::move(m_dataconsmers);
+		m_dataconsmers.clear();
+		while (!temp_data.empty())
+		{
+			cDataConsmer cdata = temp_data.front();
+			temp_data.pop_front();
+			webrtc_create_consumer(cdata.m_id, cdata.m_dataconsumerId, cdata.m_lable);
+		}
+	}
 	//
 	// PeerConnectionObserver implementation.
 	//

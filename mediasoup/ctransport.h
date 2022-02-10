@@ -60,9 +60,14 @@ namespace chen {
 		/// recv data conumser
 		
 		bool  webrtc_create_consumer(const std::string & id, const std::string & dataconsumerId, const std::string & label);
+
+		bool webrtc_consumer_wait(const std::string & id, const std::string & dataconsumerId, const std::string & label);
+	
+		void webrtc_create_all_wait_consumer();
 	public:
 		 const std::string&  get_transportId() const { return m_transport_id; }
-		 
+		 // TODO@chensong 20220210 比较神奇的地方 必须要拷贝  原来是栈上空间 是会释放的  这是webrtc线程异步操作的结果 
+		  std::string get_kind()  { return m_track->kind(); }
 		const nlohmann::json& get_sending_rtpParameters() const { return m_sendingRtpParametersByKind[m_track->kind()]; }
 	public:
 
