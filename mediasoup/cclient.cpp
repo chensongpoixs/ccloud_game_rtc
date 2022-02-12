@@ -263,7 +263,7 @@ namespace chen {
 			}
 				break;
 			}
-			//if ()
+			
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			
 		}
@@ -369,7 +369,21 @@ namespace chen {
 
 	void cclient::Destory()
 	{
-
+		//m_stoped = true;
+		/*if (m_recv_transport)
+		{
+			m_recv_transport->Destroy();
+			m_recv_transport = nullptr;
+		}
+		if (m_send_transport)
+		{
+			m_send_transport->Destroy();
+			m_send_transport = nullptr;
+		}
+		g_websocket_mgr.destroy();
+		_clear_register();
+		m_produce_consumer = true;*/
+	  
 	}
 	bool cclient::_load(nlohmann::json routerRtpCapabilities)
 	{

@@ -78,7 +78,7 @@ namespace chen {
 			.count();
 		if (timestamp_curr - timestamp > 1000) 
 		{
-			//NORMAL_EX_LOG("FPS = %u, count = %lu", cnt);
+			NORMAL_EX_LOG("FPS = %u, count = %lu", cnt);
 			//RTC_LOG(LS_INFO) << "FPS: " << cnt << ", " << frame->rect().width() << ", " << frame->rect().height();
 			//RTC_LOG(LS_INFO) << "[width = " << frame->size().width() << "][height = " << frame->size().height() << "]";
 			cnt = 0;
@@ -121,7 +121,15 @@ namespace chen {
 			captureFrame.set_ntp_time_ms(0);
 			DesktopCaptureSource::OnFrame(captureFrame);
 		}
-
+		auto scale_timestamp_curr = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch())
+			.count();
+		uint64 scale_ms =  scale_timestamp_curr - timestamp_curr;
+		if (scale_ms > 4)
+		{
+			WARNING_EX_LOG("scale ms = %u", scale_ms);
+		}
+		
 		// rtc media info 
 		/* DesktopCaptureSource::OnFrame(
 		webrtc::VideoFrame(i420_buffer_, 0, 0, webrtc::kVideoRotation_0));*/
@@ -139,13 +147,31 @@ namespace chen {
 		// Start new thread to capture
 		capture_thread_.reset(new std::thread([this]() {
 			dc_->Start(this);
-			 
+			auto timestamp_curr = std::chrono::duration_cast<std::chrono::microseconds>(
+				std::chrono::system_clock::now().time_since_epoch())
+				.count();
 			while (start_flag_) 
 			{
+				timestamp_curr = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::system_clock::now().time_since_epoch())
+					.count();
 				dc_->CaptureFrame();
-				 
+				auto new_timestamp_curr = std::chrono::duration_cast<std::chrono::microseconds>(
+					std::chrono::system_clock::now().time_since_epoch())
+					.count();
+				int64 microseconds = 1000000  / fps_;
+				int64 encode_microseconds = new_timestamp_curr - timestamp_curr;
+				//timestamp_curr = new_timestamp_curr;
+				if (microseconds > 0 && encode_microseconds >= 0)
+				{
+					int64 smicroseconds = microseconds - encode_microseconds;
+					if (smicroseconds > 0)
+					{
+						std::this_thread::sleep_for(std::chrono::microseconds(smicroseconds));
+					}
+				}
 				//  RTC_LOG(LS_INFO) << "captureFrame fps = " << elapse;
-				std::this_thread::sleep_for(std::chrono::milliseconds(1000 / fps_));
+				
 			}
 			 
 		}));

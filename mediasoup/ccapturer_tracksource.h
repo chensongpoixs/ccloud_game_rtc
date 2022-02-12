@@ -33,12 +33,22 @@
 
 #include <thread>
 #include <atomic>
-
+#include "ccfg.h"
 namespace chen {
 	class CCapturerTrackSource : public webrtc::VideoTrackSource {
 	public:
-		static rtc::scoped_refptr<CCapturerTrackSource> Create() {
-			std::unique_ptr<  DesktopCapture> capturer(DesktopCapture::Create(60, 0));
+		static rtc::scoped_refptr<CCapturerTrackSource> Create() 
+		{
+			int32 fps = g_cfg.get_int32(ECI_Video_Fps);
+			if (fps < 1)
+			{
+				fps = 30;
+			}
+			else if (fps > 60)
+			{
+				fps = 60;
+			}
+			std::unique_ptr<  DesktopCapture> capturer(DesktopCapture::Create(fps, 0));
 			if (capturer)
 			{
 				capturer->StartCapture();
