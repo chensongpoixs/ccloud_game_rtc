@@ -1,6 +1,6 @@
 #ifndef _C_CAPTURER_TRACKSOURCE_H_
 #define _C_CAPTURER_TRACKSOURCE_H_
-
+#include "osgdesktop_capture.h"
 #include "api/video/video_frame.h"
 #include "api/video/video_sink_interface.h"
 #include "desktop_capture_source.h"
@@ -34,6 +34,7 @@
 #include <thread>
 #include <atomic>
 #include "ccfg.h"
+#include "cosg_capture.h"
 namespace chen {
 	class CCapturerTrackSource : public webrtc::VideoTrackSource {
 	public:
@@ -73,7 +74,44 @@ namespace chen {
 		//std::unique_ptr<webrtc::test::VcmCapturer> capturer_;
 		std::unique_ptr< DesktopCapture> capturer_;
 	};
+	class COSGCapturerTrackSource : public webrtc::VideoTrackSource {
+	public:
+		static rtc::scoped_refptr<COSGCapturerTrackSource> Create()
+		{
+			int32 fps = g_cfg.get_int32(ECI_Video_Fps);
+			if (fps < 1)
+			{
+				fps = 30;
+			}
+			else if (fps > 60)
+			{
+				fps = 60;
+			}
+			std::unique_ptr<  OsgDesktopCapture> capturer(OsgDesktopCapture::Create(fps, 0));
+			if (capturer)
+			{
+				capturer->StartCapture();
+				return new
+					rtc::RefCountedObject<COSGCapturerTrackSource>(std::move(capturer));
+			}
+			return nullptr;
+		}
+		void stop()
+		{
+			capturer_->StopCapture();
+		}
+	protected:
+		explicit COSGCapturerTrackSource(
+			std::unique_ptr< OsgDesktopCapture> capturer)
+			: VideoTrackSource(/*remote=*/false), capturer_(std::move(capturer)) {}
 
+	private:
+		rtc::VideoSourceInterface<webrtc::VideoFrame>* source() override {
+			return capturer_.get();
+		}
+		//std::unique_ptr<webrtc::test::VcmCapturer> capturer_;
+		std::unique_ptr< OsgDesktopCapture> capturer_;
+	};
 }
 
 

@@ -86,6 +86,10 @@ namespace chen {
 		m_server_notification_protoo_msg_call.insert(std::make_pair("peerClosed", &cclient::_notification_peer_closed));
 		return true;
 	}
+	void cclient::stop()
+	{
+		m_stoped = true;
+	}
 	void cclient::Loop()
 	{
 		std::string ws_url = "ws://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port)) + "/?roomId=" + g_cfg.get_string(ECI_Room_Name) + "&peerId=" + g_cfg.get_string(ECI_Client_Name);//ws://127.0.0.1:8888/?roomId=chensong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
@@ -256,15 +260,22 @@ namespace chen {
 				}
 				break;
 			}
-			
+			case EMediasoup_Exit:
+			{
+
+				break;
+			}
 			default:
 			{
 				ERROR_EX_LOG("client not find status = %u", m_status);
 			}
 				break;
 			}
+			if (!m_stoped)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			}
 			
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			
 		}
 		
@@ -369,20 +380,26 @@ namespace chen {
 
 	void cclient::Destory()
 	{
+		
 		//m_stoped = true;
-		/*if (m_recv_transport)
-		{
-			m_recv_transport->Destroy();
-			m_recv_transport = nullptr;
-		}
 		if (m_send_transport)
 		{
 			m_send_transport->Destroy();
 			m_send_transport = nullptr;
 		}
+		SYSTEM_LOG("m_send_transport ok !!!");
+		if (m_recv_transport)
+		{
+			m_recv_transport->Destroy();
+			m_recv_transport = nullptr;
+		}
+		SYSTEM_LOG("m_recv_transport ok !!!");
+		
 		g_websocket_mgr.destroy();
+		SYSTEM_LOG("g_websocket_mgr ok !!!");
 		_clear_register();
-		m_produce_consumer = true;*/
+		m_produce_consumer = true;
+		LOG::destroy();
 	  
 	}
 	bool cclient::_load(nlohmann::json routerRtpCapabilities)
@@ -395,6 +412,7 @@ namespace chen {
 		if (!deivce::GetNativeRtpCapabilities(nativeRtpCapabilities))
 		{
 			ERROR_EX_LOG("GetNativeRtpCapabilities failed !!!");
+		
 			return false;
 		}
 		try {

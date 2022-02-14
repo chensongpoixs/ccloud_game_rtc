@@ -32,7 +32,7 @@ namespace chen {
 		void OnFailure(webrtc::RTCError error) override;
 	private:
 		rtc::scoped_refptr<webrtc::VideoTrackInterface> m_track;
-		rtc::scoped_refptr<CCapturerTrackSource>		m_capturer_ptr;
+		rtc::scoped_refptr<COSGCapturerTrackSource>		m_capturer_ptr;
 		webrtc::RtpTransceiverInterface* m_transceiver;
 	};
 

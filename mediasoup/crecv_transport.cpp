@@ -13,6 +13,7 @@ namespace chen {
 	}
 	void crecv_transport::Destroy()
 	{
+		SYSTEM_LOG("recv transport destroy !!!");
 		//std::map<std::string, std::shared_ptr<cdataconsumer>>
 		for (std::pair<std::string, std::shared_ptr<cdataconsumer>> p : m_data_consumsers)
 		{
@@ -24,9 +25,32 @@ namespace chen {
 			}
 		//	data_ptr->Destroy();
 		}
+		SYSTEM_LOG("recv transport stop !!!");
 		//m_data_consumsers.clear();
-		m_peer_connection = nullptr;
+		if (m_peer_connection_factory)
+		{
+			m_peer_connection_factory->StopAecDump();
+		}
 		m_peer_connection_factory = nullptr;
+		m_peer_connection = nullptr;
+		SYSTEM_LOG("recv factory ok null !!!");
+		/*	if (m_networkThread)
+			{
+				m_networkThread->Stop();
+				SYSTEM_LOG("m_networkThread ok  !!!");
+			}
+			if (m_signalingThread)
+			{
+				m_signalingThread->Stop();
+				SYSTEM_LOG("m_signalingThread ok  !!!");
+			}
+			if (m_workerThread)
+			{
+				m_workerThread->Stop();
+				SYSTEM_LOG("m_workerThread ok  !!!");
+			}*/
+		 
+			 
 	}
 	void crecv_transport::close_dataconsumer(const std::string & dataconsumer_id)
 	{

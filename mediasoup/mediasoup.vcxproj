@@ -144,6 +144,7 @@
     <ClCompile Include="clog.cpp" />
     <ClCompile Include="cnet_types.cpp" />
     <ClCompile Include="cosd_util.cpp" />
+    <ClCompile Include="cosg_capture.cpp" />
     <ClCompile Include="cproducer.cpp" />
     <ClCompile Include="crecv_transport.cpp" />
     <ClCompile Include="csend_transport.cpp" />
@@ -159,6 +160,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mediasoupclient.cpp" />
     <ClCompile Include="ortc.cpp" />
+    <ClCompile Include="osgdesktop_capture.cc" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="scalabilityMode.cpp" />
     <ClCompile Include="sdp\MediaSection.cpp" />
@@ -185,6 +187,7 @@
     <ClInclude Include="clog_define.h" />
     <ClInclude Include="cnet_types.h" />
     <ClInclude Include="cosd_util.h" />
+    <ClInclude Include="cosg_capture.h" />
     <ClInclude Include="cproducer.h" />
     <ClInclude Include="cprotocol.h" />
     <ClInclude Include="crecv_transport.h" />
@@ -201,6 +204,7 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="mediasoupclient.hpp" />
     <ClInclude Include="ortc.hpp" />
+    <ClInclude Include="osgdesktop_capture.h" />
     <ClInclude Include="scalabilityMode.hpp" />
     <ClInclude Include="sdptransform.hpp" />
     <ClInclude Include="sdp\MediaSection.hpp" />

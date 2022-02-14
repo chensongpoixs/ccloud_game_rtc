@@ -49,7 +49,7 @@ namespace chen {
 		m_sendingRemoteRtpParametersByKind = {
 			{"video", mediasoupclient::ortc::getSendingRemoteRtpParameters("video", extendedRtpCapabilities)}
 		};
-		m_capturer_ptr = CCapturerTrackSource::Create();
+		m_capturer_ptr = COSGCapturerTrackSource::Create();
 		m_track = m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), m_capturer_ptr);
 
 		return true;
@@ -57,22 +57,44 @@ namespace chen {
 
 	void csend_transport::Destroy()
 	{
-		if (m_transceiver)
-		{
-			
-			m_transceiver->sender()->SetTrack(nullptr);
-			m_peer_connection->RemoveTrack(m_transceiver->sender());
-			m_remote_sdp->CloseMediaSection(m_transceiver->mid().value());
-			m_transceiver = nullptr;
-		}
+			if (m_transceiver)
+			{
+
+				m_transceiver->sender()->SetTrack(nullptr);
+				m_peer_connection->RemoveTrack(m_transceiver->sender());
+				m_remote_sdp->CloseMediaSection(m_transceiver->mid().value());
+				//m_transceiver = nullptr;
+			}
+		SYSTEM_LOG("m_transceiver ok !!!");
 		if (m_capturer_ptr)
 		{
 			m_capturer_ptr->stop();
-			m_capturer_ptr = nullptr;
+			//m_capturer_ptr = nullptr;
+			SYSTEM_LOG("m_capturer_ptr ok !!!");
 		}
 		
-		m_peer_connection = nullptr;
+		if (m_peer_connection_factory)
+		{
+			m_peer_connection_factory->StopAecDump();
+		}
 		m_peer_connection_factory = nullptr;
+		m_peer_connection = nullptr;
+		SYSTEM_LOG("send m_peer_connection_factory ok !!!");
+		/*if (m_networkThread)
+		{
+			m_networkThread->Stop();
+			SYSTEM_LOG("m_networkThread  ok !!!");
+		}
+		if (m_signalingThread)
+		{
+			m_signalingThread->Stop();
+			SYSTEM_LOG("m_signalingThread  ok !!!");
+		}
+		if (m_workerThread)
+		{
+			m_workerThread->Stop();
+			SYSTEM_LOG("m_workerThread  ok !!!");
+		}*/
 	}
 	 bool csend_transport::webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track)
 	{

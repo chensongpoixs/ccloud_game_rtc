@@ -42,7 +42,7 @@ void signalHandler(int signum)
 	//RTC_LOG(LS_INFO) << "[INFO] interrupt signal (" << signum << ") received";
 
 	//stop();
-	
+	g_client.stop();
 }
 
 

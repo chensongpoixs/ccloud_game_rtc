@@ -139,6 +139,12 @@
     <ClCompile Include="ccapturer_tracksource.cpp">
       <Filter>capturer</Filter>
     </ClCompile>
+    <ClCompile Include="cosg_capture.cpp">
+      <Filter>capturer</Filter>
+    </ClCompile>
+    <ClCompile Include="osgdesktop_capture.cc">
+      <Filter>capturer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sdp\MediaSection.hpp">
@@ -262,6 +268,12 @@
       <Filter>capturer</Filter>
     </ClInclude>
     <ClInclude Include="ccapturer_tracksource.h">
+      <Filter>capturer</Filter>
+    </ClInclude>
+    <ClInclude Include="cosg_capture.h">
+      <Filter>capturer</Filter>
+    </ClInclude>
+    <ClInclude Include="osgdesktop_capture.h">
       <Filter>capturer</Filter>
     </ClInclude>
   </ItemGroup>

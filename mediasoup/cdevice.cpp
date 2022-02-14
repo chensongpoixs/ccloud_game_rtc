@@ -1,4 +1,4 @@
-#include "cdevice.h"
+﻿#include "cdevice.h"
 #include <api/peer_connection_interface.h> // webrtc::PeerConnectionInterface
 #include <future>                          // std::promise, std::future
 #include <memory>                          // std::unique_ptr
@@ -282,8 +282,25 @@ namespace chen {
 
 		void Destroy()
 		{
+			if (peerConnectionFactory)
+			{
+				peerConnectionFactory->StopAecDump();
+			}
+
 			peerConnectionFactory = nullptr;
 			pc = nullptr;
+			if (networkThread)
+			{
+				networkThread->Stop();
+			}
+			if (signalingThread)
+			{
+				signalingThread->Stop();
+			}
+			if (workerThread)
+			{
+				workerThread->Stop();
+			}
 		}
 	private:
 		// Signaling and worker threads.
@@ -335,6 +352,7 @@ namespace chen {
 			catch (...)
 			{
 				ERROR_EX_LOG("json CreateOffer parse  failed  [offer = %s] !!!", offer.c_str());
+				pc->Destroy();
 				return false;
 			}
 			
@@ -347,8 +365,10 @@ namespace chen {
 			catch (...)
 			{
 				ERROR_EX_LOG(" json extractRtpCapabilities parse failed  [offer = %s] !!!", offer.c_str());
+				pc->Destroy();
 				return false;
 			}
+			pc->Destroy();
 			return true;
 		}
 		//bool load(nlohmann::json routerRtpCapabilities)

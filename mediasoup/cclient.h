@@ -18,7 +18,7 @@ namespace chen {
 		//EMediasoup_Request_Rtp_Capabilities,
 		EMediasoup_Request_Create_Send_Webrtc_Transport,
 		EMediasoup_Request_Create_Recv_Webrtc_Transport,
-		
+
 		EMediasoup_Request_Join_Room, // TODO@chensong 20220208 --> 先加入房间 后在开始生产与消费的操作
 		EMediasoup_Request_Connect_Webrtc_Transport,
 		EMediasoup_Request_Send_Connect_Set,
@@ -35,6 +35,7 @@ namespace chen {
 		EMediasoup_Reset, //
 		EMediasoup_Destory,
 		EMediasoup_Wait,
+		EMediasoup_Exit,
 		//EMediasoup_
 	};
 
@@ -53,7 +54,7 @@ namespace chen {
 	public:
 		bool init(const char * config_name);
 		void Loop();
-
+		void stop();
 
 		void Destory();
 
