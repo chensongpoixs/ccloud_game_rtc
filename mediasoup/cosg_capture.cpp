@@ -10,7 +10,7 @@
 #include  "osgdesktop_capture.h"
 #include "rtc_base/logging.h"
 #include "cinput_device.h"
-
+#include "cinput_device.h"
 static std::mutex					g_lock;
 static std::atomic<bool>			m_new_frame = false;
 CaptureScreen*CaptureScreen::_cameraDrawCallback = nullptr;
@@ -56,7 +56,12 @@ void CaptureScreen::operator () (const osg::Camera& camera) const
 		std::lock_guard<std::mutex> lock(g_lock);
 		this->_image->readPixels(this->_ix, this->_iy, this->_iw, this->_ih, GL_BGRA, GL_UNSIGNED_BYTE);
 		_image->flipVertical(); // 进行RGBA翻转一下哈
-		chen::g_input_device_mgr.set_point(_iw, _ih);
+		
+		{
+			using namespace chen;
+			s_input_device.set_point(_iw, _ih);
+		}
+		//chen::g_input_device_mgr.set_point(_iw, _ih);
 		//memcpy(m_rgba_ptr,  _image->data(), _iw * _ih * 4);
 		webrtc::DesktopCapturer::Result result = webrtc::DesktopCapturer::Result::SUCCESS;
 

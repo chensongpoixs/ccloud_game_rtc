@@ -193,6 +193,7 @@
     <ClInclude Include="crecv_transport.h" />
     <ClInclude Include="csend_transport.h" />
     <ClInclude Include="csession_description.h" />
+    <ClInclude Include="csingleton.h" />
     <ClInclude Include="ctime_api.h" />
     <ClInclude Include="ctime_const.h" />
     <ClInclude Include="ctransport.h" />

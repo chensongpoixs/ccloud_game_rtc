@@ -276,5 +276,8 @@
     <ClInclude Include="osgdesktop_capture.h">
       <Filter>capturer</Filter>
     </ClInclude>
+    <ClInclude Include="csingleton.h">
+      <Filter>util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

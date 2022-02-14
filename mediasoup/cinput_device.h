@@ -14,6 +14,7 @@ purpose:		input_device
 #include <map>
 #include "cprotocol.h"
 #include "cint_point.h"
+#include "csingleton.h"
 namespace chen {
 	 
 	class cinput_device
@@ -104,7 +105,8 @@ namespace chen {
 		M_INPUT_DEVICE_MAP					m_input_device;
 		FIntPoint							m_int_point;
 	};
-	extern cinput_device   g_input_device_mgr;
+	//extern cinput_device   g_input_device_mgr;
+	#define 	s_input_device chen::csingleton<chen::cinput_device>::get_instance()
 }
 
 #endif // _C_INPUT_DEVICE_H_

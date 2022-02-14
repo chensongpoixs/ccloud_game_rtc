@@ -9,6 +9,7 @@
 #include "pc/video_track_source.h"
 #include "crecv_transport.h"
 #include "csend_transport.h"
+#include "cinput_device.h"
 namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
@@ -82,8 +83,16 @@ namespace chen {
 			ERROR_EX_LOG("config init failed !!! config_name = %s", config_name);
 			return false;
 		}
+		SYSTEM_LOG("config init ok !!!");
+		if (!s_input_device.init())
+		{
+			ERROR_EX_LOG("init input_device mouble !!!  ");
+			return false;
+		}
+		SYSTEM_LOG("input device  init ok !!!");
 		m_server_protoo_msg_call.insert(std::make_pair("newDataConsumer", &cclient::server_request_new_dataconsumer));
 		m_server_notification_protoo_msg_call.insert(std::make_pair("peerClosed", &cclient::_notification_peer_closed));
+		SYSTEM_LOG("client init ok !!!");
 		return true;
 	}
 	void cclient::stop()

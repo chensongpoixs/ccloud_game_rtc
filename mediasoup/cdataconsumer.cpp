@@ -1,6 +1,7 @@
 ﻿#include "cdataconsumer.h"
 #include "clog.h"
 #include "crecv_transport.h"
+#include "cinput_device.h"
 namespace chen {
 
 
@@ -131,8 +132,9 @@ namespace chen {
 	void cdataconsumer::OnMessage(const webrtc::DataBuffer& buffer)
 	{
 		std::string s = std::string(buffer.data.data<char>(), buffer.data.size());
-		NORMAL_EX_LOG("DataConsumer -------------- %s -----------------------------------", s.c_str());
+		//NORMAL_EX_LOG("DataConsumer -------------- %s -----------------------------------", s.c_str());
 		//this->listener->OnMessage(this, buffer);
+		s_input_device.OnMessage(buffer);
 	}
 
 	// The data channel's buffered_amount has changed.

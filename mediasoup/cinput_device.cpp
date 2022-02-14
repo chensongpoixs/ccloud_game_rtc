@@ -12,7 +12,10 @@ purpose:		input_device
 #include "cinput_device_event.h"
 #include "rtc_base/logging.h"
 #include "clog.h"
+extern	int32_t  g_width;
+extern	int32_t  g_height;
 namespace chen {
+
 	using FKeyCodeType = uint8;
 	using FCharacterType = TCHAR;
 	using FRepeatType = uint8;
@@ -78,7 +81,7 @@ namespace chen {
 #define REGISTER_INPUT_DEVICE(type, handler_ptr) if (false == m_input_device.insert(std::make_pair(type, handler_ptr)).second){	 ERROR_EX_LOG("[type = %s][handler_ptr = %s]", #type, #handler_ptr);	return false;}
 	
 	
-	cinput_device   g_input_device_mgr;
+///	cinput_device   g_input_device_mgr;
 	cinput_device::cinput_device() 
 		:  m_input_device()
 		,  m_int_point(){}
@@ -371,13 +374,17 @@ namespace chen {
 		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseMove to (%d, %d), delta (%d, %d)"), PosX, PosY, DeltaX, DeltaY);
 		// log mousemove to posx, posy, [DeltaX, DeltaY]
 		NORMAL_EX_LOG("PosX = %d, PoxY = %d, DeltaY = %d", PosX, PosY, DeltaY);
+		
 		//RTC_LOG(LS_INFO) << "mousemove -->  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
 		_UnquantizeAndDenormalize(PosX, PosY);
 		_UnquantizeAndDenormalize(DeltaX, DeltaY);
 		//RTC_LOG(LS_INFO) << "mousemove <==>  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
 		NORMAL_EX_LOG("---> PosX = %d, PoxY = %d, DeltaY = %d", PosX, PosY, DeltaY);
+
 		FEvent MouseMoveEvent(EventType::MOUSE_MOVE);
 		MouseMoveEvent.SetMouseDelta(PosX, PosY, DeltaX, DeltaY);
+		g_width = PosX;
+		g_height = PosY;
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		//WINDOW_BNTTON_UP(vec);
