@@ -58,4 +58,31 @@ namespace chen {
 	{ 
 		return  maxSpatialLayer;
 	}
+	void cproducer::Pause()
+	{
+		if (!track)
+		{
+			WARNING_EX_LOG("not find video track pause failed !!!");
+			return;
+		}
+		if (!track->enabled())
+		{
+			return;
+		}
+		track->set_enabled(false);
+	}
+
+	void cproducer::Resume()
+	{
+		if (!track)
+		{
+			WARNING_EX_LOG("not find video track Resume failed !!!");
+			return;
+		}
+		if (track->enabled())
+		{
+			return;
+		}
+		track->set_enabled(true);
+	}
 }

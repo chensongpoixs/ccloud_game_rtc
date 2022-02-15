@@ -102,11 +102,13 @@ namespace chen {
 		m_server_protoo_msg_call.insert(std::make_pair("newDataConsumer", &cclient::server_request_new_dataconsumer));
 		m_server_notification_protoo_msg_call.insert(std::make_pair("peerClosed", &cclient::_notification_peer_closed));
 		SYSTEM_LOG("client init ok !!!");
+		m_webrtc_connect = false;
 		return true;
 	}
 	void cclient::stop()
 	{
 		m_stoped = true;
+		m_webrtc_connect = false;
 	}
 	void cclient::Loop()
 	{
@@ -114,6 +116,7 @@ namespace chen {
 		std::string origin = "http://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port));
 		std::list<std::string> msgs;
 		time_t cur_time = ::time(NULL);
+		 
 		std::chrono::steady_clock::time_point cur_time_ms;
 		std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
 		std::chrono::steady_clock::duration dur;
@@ -129,7 +132,7 @@ namespace chen {
 			{  // websocket connect 
 				// 1. connect suucer status -> 1
 				//g_websocket_mgr.destroy();
-				if (!g_websocket_mgr.init(ws_url, origin))
+				if (!m_websocket_mgr.init(ws_url ))
 				{
 					//RTC_LOG(LS_ERROR) << "weboscket connect failed !!! url = " << ws_url;
 					WARNING_EX_LOG("weboscket connect url = %s failed !!!   ", ws_url.c_str());
@@ -137,7 +140,7 @@ namespace chen {
 					continue;;
 				}
 				 
-				if (!g_websocket_mgr.startup())
+				if (!m_websocket_mgr.startup())
 				{
 					m_status = EMediasoup_Reset;
 					continue;
@@ -215,15 +218,15 @@ namespace chen {
 			case EMediasoup_WebSocket: // wait server msg 
 			{
 				
-				g_websocket_mgr.presssmsg(msgs);
+				m_websocket_mgr.presssmsg(msgs);
 				
 				
-				if (!msgs.empty() && g_websocket_mgr.get_status() == CWEBSOCKET_MESSAGE)
+				if (!msgs.empty() && m_websocket_mgr.get_status() == CWEBSOCKET_MESSAGE)
 				{
 					_presssmsg(msgs);
 				}
 
-				if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
+				if (m_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
 				{
 					m_status = EMediasoup_Reset;
 					msgs.clear();
@@ -234,6 +237,25 @@ namespace chen {
 					{
 						m_status = EMediasoup_Reset;
 						m_reconnect_wait = 0;
+					}
+				}
+				if (m_status == EMediasoup_WebSocket && g_cfg.get_int32(ECI_ProduceVideo) > 0 && m_webrtc_connect)
+				{
+					if (m_produce_video < ::time(NULL))
+					{
+						static bool video_produce = true;
+						m_produce_video = ::time(NULL) + g_cfg.get_int32(ECI_ProduceVideo);
+						if (video_produce)
+						{
+							m_send_transport->Pause();
+							video_produce = false;
+						}
+						else
+						{
+							m_send_transport->Resume();
+							video_produce = true;
+						}
+						
 					}
 				}
 				break;
@@ -268,10 +290,11 @@ namespace chen {
 					m_send_transport->Destroy();
 					m_send_transport = nullptr;
 				}
-				g_websocket_mgr.destroy();
+				m_websocket_mgr.destroy();
 				_clear_register();
 				m_produce_consumer = true;
 				m_peer_map.clear();
+
 				// 有人的时候推流 
 				//m_produce_consumer = false;
 				//m_ui_type = EUI_None;
@@ -319,7 +342,7 @@ namespace chen {
 	void cclient::_presssmsg(std::list<std::string> & msgs)
 	{
 		nlohmann::json response;
-		while (!msgs.empty() && g_websocket_mgr.get_status() == CWEBSOCKET_MESSAGE)
+		while (!msgs.empty() && m_websocket_mgr.get_status() == CWEBSOCKET_MESSAGE)
 		{
 			std::string msg = std::move(msgs.front());
 			msgs.pop_front();
@@ -451,7 +474,7 @@ namespace chen {
 		}
 		SYSTEM_LOG("m_recv_transport ok !!!");
 		
-		g_websocket_mgr.destroy();
+		m_websocket_mgr.destroy();
 		SYSTEM_LOG("g_websocket_mgr ok !!!");
 		m_peer_map.clear();
 		_clear_register();
@@ -785,7 +808,9 @@ namespace chen {
 		m_status = EMediasoup_WebSocket;
 		m_produce_consumer = false;
 		m_recv_transport->webrtc_create_all_wait_consumer();
-		return true;
+		m_produce_video = ::time(NULL) + g_cfg.get_int32(ECI_ProduceVideo);
+		m_webrtc_connect = true;
+ 		return true;
 	}
 
 	bool cclient::_server_join_room(const  nlohmann::json & msg)
@@ -881,9 +906,9 @@ namespace chen {
 
 	bool cclient::_send_request_mediasoup(  const std::string& method, const nlohmann::json & data)
 	{
-		if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
+		if (m_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
 		{
-			WARNING_EX_LOG("websocket mgr status = %d !!!", g_websocket_mgr.get_status());
+			WARNING_EX_LOG("websocket mgr status = %d !!!", m_websocket_mgr.get_status());
 			return false;
 		}
 		nlohmann::json request_data =
@@ -893,16 +918,16 @@ namespace chen {
 			{WEBSOCKET_PROTOO_METHOD , method}, //方法
 			{WEBSOCKET_PROTOO_DATA , data}
 		};
-		g_websocket_mgr.send(request_data.dump());
+		m_websocket_mgr.send(request_data.dump());
 		return true;
 	}
 
 
 	bool cclient::_reply_server(uint64 id)
 	{
-		if (g_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
+		if (m_websocket_mgr.get_status() != CWEBSOCKET_MESSAGE)
 		{
-			WARNING_EX_LOG("websocket mgr status = %d !!!", g_websocket_mgr.get_status());
+			WARNING_EX_LOG("websocket mgr status = %d !!!", m_websocket_mgr.get_status());
 			return false;
 		}
 		nlohmann::json  reply =
@@ -912,7 +937,7 @@ namespace chen {
 			{WEBSOCKET_PROTOO_OK , true},
 			{WEBSOCKET_PROTOO_DATA, nlohmann::json::object()}
 		};
-		g_websocket_mgr.send(reply.dump());
+		m_websocket_mgr.send(reply.dump());
 		return true;
 	}
 	void cclient::_clear_register()

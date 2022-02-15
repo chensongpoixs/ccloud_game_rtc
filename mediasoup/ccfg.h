@@ -21,6 +21,7 @@ namespace chen {
 		ECI_Video_Fps,
 		ECI_WebSocket_Reconnect,
 		ECI_ReconnectWait,
+		ECI_ProduceVideo,
 	//	ECI_Time_Zone,
 	//	ECI_Time_Adjust,
 	//	ECI_Log_DB_Host,

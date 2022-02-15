@@ -9,7 +9,10 @@ namespace chen {
 	{
 	public:
 		csend_transport(std::string transport_id, cclient *ptr)
-			: ctransport(transport_id, ptr) {}
+			: ctransport(transport_id, ptr) {
+			m_track = nullptr;
+			m_transceiver = nullptr;
+		}
 
 		bool init(const std::string &transport_id, const nlohmann::json& extendedRtpCapabilities, const nlohmann::json& iceParameters,
 			const nlohmann::json& iceCandidates,
@@ -19,7 +22,8 @@ namespace chen {
 		void Destroy();
 	public:
 
-
+		void Resume();
+		void Pause();
 		 bool webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track);
 		 bool webrtc_transport_produce(const std::string & producerId);
 		bool webrtc_connect_transport_setup_connect_server_call();

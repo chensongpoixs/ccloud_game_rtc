@@ -131,6 +131,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />
+    <ClCompile Include="cbase64.cpp" />
     <ClCompile Include="ccapturer_tracksource.cpp" />
     <ClCompile Include="ccfg.cpp" />
     <ClCompile Include="cclient.cpp" />
@@ -151,6 +152,7 @@
     <ClCompile Include="csession_description.cpp" />
     <ClCompile Include="ctime_api.cpp" />
     <ClCompile Include="ctransport.cpp" />
+    <ClCompile Include="cwebscoket_connection.cpp" />
     <ClCompile Include="cwebsocket_mgr.cpp" />
     <ClCompile Include="cwebsocket_protoo.cpp" />
     <ClCompile Include="cwebsocket_session.cpp" />
@@ -172,6 +174,7 @@
   <ItemGroup>
     <ClInclude Include="cassertion_macros.h" />
     <ClInclude Include="casync_log.h" />
+    <ClInclude Include="cbase64.h" />
     <ClInclude Include="ccapturer_tracksource.h" />
     <ClInclude Include="ccfg.h" />
     <ClInclude Include="cclient.h" />
@@ -197,6 +200,7 @@
     <ClInclude Include="ctime_api.h" />
     <ClInclude Include="ctime_const.h" />
     <ClInclude Include="ctransport.h" />
+    <ClInclude Include="cwebscoket_connection.h" />
     <ClInclude Include="cwebsocket_mgr.h" />
     <ClInclude Include="cwebsocket_protoo.h" />
     <ClInclude Include="cwebsocket_session.h" />

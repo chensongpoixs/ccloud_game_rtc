@@ -1,3 +1,5 @@
+#ifndef _C_INT2STRE_H_
+#define _C_INT2STRE_H_
 #include <cstdlib>
 
 #include <cstdio>
@@ -21,3 +23,5 @@ namespace chen {
 		return ret;
 	}*/
 }
+
+#endif //#ifndef _C_NET_TYPES_H_ _C_NET_TYPES_H_

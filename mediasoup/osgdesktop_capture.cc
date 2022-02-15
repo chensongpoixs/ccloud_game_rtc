@@ -183,6 +183,10 @@ void OsgDesktopCapture::OnCaptureResult(
 
 void OsgDesktopCapture::OnOsgCaptureResult(webrtc::DesktopCapturer::Result result,  unsigned char * BGRA, int32_t width, int32_t height)
 {
+	if (!m_push_pause)
+	{
+		return;
+	}
 	if (!BGRA)
 	{
 		RTC_LOG(LS_ERROR) << "rgba nullptr !!!";
@@ -251,7 +255,7 @@ void OsgDesktopCapture::StartCapture() {
     RTC_LOG(WARNING) << "Capture already been running...";
     return;
   }
-
+  m_push_pause = true;
   start_flag_ = true;
 #if defined(_MSC_VER)
   //if (chen::g_cfg.get_int32(chen::ECI_Capture_Type) == 0)

@@ -100,6 +100,14 @@ namespace chen {
 		{
 			capturer_->StopCapture();
 		}
+		void Pause()
+		{
+			capturer_->Pause();
+		}
+		void Resume()
+		{
+			capturer_->Resume();
+		}
 	protected:
 		explicit COSGCapturerTrackSource(
 			std::unique_ptr< OsgDesktopCapture> capturer)

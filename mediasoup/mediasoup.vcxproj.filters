@@ -145,6 +145,12 @@
     <ClCompile Include="cdevice.cpp">
       <Filter>webrtc</Filter>
     </ClCompile>
+    <ClCompile Include="cwebscoket_connection.cpp">
+      <Filter>websocket</Filter>
+    </ClCompile>
+    <ClCompile Include="cbase64.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sdp\MediaSection.hpp">
@@ -278,6 +284,12 @@
     </ClInclude>
     <ClInclude Include="cdevice.h">
       <Filter>webrtc</Filter>
+    </ClInclude>
+    <ClInclude Include="cwebscoket_connection.h">
+      <Filter>websocket</Filter>
+    </ClInclude>
+    <ClInclude Include="cbase64.h">
+      <Filter>util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

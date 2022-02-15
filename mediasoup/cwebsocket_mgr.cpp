@@ -8,20 +8,33 @@ namespace chen
 	
 
 
-	cwebsocket_mgr g_websocket_mgr;
+	//cwebsocket_mgr g_websocket_mgr;
 	cwebsocket_mgr::cwebsocket_mgr()
 		:m_stoped(true)
 		, m_status(CWEBSOCKET_INIT)
 		, m_ws(nullptr)
 	{
+#ifdef _WIN32
+		INT rc;
+		WSADATA wsaData;
 
+		rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
+		if (rc)
+		{
+			printf("WSAStartup Failed.\n");
+			 
+		}
+#endif
 	}
 	cwebsocket_mgr::~cwebsocket_mgr()
 	{
+#ifdef _WIN32
+		WSACleanup();
+#endif
 	}
 
 
-	bool cwebsocket_mgr::init(std::string ws_url, std::string origin)
+	bool cwebsocket_mgr::init(std::string ws_url )
 	{
 		if (!m_stoped)
 		{
@@ -29,19 +42,9 @@ namespace chen
 		}
 		
 		m_status.store(CWEBSOCKET_CONNECTING);
-#ifdef _WIN32
-		INT rc;
-		WSADATA wsaData;
 
-		rc = WSAStartup(MAKEWORD(2, 2), &wsaData);
-		if (rc) 
-		{
-			printf("WSAStartup Failed.\n");
-			return false;
-		}
-#endif
 
-		m_ws = wsclient::WebSocket::from_url(ws_url, origin);
+		m_ws = wsclient::WebSocket::from_url(ws_url );
 		//WebSocketCallback callback(m_ws);
 
 		if (!m_ws)
@@ -156,9 +159,7 @@ namespace chen
 			m_ws = nullptr;
 		}
 		m_stoped.store(true);
-#ifdef _WIN32
-		WSACleanup();
-#endif
+
 	}
 
 

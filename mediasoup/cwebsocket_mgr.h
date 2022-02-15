@@ -33,7 +33,7 @@ namespace chen
 		cwebsocket_mgr();
 		~cwebsocket_mgr();
 	public:
-		bool init(std::string ws_url, std::string organ);
+		bool init(std::string ws_url);
 		bool startup();
 		void destroy();
 		
@@ -66,7 +66,7 @@ namespace chen
 		std::list<std::string>			m_recv_msgs;
 	};
 
-	extern cwebsocket_mgr g_websocket_mgr;
+	//extern cwebsocket_mgr g_websocket_mgr;
 }
 
 

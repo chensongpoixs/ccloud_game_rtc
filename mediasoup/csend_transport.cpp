@@ -51,7 +51,7 @@ namespace chen {
 		};
 		m_capturer_ptr = nullptr; // COSGCapturerTrackSource::Create();
 		m_track = nullptr; //  m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), m_capturer_ptr);
-
+		m_transceiver = nullptr;
 		return true;
 	}
 
@@ -95,6 +95,50 @@ namespace chen {
 			m_workerThread->Stop();
 			SYSTEM_LOG("m_workerThread  ok !!!");
 		}*/
+	}
+	void csend_transport::Resume()
+	{
+		/*if (!m_track.get())
+		{
+			return;
+		}*/
+		if (!m_transceiver)
+		{
+			return;
+		}
+		for (std::unordered_map<std::string, std::shared_ptr<cproducer>>::iterator iter = m_producers.begin(); iter != m_producers.end(); ++iter)
+		{
+			if (iter->second)
+			{
+				iter->second->Resume();
+			}
+		}
+		if (m_capturer_ptr)
+		{
+			m_capturer_ptr->Resume();
+		}
+	}
+	void csend_transport::Pause()
+	{
+		/*if (!m_track.get())
+		{
+			return;
+		}*/
+		if (!m_transceiver)
+		{
+			return;
+		}
+		for (std::unordered_map<std::string, std::shared_ptr<cproducer>>::iterator iter = m_producers.begin(); iter != m_producers.end(); ++iter)
+		{
+			if (iter->second)
+			{
+				iter->second->Pause();
+			}
+		}
+		if (m_capturer_ptr)
+		{
+			m_capturer_ptr->Pause();
+		}
 	}
 	 bool csend_transport::webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track)
 	{

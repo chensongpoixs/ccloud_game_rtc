@@ -14,7 +14,10 @@ namespace chen {
 
 	void cwebsocket_session::reset()
 	{}
-
+	bool cwebsocket_session::handshake(const std::string & host, const std::string & path)
+	{
+		return true;
+	}
 	void cwebsocket_session::send()
 	{}
  

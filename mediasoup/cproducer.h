@@ -34,8 +34,15 @@ namespace chen {
 		bool  IsPaused() const;
 
 		uint8_t  GetMaxSpatialLayer() const;
+		/**
+		* Pauses sending media.
+		*/
+		void Pause();
 
-
+		/**
+		* Resumes sending media.
+		*/
+		void Resume();
 	private:
 		cproducer(const cproducer&);
 		cproducer& operator =(const cproducer&);

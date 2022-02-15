@@ -27,6 +27,8 @@ class OsgDesktopCapture : public DesktopCaptureSource,
 
   void StartCapture();
   void StopCapture();
+  void Pause() { m_push_pause = false; }
+  void Resume() { m_push_pause = true; }
   void stop_osg();
   void OnOsgCaptureResult(webrtc::DesktopCapturer::Result result, unsigned char * rgba, int32_t width, int32_t height);
 
@@ -52,6 +54,7 @@ class OsgDesktopCapture : public DesktopCaptureSource,
   std::atomic_bool start_flag_;
 
   rtc::scoped_refptr<webrtc::I420Buffer> i420_buffer_;
+  bool						m_push_pause;
   
 };
 

@@ -5,6 +5,7 @@
 #include <string>
 #include "json.hpp"
 #include "ctransport.h"
+#include "cwebsocket_mgr.h"
 //#include "csend_transport.h"
 //#include "crecv_transport.h"
 namespace chen {
@@ -143,6 +144,9 @@ namespace chen {
 		std::set<std::string>			m_peer_map;
 		time_t m_reconnect_wait ;
 		EUI_Type						m_ui_type;
+		cwebsocket_mgr					m_websocket_mgr;
+		time_t							m_produce_video;
+		bool							m_webrtc_connect;
 	};
 }
 

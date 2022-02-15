@@ -1,5 +1,6 @@
 #ifndef C_WEBSOCKET_SESSION_H
 #define C_WEBSOCKET_SESSION_H
+#include <string>
 namespace chen {
 	
 	class cwebsocket_session
@@ -11,9 +12,9 @@ namespace chen {
 		
 
 		void reset();
-
+		bool handshake(const std::string & host, const std::string & path);
 		void send();
-	private:
+	public:
 		void _async_read();
 		void _async_write();
 	private:

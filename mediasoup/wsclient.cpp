@@ -1,4 +1,5 @@
 #include "clog.h"
+#include "cbase64.h"
 #ifdef _WIN32
     #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
         #define _CRT_SECURE_NO_WARNINGS // _CRT_SECURE_NO_WARNINGS for sscanf errors in MSVC2013 Express
@@ -540,7 +541,9 @@ wsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, cons
             snprintf(line, 256, "Origin: %s\r\n", origin.c_str()); ::send(sockfd, line, strlen(line), 0);
 			 
         }
-        snprintf(line, 256, "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n");
+        //snprintf(line, 256, "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n");
+		std::string websocketkey = chen::base64_encode(std::to_string(::time(NULL)));
+		snprintf(line, 256, "Sec-WebSocket-Key: %s==\r\n", websocketkey.c_str());
 		::send(sockfd, line, strlen(line), 0);
 		 
         snprintf(line, 256, "Sec-WebSocket-Version: 13\r\n"); 
