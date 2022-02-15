@@ -51,9 +51,6 @@
     <ClCompile Include="clog.cpp">
       <Filter>log</Filter>
     </ClCompile>
-    <ClCompile Include="cdevice.cpp">
-      <Filter>device</Filter>
-    </ClCompile>
     <ClCompile Include="cinput_device.cpp">
       <Filter>device</Filter>
     </ClCompile>
@@ -145,6 +142,9 @@
     <ClCompile Include="osgdesktop_capture.cc">
       <Filter>capturer</Filter>
     </ClCompile>
+    <ClCompile Include="cdevice.cpp">
+      <Filter>webrtc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sdp\MediaSection.hpp">
@@ -213,9 +213,6 @@
     <ClInclude Include="cinput_device_event.h">
       <Filter>device</Filter>
     </ClInclude>
-    <ClInclude Include="cdevice.h">
-      <Filter>device</Filter>
-    </ClInclude>
     <ClInclude Include="cint_point.h">
       <Filter>device</Filter>
     </ClInclude>
@@ -278,6 +275,9 @@
     </ClInclude>
     <ClInclude Include="csingleton.h">
       <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="cdevice.h">
+      <Filter>webrtc</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

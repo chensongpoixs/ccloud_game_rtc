@@ -341,72 +341,16 @@ void OsgDesktopCapture::stop_osg()
 
 void OsgDesktopCapture::_work_thread()
 {
-#if  defined(_MSC_VER)
-	if(false)
-	{
-		//osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFile("cow.osg");
-		osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer;
-		viewer->getCamera()->addPreDrawCallback(CaptureScreen::Get());
-		{
-			osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
-			traits->x = 40;
-			traits->y = 40;
-			traits->width = 600;
-			traits->height = 480;
-			traits->windowDecoration = true;
-			traits->doubleBuffer = true;
-			traits->sharedContext = 0;
-
-			osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
-
-			osg::ref_ptr<osg::Camera> camera = new osg::Camera;
-			camera->setGraphicsContext(gc.get());
-			camera->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
-			GLenum buffer = traits->doubleBuffer ? GL_BACK : GL_FRONT;
-			camera->setDrawBuffer(buffer);
-			camera->setReadBuffer(buffer);
-
-			// add this slave camera to the viewer, with a shift left of the projection matrix
-			viewer->addSlave(camera.get());
-		}
-		/*osgUtil::Optimizer optimizer;
-		optimizer.optimize(loadedModel.get());
-		viewer->setSceneData(loadedModel.get());*/
-		viewer->setSceneData(osgDB::readNodeFile("D:/Work/cmedia_server/webrtc_google/lib/test/mediasoup/mediasoup/cow.ive"));
-		viewer->run();
-		//viewer->setUpViewOnSingleScreen(0);//这里是单屏幕显示
-	
-
-	}
-
-
-
-
-
-
 
 	osg::DisplaySettings::instance()->setNumMultiSamples(16);
-	//if (!viewer)
-	{
-		viewer = new osgViewer::Viewer;
 
-		
-		//osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-		//geode->addDrawable(osg::createTexturedQuadGeometry(osg::Vec3(-150.0, 1.0, -130.0), osg::Vec3(300.0, 0.0, 0.0), osg::Vec3(0.0, 0.0, 200.0), 1.0, 1.0));//创建一个写字板
-		//viewer->setSceneData(geode.get());
-
-
-		viewer->setSceneData(osgDB::readNodeFile("D:/Work/cmedia_server/webrtc_google/lib/test/mediasoup/mediasoup/cow.ive"));
-		
-	}
+	viewer = new osgViewer::Viewer;
+	viewer->setSceneData(osgDB::readNodeFile("cow.ive"));
 	viewer->getCamera()->addPreDrawCallback(CaptureScreen::Get());
 	osgGA::EventHandler* event_ptr = new osgViewer::WindowSizeHandler;
 	viewer->addEventHandler(event_ptr);
 	
 	viewer->run();
 	viewer = nullptr;
-	//viewer->removeEventHandler(event_ptr);
-	//delete event_ptr;
-	//event_ptr = nullptr;
-#endif // #if  defined(_MSC_VER)
+
 }

@@ -49,8 +49,8 @@ namespace chen {
 		m_sendingRemoteRtpParametersByKind = {
 			{"video", mediasoupclient::ortc::getSendingRemoteRtpParameters("video", extendedRtpCapabilities)}
 		};
-		m_capturer_ptr = COSGCapturerTrackSource::Create();
-		m_track = m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), m_capturer_ptr);
+		m_capturer_ptr = nullptr; // COSGCapturerTrackSource::Create();
+		m_track = nullptr; //  m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), m_capturer_ptr);
 
 		return true;
 	}
@@ -98,6 +98,9 @@ namespace chen {
 	}
 	 bool csend_transport::webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track)
 	{
+		 m_capturer_ptr = COSGCapturerTrackSource::Create();
+		 m_track =   m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), m_capturer_ptr);
+
 		  if (!m_track)
 		  {
 			  ERROR_EX_LOG("webrtc connect transport failed !!! track = nullptr" );

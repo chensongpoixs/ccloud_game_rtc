@@ -27,7 +27,8 @@ namespace chen {
 	using FControllerButtonIndex = uint8;
 	using FControllerAnalog = double;
 	using FControllerAxis = uint8;
-#define SET_POINT(v) POINT pt; pt.x = v.x; pt.y = v.y;
+	//使用全局变量操作的哈 
+#define SET_POINT() POINT pt; pt.x = g_width; pt.y = g_height;
 #if defined(_MSC_VER)
 #define WINDOW_MAIN()		HWND mwin = FindMainWindow()
 #define WINDOW_CHILD()	HWND childwin = MainChildPoint(mwin, pt)
@@ -107,6 +108,7 @@ namespace chen {
 	void cinput_device::Destroy()
 	{
 		m_input_device.clear();
+		m_all_consumer.clear();
 	}
 	bool cinput_device::set_point(uint32 x, uint32 y)
 	{
@@ -114,15 +116,15 @@ namespace chen {
 		m_int_point.Y = y;
 		return true;
 	}
-	bool cinput_device::OnMessage(const webrtc::DataBuffer& Buffer)
+	bool cinput_device::OnMessage(const std::string & consumer_id, const webrtc::DataBuffer& Buffer)
 	{
-
+		//NORMAL_LOG("consumer_id = %s", consumer_id.c_str());
+		m_mouse_id = consumer_id;
 		const uint8* Data = Buffer.data.data();
 		uint32 Size = static_cast<uint32>(Buffer.data.size());
 
 		GET(EToStreamMsg, MsgType);
-
-
+		
 		M_INPUT_DEVICE_MAP::iterator iter =  m_input_device.find(MsgType);
 		if (iter == m_input_device.end())
 		{
@@ -131,9 +133,26 @@ namespace chen {
 			ERROR_EX_LOG("input_device msg_type = %d not find failed !!!", MsgType);
 			return false;
 		}
-		 
+		
+		if (MsgType != MouseEnter)
+		{
+			std::map<std::string, std::map<uint32, cmouse_info>>::const_iterator consumer_iter = m_all_consumer.find(consumer_id);
+			if (consumer_iter == m_all_consumer.end())
+			{
+				WARNING_EX_LOG("consumer_id = %s not Enter !!!", consumer_id.c_str());
+				return false;
+			}
+			 
+		} 
 		return (this->*(iter->second))(Data, Size);
 		//return true;
+	}
+
+
+	bool cinput_device::OnRequestQualityControl(const uint8*& Data, uint32 size)
+	{
+		// 这边需要启动引擎推送视频流
+		return true;
 	}
 	/**
 	* 输入字符
@@ -173,12 +192,23 @@ namespace chen {
 		// log key down -> repeat keyCode Repeat 
 		FEvent KeyDownEvent(EventType::KEY_DOWN);
 		KeyDownEvent.SetKeyDown(KeyCode, Repeat != 0);
+		NORMAL_LOG("OnKeyDown==KeyCode = %u, Repeat = %u", KeyCode, Repeat);
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		// TODO@chensong 2022-01-20  keydown -> keycode -> repeat 
-		if (mwin)
+		/*if (mwin)
 		{
 			::PostMessageW(mwin, WM_KEYDOWN, KeyCode, Repeat != 0);
+		}*/
+		SET_POINT();
+		WINDOW_CHILD();
+		if (childwin)
+		{
+			::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
+		}
+		else if (mwin)
+		{
+			::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -218,9 +248,11 @@ namespace chen {
 		// log key up -> KeyCode
 		FEvent KeyUpEvent(EventType::KEY_UP);
 		KeyUpEvent.SetKeyUp(KeyCode);
-
+		NORMAL_LOG("OnKeyUp==KeyCode = %u", KeyCode);
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
+		SET_POINT();
+		WINDOW_CHILD();
 		if (mwin)
 		{
 			::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
@@ -265,8 +297,13 @@ namespace chen {
 	bool cinput_device::OnMouseEnter(const uint8*& Data,   uint32 size)
 	{
 		// TODO@chensong 2022-01-20  OnMouseEnter -->>>>> net 
-		return false;
+		if (!m_all_consumer.insert(std::make_pair(m_mouse_id, std::map<uint32, cmouse_info>())).second)
+		{
+			WARNING_EX_LOG("mouse enter insert [mouse_id = %s] failed !!!", m_mouse_id.c_str());
+			return false;
+		}
 		return true;
+		 
 	}
 
 	/** 
@@ -275,8 +312,18 @@ namespace chen {
 	bool cinput_device::OnMouseLeave(const uint8*& Data,   uint32 size)
 	{
 		// TODO@chensong 2022-01-20  OnMouseLeave 
-		return false;
-		return true;
+		std::map<std::string, std::map<uint32, cmouse_info>>::iterator iter =  m_all_consumer.find(m_mouse_id);
+		if (iter == m_all_consumer.end())
+		{
+			WARNING_EX_LOG("mouse leave  not find  [mouse_id = %s] failed !!!", m_mouse_id.c_str());
+			return false;
+		}
+		iter->second.clear();
+		m_all_consumer.erase(iter);
+
+		//std::map<uint32, cmouse_info>& cmouse_info = iter->second;
+		 
+		return true; 
 	}
  
 	
@@ -295,7 +342,7 @@ namespace chen {
 		checkf(Size == 0, TEXT("%d"), Size);
 		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseDown at (%d, %d), button %d"), PosX, PosY, Button);
 		// log mousedown -> log posX , poxY -> Button 
-		NORMAL_EX_LOG("Button = %d, PosX = %d, PoxY = %d", Button, PosX, PosY );
+		//NORMAL_EX_LOG("Button = %d, PosX = %d, PoxY = %d", Button, PosX, PosY );
 		_UnquantizeAndDenormalize(PosX, PosY);
 
 		FEvent MouseDownEvent(EventType::MOUSE_DOWN);
@@ -335,9 +382,9 @@ namespace chen {
 		checkf(Size == 0, TEXT("%d"), Size);
 		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseUp at (%d, %d), button %d"), PosX, PosY, Button);
 		// log mouseup posx, posy, button 
-		NORMAL_EX_LOG("Button = %u, PosX = %d, PoxY = %d ", Button, PosX, PosY );
+		//NORMAL_EX_LOG("Button = %u, PosX = %d, PoxY = %d ", Button, PosX, PosY );
 		_UnquantizeAndDenormalize(PosX, PosY);
-		NORMAL_EX_LOG("PosX = %d, PoxY = %d", PosX, PosY );
+		//NORMAL_EX_LOG("PosX = %d, PoxY = %d", PosX, PosY );
 		FEvent MouseDownEvent(EventType::MOUSE_UP);
 		MouseDownEvent.SetMouseClick(Button, PosX, PosY);
 		uint32  active_type;
@@ -373,7 +420,7 @@ namespace chen {
 		checkf(Size == 0, TEXT("%d"), Size);
 		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseMove to (%d, %d), delta (%d, %d)"), PosX, PosY, DeltaX, DeltaY);
 		// log mousemove to posx, posy, [DeltaX, DeltaY]
-		NORMAL_EX_LOG("PosX = %d, PoxY = %d, DeltaY = %d", PosX, PosY, DeltaY);
+		//NORMAL_EX_LOG("PosX = %d, PoxY = %d, DeltaY = %d", PosX, PosY, DeltaY);
 		
 		//RTC_LOG(LS_INFO) << "mousemove -->  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
 		_UnquantizeAndDenormalize(PosX, PosY);
@@ -407,7 +454,7 @@ namespace chen {
 	*/
 	bool cinput_device::OnMouseDoubleClick(const uint8*& Data,   uint32 size)
 	{
-
+		WM_LBUTTONDBCLICK;
 		return false;
 		return true;
 	}

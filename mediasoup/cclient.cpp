@@ -64,7 +64,13 @@ namespace chen {
 
 
 
-	cclient::cclient():m_id(100000),m_loaded(false), m_stoped(false), m_status(EMediasoup_None), m_produce_consumer(true){}
+	cclient::cclient()
+		:m_id(100000)
+		,m_loaded(false)
+		, m_stoped(false)
+		, m_status(EMediasoup_None)
+		, m_produce_consumer(true)
+		, m_ui_type(EUI_None){}
 	cclient::~cclient(){}
 
 	
@@ -89,6 +95,8 @@ namespace chen {
 			ERROR_EX_LOG("init input_device mouble !!!  ");
 			return false;
 		}
+		//一上来就推流
+		m_produce_consumer = true;
 		SYSTEM_LOG("input device  init ok !!!");
 		m_server_protoo_msg_call.insert(std::make_pair("newDataConsumer", &cclient::server_request_new_dataconsumer));
 		m_server_notification_protoo_msg_call.insert(std::make_pair("peerClosed", &cclient::_notification_peer_closed));
@@ -154,10 +162,11 @@ namespace chen {
 				m_status = EMediasoup_WebSocket;
 				break;
 			}
-			case EMediasoup_Request_Connect_Webrtc_Transport:
+			case EMediasoup_Request_Connect_Webrtc_Transport: //暂时该状态没有使用 TODO@chensong  - 20220215 
 			{
 				// 1.  wait server call transport dtls info
 				// 1.1 Send WebRTC Connect -> 
+				m_send_transport->webrtc_connect_transport_offer(nullptr);
 				m_status = EMediasoup_WebSocket;
 				break;
 			}
@@ -179,13 +188,13 @@ namespace chen {
 			}
 			case EMediasoup_Request_Send_Connect_Set:
 			{
-				m_send_transport->webrtc_connect_transport_setup_connect("server");
+				m_send_transport->webrtc_connect_transport_setup_connect(WEBRTC_SERVER);
 				m_status = EMediasoup_WebSocket;
 				break;
 			}
 			case EMediasoup_Request_Recv_Connect_Set:
 			{
-				m_recv_transport->webrtc_connect_transport_setup_connect("client");
+				m_recv_transport->webrtc_connect_transport_setup_connect(WEBRTC_CLIENT);
 				m_status = EMediasoup_WebSocket;
 				break;
 			}
@@ -256,6 +265,9 @@ namespace chen {
 				g_websocket_mgr.destroy();
 				_clear_register();
 				m_produce_consumer = true;
+				// 有人的时候推流 
+				//m_produce_consumer = false;
+				//m_ui_type = EUI_None;
 				cur_time = ::time(NULL) + g_cfg.get_uint32(ECI_WebSocket_Reconnect);
 				NORMAL_EX_LOG("reconnect  wait [%u s]  ...", g_cfg.get_uint32(ECI_WebSocket_Reconnect));
 				m_status = EMediasoup_Wait;
@@ -386,7 +398,27 @@ namespace chen {
 			}
 		}
 	}
-
+	void cclient::startup_ui()
+	{
+		if (!m_recv_transport)
+		{
+			WARNING_EX_LOG(" startup ui m_recv_transport == nullptr !!!");
+			return;
+		}
+		if (!m_send_transport)
+		{
+			WARNING_EX_LOG(" startup ui m_send_transport == nullptr !!!");
+			return;
+		}
+		if (m_ui_type == EUI_Starting || m_ui_type == EUI_StartEnd)
+		{
+			WARNING_EX_LOG("startup ui ... ui_type = %d", m_ui_type);
+			return;
+		}
+		m_status = EMediasoup_Request_Connect_Webrtc_Transport;
+		m_ui_type = EUI_Starting;
+		m_produce_consumer = true;
+	}
 	void cclient::Destory()
 	{
 		
@@ -744,6 +776,7 @@ namespace chen {
 	{
 		WEBSOCKET_PROTOO_CHECK_RESPONSE();
 		m_send_transport->webrtc_connect_transport_offer(nullptr);
+		//m_produce_consumer = false;
 		if (g_cfg.get_int32(ECI_ReconnectWait) > 0)
 		{
 			m_reconnect_wait = ::time(NULL) + g_cfg.get_int32(ECI_ReconnectWait);

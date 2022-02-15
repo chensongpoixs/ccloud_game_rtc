@@ -25,6 +25,8 @@ namespace chen {
 		EMediasoup_Request_Recv_Connect_Set,
 		EMediasoup_Request_Produce_Webrtc_Transport,
 		EMediasoup_Request_Consumer_Webrtc_Transport,
+
+		//EMediasoup_Produce_Video_Tr
 		///////////////////////////////////////////////////////////
 		EMediasoup_WebSocket,
 		EMediasoup_WebSocket_Close,
@@ -39,6 +41,15 @@ namespace chen {
 		//EMediasoup_
 	};
 
+
+
+	enum  EUI_Type
+	{
+		EUI_None = 0,
+		EUI_Starting,
+		EUI_StartEnd
+
+	};
 
 	class cclient
 	{
@@ -57,6 +68,9 @@ namespace chen {
 		void stop();
 
 		void Destory();
+
+		//暂时没有使用该api
+		void startup_ui();
 
 		void transportofferasner(bool send, bool success);
 	private:
@@ -127,6 +141,7 @@ namespace chen {
 		bool							m_produce_consumer; //首先生产 在消费
 		std::map < std::string, std::string>	m_peerid_dataconsumer;
 		time_t m_reconnect_wait ;
+		EUI_Type						m_ui_type;
 	};
 }
 

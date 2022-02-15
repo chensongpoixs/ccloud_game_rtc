@@ -15,8 +15,20 @@ purpose:		input_device
 #include "cprotocol.h"
 #include "cint_point.h"
 #include "csingleton.h"
+#include <set>
 namespace chen {
 	 
+
+	struct cmouse_info 
+	{
+		uint32  m_mouse_key;
+		bool	m_key;
+		cmouse_info()
+			: m_mouse_key(0)
+			, m_key(false) {}
+	};
+
+
 	class cinput_device
 	{
 	private:
@@ -36,9 +48,13 @@ namespace chen {
 		void Destroy();
 	public:
 
-		bool OnMessage(const webrtc::DataBuffer& Buffer);
+		bool OnMessage(const std::string & consumer_id, const webrtc::DataBuffer& Buffer);
 	public:
-
+		
+		/*
+		* 控制信息
+		*/
+		bool OnRequestQualityControl(const uint8*& Data,   uint32 size);
 		/**
 		* 输入字符
 		*/
@@ -104,6 +120,8 @@ namespace chen {
 	private:
 		M_INPUT_DEVICE_MAP					m_input_device;
 		FIntPoint							m_int_point;
+		std::map<std::string, std::map<uint32, cmouse_info>>	m_all_consumer; 
+		std::string							m_mouse_id; //当前操作的id
 	};
 	//extern cinput_device   g_input_device_mgr;
 	#define 	s_input_device chen::csingleton<chen::cinput_device>::get_instance()
