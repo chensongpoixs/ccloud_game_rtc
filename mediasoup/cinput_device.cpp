@@ -102,7 +102,7 @@ namespace chen {
 		REGISTER_INPUT_DEVICE(MouseUp, &cinput_device::OnMouseUp);
 		REGISTER_INPUT_DEVICE(MouseMove, &cinput_device::OnMouseMove);
 		REGISTER_INPUT_DEVICE(MouseWheel, &cinput_device::OnMouseWheel);
-
+		REGISTER_INPUT_DEVICE(MouseDoubleClick, &cinput_device::OnMouseDoubleClick);
 		return true;
 	}
 	void cinput_device::Destroy()
@@ -204,11 +204,11 @@ namespace chen {
 		WINDOW_CHILD();
 		if (childwin)
 		{
-			::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
+			::PostMessageW(childwin, WM_KEYDOWN, KeyCode, 1);
 		}
 		else if (mwin)
 		{
-			::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			::PostMessageW(mwin, WM_KEYDOWN, KeyCode, 1);
 		}
 		else
 		{
@@ -253,7 +253,11 @@ namespace chen {
 		WINDOW_MAIN();
 		SET_POINT();
 		WINDOW_CHILD();
-		if (mwin)
+		if (childwin)
+		{
+			::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
+		}
+		else if (mwin)
 		{
 			::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
@@ -354,10 +358,17 @@ namespace chen {
 		NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
+
+		SET_POINT();
+		WINDOW_CHILD();
 		//WINDOW_BNTTON_DOWN(vec);
+		/*if (mwin)
+		{
+		::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
+		}*/
 		if (mwin)
 		{
-			::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
+			::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -393,11 +404,17 @@ namespace chen {
 		//ProcessEvent(MouseDownEvent);
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
+		SET_POINT();
+		WINDOW_CHILD();
 		//WINDOW_BNTTON_UP(vec);
 		if (mwin)
 		{
-			::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM( PosX, PosY));
+			::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
+		/*if (mwin)
+		{
+			::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM( PosX, PosY));
+		}*/
 		else
 		{
 			WARNING_EX_LOG("not find main window failed !!!");
@@ -452,10 +469,51 @@ namespace chen {
 	/** 
 	* 鼠标双击
 	*/
-	bool cinput_device::OnMouseDoubleClick(const uint8*& Data,   uint32 size)
+	bool cinput_device::OnMouseDoubleClick(const uint8*& Data,   uint32 Size)
 	{
-		WM_LBUTTONDBCLICK;
-		return false;
+		//WM_LBUTTONDBLCLK
+		GET(FButtonType, Button);
+		GET(FPosType, PosX);
+		GET(FPosType, PosY);
+		checkf(Size == 0, TEXT("%d"), Size);
+		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseDown at (%d, %d), button %d"), PosX, PosY, Button);
+		// log mousedown -> log posX , poxY -> Button 
+		//NORMAL_EX_LOG("Button = %d, PosX = %d, PoxY = %d", Button, PosX, PosY );
+		_UnquantizeAndDenormalize(PosX, PosY);
+
+		FEvent MouseDownEvent(EventType::MOUSE_DOWN);
+		MouseDownEvent.SetMouseClick(Button, PosX, PosY);
+		uint32 active_type;
+
+		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
+		//ProcessEvent(MouseDownEvent);
+		NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
+#if defined(_MSC_VER)
+		WINDOW_MAIN();
+
+		SET_POINT();
+		WINDOW_CHILD();
+		//WINDOW_BNTTON_DOWN(vec);
+		/*if (mwin)
+		{
+		::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
+		}*/
+		if (childwin)
+		{
+			::PostMessageW(childwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
+		}
+		else if (mwin)
+		{
+			::PostMessageW(mwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+		}
+		else
+		{
+			WARNING_EX_LOG("not find main window failed !!!");
+			// log -> error 
+			return false;
+		}
+#endif//#if defined(_MSC_VER)
+		 
 		return true;
 	}
 

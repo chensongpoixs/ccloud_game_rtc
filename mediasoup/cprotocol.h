@@ -53,7 +53,7 @@ namespace chen {
 		MouseUp = 73,
 		MouseMove = 74,
 		MouseWheel = 75,
-
+		MouseDoubleClick = 76,
 		// Touch Input Messages. Range = 80..89.
 		TouchStart = 80,
 		TouchEnd = 81,

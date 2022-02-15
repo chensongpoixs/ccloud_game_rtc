@@ -62,7 +62,7 @@ namespace chen {
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+	const uint32_t TICK_TIME = 200;
 
 	cclient::cclient()
 		:m_id(100000)
@@ -76,12 +76,13 @@ namespace chen {
 	
 	bool cclient::init(const char * config_name)
 	{
-
+		printf("Log init ...\n");
 		if (!LOG::init(ELogStorageScreenFile))
 		{
 			std::cerr << " log init failed !!!";
 			return false;
 		}
+		SYSTEM_LOG("Log init ...\n");
 		bool init = g_cfg.init(config_name);
 		if (!init)
 		{
@@ -113,9 +114,14 @@ namespace chen {
 		std::string origin = "http://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port));
 		std::list<std::string> msgs;
 		time_t cur_time = ::time(NULL);
-	
+		std::chrono::steady_clock::time_point cur_time_ms;
+		std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
+		std::chrono::steady_clock::duration dur;
+		std::chrono::milliseconds ms;
+		uint32_t elapse = 0;
 		while (!m_stoped)
 		{
+			pre_time = std::chrono::steady_clock::now();
 			switch (m_status)
 			{
 			case EMediasoup_WebSocket_Init: // None
@@ -265,6 +271,7 @@ namespace chen {
 				g_websocket_mgr.destroy();
 				_clear_register();
 				m_produce_consumer = true;
+				m_peer_map.clear();
 				// 有人的时候推流 
 				//m_produce_consumer = false;
 				//m_ui_type = EUI_None;
@@ -294,7 +301,15 @@ namespace chen {
 			}
 			if (!m_stoped)
 			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				cur_time_ms = std::chrono::steady_clock::now();
+				dur = cur_time_ms - pre_time;
+				ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+				elapse = static_cast<uint32_t>(ms.count());
+				if (elapse < TICK_TIME)
+				{
+					std::this_thread::sleep_for(std::chrono::milliseconds(TICK_TIME- elapse));
+				}
+				
 			}
 			
 			
@@ -438,6 +453,7 @@ namespace chen {
 		
 		g_websocket_mgr.destroy();
 		SYSTEM_LOG("g_websocket_mgr ok !!!");
+		m_peer_map.clear();
 		_clear_register();
 		m_produce_consumer = true;
 		LOG::destroy();
@@ -804,6 +820,7 @@ namespace chen {
 		if (peerIditer != data.end() && !peerIditer.value().is_null())
 		{
 			peerId = data["peerId"].get<std::string>();
+			m_peer_map.insert(peerId);
 		}
 		
 		std::string dataProducerId = msg["data"]["dataProducerId"];
@@ -830,6 +847,7 @@ namespace chen {
 	bool cclient::_notification_peer_closed(const nlohmann::json & msg)
 	{
 		std::string peerId = msg[WEBSOCKET_PROTOO_DATA]["peerId"];
+		m_peer_map.erase(peerId);
 		NORMAL_EX_LOG("peerId = %s exit ", peerId.c_str());
 		/*std::map < std::string, std::string>::iterator iter =  m_peerid_dataconsumer.find(peerId);
 		if (iter != m_peerid_dataconsumer.end())

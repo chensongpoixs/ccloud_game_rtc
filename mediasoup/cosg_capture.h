@@ -23,9 +23,7 @@ public:
 private:
 	static CaptureScreen* _cameraDrawCallback;
 	osg::ref_ptr<osg::Image>_image = nullptr;
-
-
-	unsigned char *				m_rgba_ptr;
+	 
 	int _ix = 0, _iy = 0, _iw = 1920, _ih = 1080;
 	OsgDesktopCapture * m_callback;
 	bool						m_data_callback;

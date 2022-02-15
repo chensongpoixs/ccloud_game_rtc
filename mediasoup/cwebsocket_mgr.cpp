@@ -113,9 +113,14 @@ namespace chen
 	}
 	void cwebsocket_mgr::_work_thread()
 	{
-		 
+		std::chrono::steady_clock::time_point cur_time_ms;
+		std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
+		std::chrono::steady_clock::duration dur;
+		std::chrono::milliseconds ms;
+		uint32_t elapse = 0;
 		while (!m_stoped && m_ws->getReadyState() == wsclient::WebSocket::OPEN) 
 		{
+			pre_time = std::chrono::steady_clock::now();
 			if (m_send_msgs.size())
 			{
 
@@ -135,8 +140,13 @@ namespace chen
 			m_ws->dispatch(this);
 			
 			 
+			cur_time_ms = std::chrono::steady_clock::now();
+			dur = cur_time_ms - pre_time;
+			ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+			elapse = static_cast<uint32_t>(ms.count());
+			if (elapse < 150)
 			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+				std::this_thread::sleep_for(std::chrono::milliseconds(150 - elapse));
 			}
 		}
 		m_status.store(CWEBSOCKET_CLOSE);

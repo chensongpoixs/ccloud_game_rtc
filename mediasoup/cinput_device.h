@@ -85,8 +85,8 @@ namespace chen {
 		*/
 		bool OnMouseLeave(const uint8*& Data,   uint32 size);
 		/**
-		* 鼠标按下 
-		* right <-> left 
+		* 鼠标按下  onclick事件
+		* right <-> left   
 		*/
 		bool OnMouseDown(const uint8*& Data,   uint32 size);
 
