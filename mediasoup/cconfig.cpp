@@ -114,7 +114,7 @@ namespace chen {
 	{
 		for (int i = 0; i < m_values_size; ++i)
 		{
-			printf("i = %d, key = %s, value = %s\n", i, m_configs[i].m_name.c_str(), m_configs[i].m_data);
+			printf("i = %d, key = %s, value = %s\n", i, m_configs[i].m_name.c_str(), m_configs[i].m_data.c_str());
 		}
 	}
 	void cconfig::set_int32(int32 index, const char * key, int32 value)

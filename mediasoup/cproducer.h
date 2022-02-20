@@ -54,7 +54,7 @@ namespace chen {
 		// localId.
 		std::string localId;
 		// Closed flag.
-		bool closed{ false };
+		//bool closed{ false };
 		// Associated RTCRtpSender.
 		webrtc::RtpSenderInterface* rtpSender{ nullptr };
 		// Local track.
@@ -62,7 +62,7 @@ namespace chen {
 		// RTP parameters.
 		nlohmann::json rtpParameters;
 		// Paused flag.
-		bool paused{ false };
+	//	bool paused{ false };
 		// Video Max spatial layer.
 		uint8_t maxSpatialLayer{ 0 };
 	};

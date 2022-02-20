@@ -12,10 +12,10 @@ purpose:		input_device
 #include "cinput_device_event.h"
 #include "rtc_base/logging.h"
 #include "clog.h"
-extern	int32_t  g_width;
-extern	int32_t  g_height;
-namespace chen {
 
+namespace chen {
+	int32_t  g_width = 0;
+	int32_t  g_height = 0;
 	using FKeyCodeType = uint8;
 	using FCharacterType = TCHAR;
 	using FRepeatType = uint8;

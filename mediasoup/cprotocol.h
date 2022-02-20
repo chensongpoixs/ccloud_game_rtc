@@ -56,7 +56,7 @@ namespace chen {
 		MouseDoubleClick = 76,
 		// Touch Input Messages. Range = 80..89.
 		TouchStart = 80,
-		TouchEnd = 81,
+		Touchend = 81,
 		TouchMove = 82,
 
 		// Gamepad Input Messages. Range = 90..99

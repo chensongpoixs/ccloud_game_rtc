@@ -4,7 +4,7 @@
 #include "clog.h"
 #include "ccfg.h"
 #include "cwebsocket_mgr.h"
-#include "cdesktop_capture.h"
+
 #include "cdevice.h"
 #include "pc/video_track_source.h"
 #include "crecv_transport.h"
@@ -70,7 +70,8 @@ namespace chen {
 		, m_stoped(false)
 		, m_status(EMediasoup_None)
 		, m_produce_consumer(true)
-		, m_ui_type(EUI_None){}
+		, m_ui_type(EUI_None)
+		, m_viewer_ptr(nullptr){}
 	cclient::~cclient(){}
 
 	
@@ -103,6 +104,9 @@ namespace chen {
 		m_server_notification_protoo_msg_call.insert(std::make_pair("peerClosed", &cclient::_notification_peer_closed));
 		SYSTEM_LOG("client init ok !!!");
 		m_webrtc_connect = false;
+		m_osg_work_thread = std::thread(&cclient::_osg_thread, this);
+		SYSTEM_LOG("osg video capturer thread ok !!!");
+		mediasoupclient::Initialize();
 		return true;
 	}
 	void cclient::stop()
@@ -175,7 +179,7 @@ namespace chen {
 			{
 				// 1.  wait server call transport dtls info
 				// 1.1 Send WebRTC Connect -> 
-				m_send_transport->webrtc_connect_transport_offer(nullptr);
+				m_send_transport->webrtc_connect_transport_offer( );
 				m_status = EMediasoup_WebSocket;
 				break;
 			}
@@ -459,7 +463,15 @@ namespace chen {
 	}
 	void cclient::Destory()
 	{
-		
+		if (m_viewer_ptr)
+		{
+			m_viewer_ptr->setDone(true);
+		}
+
+		if (m_osg_work_thread.joinable())
+		{
+			m_osg_work_thread.join();
+		}
 		//m_stoped = true;
 		if (m_send_transport)
 		{
@@ -479,6 +491,7 @@ namespace chen {
 		m_peer_map.clear();
 		_clear_register();
 		m_produce_consumer = true;
+		mediasoupclient::Cleanup();
 		LOG::destroy();
 	  
 	}
@@ -542,6 +555,7 @@ namespace chen {
 	{
 		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_GETROUTERRTPCAPABILITIES, nlohmann::json::object()))
 		{
+			m_status = EMediasoup_Reset;
 			WARNING_EX_LOG("send request router rtcpcapabilities failed !!!");
 			return false;
 		}
@@ -621,6 +635,7 @@ namespace chen {
 		{
 			if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_CONNECTWEBRTCTRANSPORT, data))
 			{
+				m_status = EMediasoup_Reset;
 				WARNING_EX_LOG("send request connect recv webrtc transport  failed !!!");
 				return false;
 			}
@@ -630,6 +645,7 @@ namespace chen {
 		{
 			if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_CONNECTWEBRTCTRANSPORT, data))
 			{
+				m_status = EMediasoup_Reset;
 				WARNING_EX_LOG("send request connect recv webrtc transport  failed !!!");
 				return false;
 			}
@@ -659,6 +675,7 @@ namespace chen {
 		 
 		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_PRODUCE, data))
 		{
+			m_status = EMediasoup_Reset;
 			WARNING_EX_LOG("send request connect recv webrtc transport  failed !!!");
 			return false;
 		}
@@ -686,6 +703,7 @@ namespace chen {
 
 		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_JOIN, rtpParameters))
 		{
+			m_status = EMediasoup_Reset;
 			WARNING_EX_LOG("send request join room   failed !!!");
 			return false;
 		}
@@ -693,6 +711,21 @@ namespace chen {
 		m_client_protoo_msg_call.insert(std::make_pair(m_id, &cclient::_server_join_room));
 		//m_status = EMediasoup_WebSocket;
 		return true;
+	}
+	bool cclient::webrtc_video(unsigned char * rgba, int32_t width, int32_t height)
+	{
+		if (!m_webrtc_connect)
+		{
+			WARNING_EX_LOG("not connect webrtc video wait !!!");
+			return false;
+		}
+		if (!m_send_transport)
+		{
+			WARNING_EX_LOG("m_send_transport == nullptr !!!");
+			return false;
+		}
+		return m_send_transport->webrtc_video(rgba, width, height);
+		 
 	}
 	bool cclient::_server_RouterRtpCapabilities(const  nlohmann::json & msg)
 	{
@@ -816,7 +849,7 @@ namespace chen {
 	bool cclient::_server_join_room(const  nlohmann::json & msg)
 	{
 		WEBSOCKET_PROTOO_CHECK_RESPONSE();
-		m_send_transport->webrtc_connect_transport_offer(nullptr);
+		m_send_transport->webrtc_connect_transport_offer( );
 		//m_produce_consumer = false;
 		if (g_cfg.get_int32(ECI_ReconnectWait) > 0)
 		{
@@ -830,8 +863,21 @@ namespace chen {
 
 	bool cclient::server_request_new_dataconsumer(const  nlohmann::json & msg)
 	{
-		std::string transport_id = msg["data"]["id"];
+		auto data_iter = msg.find(WEBSOCKET_PROTOO_DATA);
+		if (data_iter == msg.end())
+		{
+			WARNING_EX_LOG("not find 'data'  ");
+			return false;
+		}
+		auto id_iter = data_iter.value().find(WEBSOCKET_PROTOO_ID);
+		if (id_iter ==  data_iter.value().end())
+		{
+			WARNING_EX_LOG("not find   'id' ");
+			return false;
+		}
+		std::string transport_id =  msg["data"]["id"];
 		uint64 id = msg["id"].get<uint64>();
+	
 		/*if (transport_id == m_send_transport->get_transportId())
 		{
 			WARNING_EX_LOG("transport_id = %s ", transport_id.c_str());
@@ -871,7 +917,22 @@ namespace chen {
 
 	bool cclient::_notification_peer_closed(const nlohmann::json & msg)
 	{
+
+		auto data_iter = msg.find(WEBSOCKET_PROTOO_DATA);
+		if (data_iter == msg.end())
+		{
+			WARNING_EX_LOG("not find 'data'  ");
+			return false;
+		}
+		auto id_iter = data_iter.value().find("peerId");
+		if (id_iter == data_iter.value().end())
+		{
+			WARNING_EX_LOG("not find   'peerId' ");
+			return false;
+		}
 		std::string peerId = msg[WEBSOCKET_PROTOO_DATA]["peerId"];
+		 
+		
 		m_peer_map.erase(peerId);
 		NORMAL_EX_LOG("peerId = %s exit ", peerId.c_str());
 		/*std::map < std::string, std::string>::iterator iter =  m_peerid_dataconsumer.find(peerId);
@@ -943,6 +1004,20 @@ namespace chen {
 	void cclient::_clear_register()
 	{
 		m_client_protoo_msg_call.clear();
+	}
+
+	void cclient::_osg_thread()
+	{
+		osg::DisplaySettings::instance()->setNumMultiSamples(16);
+
+		m_viewer_ptr = new osgViewer::Viewer;
+		m_viewer_ptr->setSceneData(osgDB::readNodeFile("D:/cow.ive"));
+		m_viewer_ptr->getCamera()->addPreDrawCallback(CaptureScreen::Get());
+		osgGA::EventHandler* event_ptr = new osgViewer::WindowSizeHandler;
+		m_viewer_ptr->addEventHandler(event_ptr);
+
+		m_viewer_ptr->run();
+		m_viewer_ptr = nullptr;
 	}
 	bool cclient::_default_replay(const nlohmann::json & reply)
 	{

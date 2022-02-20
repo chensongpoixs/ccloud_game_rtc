@@ -8,6 +8,13 @@
 #include "cwebsocket_mgr.h"
 //#include "csend_transport.h"
 //#include "crecv_transport.h"
+#include "csingleton.h"
+#include <osgViewer/Viewer>
+#include <osgDB/ReadFile>
+#include <osg/ComputeBoundsVisitor>
+#include <osgviewer/viewereventhandlers>
+#include <osgEarthUtil/UTMGraticule>
+#include <osgUtil/Optimizer>
 namespace chen {
 
 	class csend_transport;
@@ -73,6 +80,9 @@ namespace chen {
 		//暂时没有使用该api
 		void startup_ui();
 
+		// 线程不安全的
+		bool webrtc_video(unsigned char * rgba, int32_t width, int32_t height);
+
 		void transportofferasner(bool send, bool success);
 	private:
 
@@ -122,6 +132,8 @@ namespace chen {
 
 	private:
 		void _clear_register();
+
+		void _osg_thread();
 	private:
 		uint64			m_id;
 		bool			m_loaded;
@@ -147,7 +159,10 @@ namespace chen {
 		cwebsocket_mgr					m_websocket_mgr;
 		time_t							m_produce_video;
 		bool							m_webrtc_connect;
+		osg::ref_ptr<osgViewer::Viewer> m_viewer_ptr;
+		std::thread						m_osg_work_thread;
 	};
+#define  s_client chen::csingleton<chen::cclient>::get_instance()
 }
 
 #endif // !_C_CLIENT_H_

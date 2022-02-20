@@ -6,27 +6,38 @@
 
 
 
-void DesktopCaptureSource::AddOrUpdateSink(
+void VideoCaptureSource::AddOrUpdateSink(
     rtc::VideoSinkInterface<webrtc::VideoFrame>* sink,
     const rtc::VideoSinkWants& wants) {
   broadcaster_.AddOrUpdateSink(sink, wants);
   UpdateVideoAdapter();
 }
-
-void DesktopCaptureSource::RemoveSink(
+VideoCaptureSource* VideoCaptureSource::Create()
+{
+	 std::unique_ptr<VideoCaptureSource> Source_ptr(new VideoCaptureSource());
+	 if (Source_ptr)
+	 {
+		 return Source_ptr.release();
+	 }
+	 return nullptr;
+}
+void VideoCaptureSource::RemoveSink(
     rtc::VideoSinkInterface<webrtc::VideoFrame>* sink) {
   broadcaster_.RemoveSink(sink);
   UpdateVideoAdapter();
 }
 
-void DesktopCaptureSource::UpdateVideoAdapter() {
+void VideoCaptureSource::UpdateVideoAdapter() {
   //video_adapter_.OnSinkWants(broadcaster_.wants());
 	rtc::VideoSinkWants wants = broadcaster_.wants();
-	video_adapter_.OnResolutionFramerateRequest(
-		wants.target_pixel_count, wants.max_pixel_count, wants.max_framerate_fps);
+	/*video_adapter_.OnResolutionFramerateRequest(
+		wants.target_pixel_count, wants.max_pixel_count, wants.max_framerate_fps);*/
 }
-
-void DesktopCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
+void VideoCaptureSource::VideoOnFrame(const webrtc::VideoFrame& frame)
+{
+	OnFrame(frame);
+}
+void VideoCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
 	int cropped_width = 0;
 	int cropped_height = 0;
 	int out_width = 0;

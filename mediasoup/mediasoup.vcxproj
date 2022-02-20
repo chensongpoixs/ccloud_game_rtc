@@ -48,7 +48,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -73,6 +73,11 @@
     <IncludePath>D:\dep\c_dep\osg\include\osg;D:\Work\cmedia_server\webrtc_google\src;D:\Work\cmedia_server\webrtc_google\src\third_party\abseil-cpp;D:\Work\cmedia_server\webrtc_google\src\third_party\libyuv\include;$(IncludePath)</IncludePath>
     <LibraryPath>D:\dep\c_dep\osg\lib;$(LibraryPath)</LibraryPath>
     <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>D:\dep\c_dep\osg\include\osg;D:\Work\cmedia_server\webrtc_google\src;D:\Work\cmedia_server\webrtc_google\src\third_party\abseil-cpp;D:\Work\cmedia_server\webrtc_google\src\third_party\libyuv\include;$(IncludePath);</IncludePath>
+    <LibraryPath>D:\dep\c_dep\osg\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -117,16 +122,22 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;CR_CLANG_REVISION="357692-1";_HAS_NODISCARD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;_UNICODE;UNICODE;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;NVALGRIND;DYNAMIC_ANNOTATIONS_ENABLED=0;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=1;WEBRTC_WIN=1;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>OpenThreads.lib;osg.lib;osgAnimation.lib;osgDB.lib;osgFX.lib;osgGA.lib;osgManipulator.lib;osgParticle.lib;osgPresentation.lib;osgShadow.lib;osgSim.lib;osgTerrain.lib;osgText.lib;osgUtil.lib;osgViewer.lib;osgVolume.lib;osgWidget.lib;osgEarth.lib;osgEarthUtil.lib;osgEarthSymbology.lib;osgEarthAnnotation.lib;osgEarthFeatures.lib;osgEarthSplat.lib;lilyTools.lib;gdiplus.lib;D:\Work\cmedia_server\webrtc_google\src\out\test_vs2017_release\obj\webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -137,7 +148,6 @@
     <ClCompile Include="cclient.cpp" />
     <ClCompile Include="cconfig.cpp" />
     <ClCompile Include="cdataconsumer.cpp" />
-    <ClCompile Include="cdesktop_capture.cpp" />
     <ClCompile Include="cdevice.cpp" />
     <ClCompile Include="cinput_device.cpp" />
     <ClCompile Include="cinput_device_event.cpp" />
@@ -162,7 +172,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mediasoupclient.cpp" />
     <ClCompile Include="ortc.cpp" />
-    <ClCompile Include="osgdesktop_capture.cc" />
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="scalabilityMode.cpp" />
     <ClCompile Include="sdp\MediaSection.cpp" />
@@ -180,7 +189,6 @@
     <ClInclude Include="cclient.h" />
     <ClInclude Include="cconfig.h" />
     <ClInclude Include="cdataconsumer.h" />
-    <ClInclude Include="cdesktop_capture.h" />
     <ClInclude Include="cdevice.h" />
     <ClInclude Include="cinput_device.h" />
     <ClInclude Include="cinput_device_event.h" />
@@ -209,14 +217,12 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="mediasoupclient.hpp" />
     <ClInclude Include="ortc.hpp" />
-    <ClInclude Include="osgdesktop_capture.h" />
     <ClInclude Include="scalabilityMode.hpp" />
     <ClInclude Include="sdptransform.hpp" />
     <ClInclude Include="sdp\MediaSection.hpp" />
     <ClInclude Include="sdp\RemoteSdp.hpp" />
     <ClInclude Include="sdp\Utils.hpp" />
     <ClInclude Include="Utils.hpp" />
-    <ClInclude Include="version.hpp" />
     <ClInclude Include="wsclient.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

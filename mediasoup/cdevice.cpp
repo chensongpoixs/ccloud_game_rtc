@@ -215,6 +215,8 @@ namespace chen {
 		cpeerconnection(PrivateListener* privateListener)
 		{
 			webrtc::PeerConnectionInterface::RTCConfiguration config;
+			// Set SDP semantics to Unified Plan.
+			config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
 			this->networkThread = rtc::Thread::CreateWithSocketServer();
 			this->signalingThread = rtc::Thread::Create();
 			this->workerThread = rtc::Thread::Create();
@@ -242,11 +244,11 @@ namespace chen {
 				nullptr /*audio_processing*/);
 
 
-			// Set SDP semantics to Unified Plan.
-			config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
+			printf("[%s][%d] config.sdp_semantics = %d\n",  __FUNCTION__, __LINE__, config.sdp_semantics);
 
 			// Create the webrtc::Peerconnection.
 			 pc = peerConnectionFactory->CreatePeerConnection(config, nullptr, nullptr, privateListener);
+			 printf("[%s][%d] config.sdp_semantics = %d\n",  __FUNCTION__, __LINE__, config.sdp_semantics);
 		}
 		~cpeerconnection()
 		{
@@ -334,11 +336,29 @@ namespace chen {
 		{
 			  std::unique_ptr< PrivateListener> privateListener(
 				  new  PrivateListener());
+			  if (!privateListener)
+			  {
+				  WARNING_EX_LOG("alloc failed !!!");
+				  return false;
+			  }
+			 //std::shared_ptr<PrivateListener> privateListener_ptr = std::make_shared<PrivateListener>();
 			std::unique_ptr<cpeerconnection> pc(
 				new cpeerconnection(privateListener.get()));
-
-			 
-			(void)pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_VIDEO);
+			if (!pc)
+			{
+				WARNING_EX_LOG("alloc failed !!!");
+				return false;
+			}
+			/*if (!pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_AUDIO))
+			{
+				WARNING_EX_LOG("AddTransceiver  audio failed  ");
+				return false;
+			}*/
+			if (!pc->AddTransceiver(cricket::MediaType::MEDIA_TYPE_VIDEO))
+			{
+				WARNING_EX_LOG("AddTransceiver  video  failed ");
+				return false;
+			}
 
 			webrtc::PeerConnectionInterface::RTCOfferAnswerOptions options;
 

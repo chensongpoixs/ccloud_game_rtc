@@ -2,7 +2,7 @@
 
 #include "mediasoupclient.hpp"
  
-#include "version.hpp"
+
 #include <rtc_base/helpers.h>
 #include <rtc_base/ssl_adapter.h>
 #include <rtc_base/time_utils.h>

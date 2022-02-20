@@ -16,10 +16,11 @@
 #include "cproducer.h"
 #include <memory>
 #include "cclient.h"
-#include "cdesktop_capture.h"
+
 #include "cdataconsumer.h"
 #include "csession_description.h"
 #include "pc/video_track_source.h"
+#include "cinput_device.h"
 namespace chen {
 
 
@@ -54,25 +55,35 @@ namespace chen {
 		m_transceiver = nullptr;
 		return true;
 	}
-
-	void csend_transport::Destroy()
+	bool csend_transport::webrtc_video(unsigned char * rgba, int32_t width, int32_t height)
 	{
-			if (m_transceiver)
-			{
-
-				m_transceiver->sender()->SetTrack(nullptr);
-				m_peer_connection->RemoveTrack(m_transceiver->sender());
-				m_remote_sdp->CloseMediaSection(m_transceiver->mid().value());
-				//m_transceiver = nullptr;
-			}
-		SYSTEM_LOG("m_transceiver ok !!!");
 		if (m_capturer_ptr)
 		{
-			m_capturer_ptr->stop();
-			//m_capturer_ptr = nullptr;
-			SYSTEM_LOG("m_capturer_ptr ok !!!");
+			s_input_device.set_point(width, height);
+			return m_capturer_ptr->OnFrame(rgba, width, height);
 		}
-		
+		WARNING_EX_LOG("send transport capturer = nullptr");
+		return  false;
+	}
+	void csend_transport::Destroy()
+	{
+		if (m_transceiver)
+		{
+
+			m_transceiver->sender()->SetTrack(nullptr);
+			m_peer_connection->RemoveTrack(m_transceiver->sender());
+			m_remote_sdp->CloseMediaSection(m_transceiver->mid().value());
+			//m_transceiver = nullptr;
+		}
+		SYSTEM_LOG("m_transceiver ok !!!");
+		//if (m_capturer_ptr)
+		//{
+		//	m_capturer_ptr->stop();
+		//	//m_capturer_ptr = nullptr;
+		//	SYSTEM_LOG("m_capturer_ptr ok !!!");
+		//}
+		//
+		m_capturer_ptr = nullptr;
 		if (m_peer_connection_factory)
 		{
 			m_peer_connection_factory->StopAecDump();
@@ -102,7 +113,7 @@ namespace chen {
 		{
 			return;
 		}*/
-		if (!m_transceiver)
+		if (!m_transceiver || !m_track || m_capturer_ptr)
 		{
 			return;
 		}
@@ -113,10 +124,7 @@ namespace chen {
 				iter->second->Resume();
 			}
 		}
-		if (m_capturer_ptr)
-		{
-			m_capturer_ptr->Resume();
-		}
+		 
 	}
 	void csend_transport::Pause()
 	{
@@ -135,21 +143,28 @@ namespace chen {
 				iter->second->Pause();
 			}
 		}
-		if (m_capturer_ptr)
-		{
-			m_capturer_ptr->Pause();
-		}
+		 
 	}
-	 bool csend_transport::webrtc_connect_transport_offer(webrtc::MediaStreamTrackInterface* track)
+	 bool csend_transport::webrtc_connect_transport_offer( )
 	{
-		 m_capturer_ptr = COSGCapturerTrackSource::Create();
+		 if (m_capturer_ptr || m_track)
+		 {
+			 WARNING_EX_LOG("alloc success ok !!!");
+			 return false;
+		 }
+		 m_capturer_ptr = ProxyVideoTrackSource::Create();
+		 if (!m_capturer_ptr)
+		 {
+			 WARNING_EX_LOG("ProxyVideoTrackSource alloc failed  !!! m_capturer_ptr = nullptr");
+			 return false;
+		 }
 		 m_track =   m_peer_connection_factory->CreateVideoTrack(std::to_string(rtc::CreateRandomId()), m_capturer_ptr);
-
-		  if (!m_track)
-		  {
-			  ERROR_EX_LOG("webrtc connect transport failed !!! track = nullptr" );
-			  return false;
-		  }
+		 if (!m_track)
+		 {
+			 ERROR_EX_LOG("webrtc connect transport failed !!! track = nullptr");
+			 return false;
+		 }
+		 
 		  if (m_track->state() == webrtc::MediaStreamTrackInterface::TrackState::kEnded)
 		  {
 			  ERROR_EX_LOG("webrtc connect transport failed !!! track state = %u", m_track->state());

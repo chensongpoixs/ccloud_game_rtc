@@ -1,6 +1,6 @@
-#ifndef _C_CAPTURER_TRACKSOURCE_H_
+﻿#ifndef _C_CAPTURER_TRACKSOURCE_H_
 #define _C_CAPTURER_TRACKSOURCE_H_
-#include "osgdesktop_capture.h"
+ 
 #include "api/video/video_frame.h"
 #include "api/video/video_sink_interface.h"
 #include "desktop_capture_source.h"
@@ -26,99 +26,94 @@
 #include "cproducer.h"
 #include <memory>
 #include "cclient.h"
-#include "cdesktop_capture.h"
+ 
 #include "cdataconsumer.h"
 #include "csession_description.h"
 #include "pc/video_track_source.h"
-
+#include "third_party/libyuv/include/libyuv.h"
 #include <thread>
 #include <atomic>
 #include "ccfg.h"
 #include "cosg_capture.h"
 namespace chen {
-	class CCapturerTrackSource : public webrtc::VideoTrackSource {
+	 
+
+	class ProxyVideoTrackSource : public webrtc::VideoTrackSource {
 	public:
-		static rtc::scoped_refptr<CCapturerTrackSource> Create() 
-		{
-			int32 fps = g_cfg.get_int32(ECI_Video_Fps);
-			if (fps < 1)
+		static rtc::scoped_refptr<ProxyVideoTrackSource> Create()
+		{ 
+			std::unique_ptr<  VideoCaptureSource> video_source_ptr(VideoCaptureSource::Create( ));
+			if (video_source_ptr)
 			{
-				fps = 30;
-			}
-			else if (fps > 60)
-			{
-				fps = 60;
-			}
-			std::unique_ptr<  DesktopCapture> capturer(DesktopCapture::Create(fps, 0));
-			if (capturer)
-			{
-				capturer->StartCapture();
-				return new
-					rtc::RefCountedObject<CCapturerTrackSource>(std::move(capturer));
+				 
+				return new rtc::RefCountedObject<ProxyVideoTrackSource>(std::move(video_source_ptr));
 			}
 			return nullptr;
 		}
-		void stop()
+		 
+		bool OnFrame(unsigned char * rgba, int32_t width, int32_t height)
 		{
-			capturer_->StopCapture();
+			if (!rgba)
+			{
+				WARNING_EX_LOG("osg OnFrame rgba nullptr !!!");
+				return false;
+			}
+			if (!video_source_ptr)
+			{
+				WARNING_EX_LOG("capturer_ == nullptr ");
+				return false;
+			}
+			if (width < 1 || height < 1)
+			{
+				WARNING_EX_LOG("osg  width = %d, height = %d ", width, height);
+				return false;
+			}
+
+			if (!i420_buffer_.get() ||
+				i420_buffer_->width() * i420_buffer_->height() < width * height) {
+				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
+			}
+
+
+
+			libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
+				i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
+				i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
+				i420_buffer_->StrideV(), 0, 0, width, height, width,
+				height, libyuv::kRotate0, libyuv::FOURCC_ARGB); // GL_BGRA，  FOURCC_BGRA 、、GL_BGR
+
+
+																//chen::draw_font_func(i420_buffer_->MutableDataY(), i420_buffer_->MutableDataU(), i420_buffer_->MutableDataV(), "A", g_width, g_height, 3, 1, width , height);
+
+																// seting 马流的信息 
+			{
+				webrtc::VideoFrame captureFrame =
+					webrtc::VideoFrame::Builder()
+					.set_video_frame_buffer(i420_buffer_)
+					.set_timestamp_rtp(0)
+					.set_timestamp_ms(rtc::TimeMillis())
+					.build();
+				captureFrame.set_ntp_time_ms(0);
+				
+				 video_source_ptr-> VideoOnFrame(captureFrame);
+			}
+
+			return true;
 		}
 	protected:
-		explicit CCapturerTrackSource(
-			std::unique_ptr< DesktopCapture> capturer)
-			: VideoTrackSource(/*remote=*/false), capturer_(std::move(capturer)) {}
+		explicit ProxyVideoTrackSource(
+			std::unique_ptr< VideoCaptureSource> video_source)
+			: VideoTrackSource(/*remote=*/false), video_source_ptr(std::move(video_source)) {}
 
 	private:
 		rtc::VideoSourceInterface<webrtc::VideoFrame>* source() override {
-			return capturer_.get();
+			return video_source_ptr.get();
 		}
-		//std::unique_ptr<webrtc::test::VcmCapturer> capturer_;
-		std::unique_ptr< DesktopCapture> capturer_;
-	};
-	class COSGCapturerTrackSource : public webrtc::VideoTrackSource {
-	public:
-		static rtc::scoped_refptr<COSGCapturerTrackSource> Create()
-		{
-			int32 fps = g_cfg.get_int32(ECI_Video_Fps);
-			if (fps < 1)
-			{
-				fps = 30;
-			}
-			else if (fps > 60)
-			{
-				fps = 60;
-			}
-			std::unique_ptr<  OsgDesktopCapture> capturer(OsgDesktopCapture::Create(fps, 0));
-			if (capturer)
-			{
-				capturer->StartCapture();
-				return new
-					rtc::RefCountedObject<COSGCapturerTrackSource>(std::move(capturer));
-			}
-			return nullptr;
-		}
-		void stop()
-		{
-			capturer_->StopCapture();
-		}
-		void Pause()
-		{
-			capturer_->Pause();
-		}
-		void Resume()
-		{
-			capturer_->Resume();
-		}
-	protected:
-		explicit COSGCapturerTrackSource(
-			std::unique_ptr< OsgDesktopCapture> capturer)
-			: VideoTrackSource(/*remote=*/false), capturer_(std::move(capturer)) {}
+		std::atomic_bool start_flag_  = false;
 
-	private:
-		rtc::VideoSourceInterface<webrtc::VideoFrame>* source() override {
-			return capturer_.get();
-		}
+		rtc::scoped_refptr<webrtc::I420Buffer> i420_buffer_;
 		//std::unique_ptr<webrtc::test::VcmCapturer> capturer_;
-		std::unique_ptr< OsgDesktopCapture> capturer_;
+		std::unique_ptr< VideoCaptureSource> video_source_ptr;
 	};
 }
 

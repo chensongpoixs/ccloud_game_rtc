@@ -4,7 +4,9 @@
 #include "json.hpp"
 namespace chen {
 
-
+#if defined(WEBRTC_WIN)
+	//void test_win() {}
+#endif
 	namespace deivce
 	{
 		nlohmann::json  GetNativeSctpCapabilities();

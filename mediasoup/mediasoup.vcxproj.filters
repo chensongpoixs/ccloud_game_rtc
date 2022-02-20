@@ -127,9 +127,6 @@
     <ClCompile Include="cwebsocket_protoo.cpp">
       <Filter>websocket</Filter>
     </ClCompile>
-    <ClCompile Include="cdesktop_capture.cpp">
-      <Filter>capturer</Filter>
-    </ClCompile>
     <ClCompile Include="desktop_capture_source.cc">
       <Filter>capturer</Filter>
     </ClCompile>
@@ -137,9 +134,6 @@
       <Filter>capturer</Filter>
     </ClCompile>
     <ClCompile Include="cosg_capture.cpp">
-      <Filter>capturer</Filter>
-    </ClCompile>
-    <ClCompile Include="osgdesktop_capture.cc">
       <Filter>capturer</Filter>
     </ClCompile>
     <ClCompile Include="cdevice.cpp">
@@ -164,9 +158,6 @@
     </ClInclude>
     <ClInclude Include="cclient.h">
       <Filter>client</Filter>
-    </ClInclude>
-    <ClInclude Include="version.hpp">
-      <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="Utils.hpp">
       <Filter>json_util</Filter>
@@ -264,9 +255,6 @@
     <ClInclude Include="cwebsocket_protoo.h">
       <Filter>websocket</Filter>
     </ClInclude>
-    <ClInclude Include="cdesktop_capture.h">
-      <Filter>capturer</Filter>
-    </ClInclude>
     <ClInclude Include="desktop_capture_source.h">
       <Filter>capturer</Filter>
     </ClInclude>
@@ -274,9 +262,6 @@
       <Filter>capturer</Filter>
     </ClInclude>
     <ClInclude Include="cosg_capture.h">
-      <Filter>capturer</Filter>
-    </ClInclude>
-    <ClInclude Include="osgdesktop_capture.h">
       <Filter>capturer</Filter>
     </ClInclude>
     <ClInclude Include="csingleton.h">

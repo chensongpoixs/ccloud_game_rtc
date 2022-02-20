@@ -36,10 +36,10 @@ namespace chen {
 	{
 		
 
-		WARNING_EX_LOG(
+		/*WARNING_EX_LOG(
 			"webtc::CreateSessionDescriptionObserver failure [%s:%s]",
 			webrtc::ToString(error.type()),
-			error.message());
+			error.message());*/
 
 		auto message = std::string(error.message());
 

@@ -8,17 +8,18 @@
 
 
 
-class DesktopCaptureSource
+class VideoCaptureSource
     : public rtc::VideoSourceInterface<webrtc::VideoFrame> {
  public:
-  DesktopCaptureSource() {}
-  ~DesktopCaptureSource() override {}
+	 static VideoCaptureSource* Create();
+	 VideoCaptureSource() {}
+  ~VideoCaptureSource() override {}
 
   void AddOrUpdateSink(rtc::VideoSinkInterface<webrtc::VideoFrame>* sink,
                        const rtc::VideoSinkWants& wants) override;
 
   void RemoveSink(rtc::VideoSinkInterface<webrtc::VideoFrame>* sink) override;
-
+  void VideoOnFrame(const webrtc::VideoFrame& frame);
  protected:
   // Notify sinkes
   void OnFrame(const webrtc::VideoFrame& frame);
