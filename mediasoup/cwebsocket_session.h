@@ -1,7 +1,7 @@
 #ifndef C_WEBSOCKET_SESSION_H
 #define C_WEBSOCKET_SESSION_H
 #include <string>
-namespace chen {
+namespace syz {
 	
 	class cwebsocket_session
 	{

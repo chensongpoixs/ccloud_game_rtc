@@ -7,7 +7,7 @@
 #include "sdp/RemoteSdp.hpp"
 #include "api/create_peerconnection_factory.h"
 #include "clog.h"
-namespace chen {
+namespace syz {
 	
 	class cproducer;
 	class cclient;
@@ -116,7 +116,7 @@ namespace chen {
 		std::string											 m_transport_id;
 		
 
-		// TODO@chensong 20220207 
+		// TODO@syzsong 20220207 
 		nlohmann::json					m_sendingRtpParametersByKind;
 		nlohmann::json					m_sendingRemoteRtpParametersByKind;
 		

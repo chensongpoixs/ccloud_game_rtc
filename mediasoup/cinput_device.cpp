@@ -1,7 +1,7 @@
 ﻿/***********************************************************************************************
 created: 		2022-01-19
 
-author:			chensong
+author:			syzsong
 
 purpose:		input_device
 ************************************************************************************************/
@@ -13,7 +13,7 @@ purpose:		input_device
 #include "rtc_base/logging.h"
 #include "clog.h"
 
-namespace chen {
+namespace syz {
 	int32_t  g_width = 0;
 	int32_t  g_height = 0;
 	using FKeyCodeType = uint8;
@@ -134,7 +134,7 @@ namespace chen {
 			return false;
 		}
 		
-		if (MsgType != MouseEnter)
+		/*if (MsgType != MouseEnter)
 		{
 			std::map<std::string, std::map<uint32, cmouse_info>>::const_iterator consumer_iter = m_all_consumer.find(consumer_id);
 			if (consumer_iter == m_all_consumer.end())
@@ -142,8 +142,8 @@ namespace chen {
 				WARNING_EX_LOG("consumer_id = %s not Enter !!!", consumer_id.c_str());
 				return false;
 			}
-			 
-		} 
+
+		} */
 		return (this->*(iter->second))(Data, Size);
 		//return true;
 	}
@@ -195,7 +195,7 @@ namespace chen {
 		NORMAL_LOG("OnKeyDown==KeyCode = %u, Repeat = %u", KeyCode, Repeat);
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
-		// TODO@chensong 2022-01-20  keydown -> keycode -> repeat 
+		// TODO@syzsong 2022-01-20  keydown -> keycode -> repeat 
 		/*if (mwin)
 		{
 			::PostMessageW(mwin, WM_KEYDOWN, KeyCode, Repeat != 0);
@@ -293,19 +293,19 @@ namespace chen {
 	*/
 	bool cinput_device::OnKeyPress(const uint8*& Data,   uint32 size)
 	{
-		// TODO@chensong 2022-01-20  KeyPress -->>>>> net 
+		// TODO@syzsong 2022-01-20  KeyPress -->>>>> net 
 		return false;
 		return true;
 	}
 
 	bool cinput_device::OnMouseEnter(const uint8*& Data,   uint32 size)
 	{
-		// TODO@chensong 2022-01-20  OnMouseEnter -->>>>> net 
-		if (!m_all_consumer.insert(std::make_pair(m_mouse_id, std::map<uint32, cmouse_info>())).second)
+		// TODO@syzsong 2022-01-20  OnMouseEnter -->>>>> net 
+		/*if (!m_all_consumer.insert(std::make_pair(m_mouse_id, std::map<uint32, cmouse_info>())).second)
 		{
 			WARNING_EX_LOG("mouse enter insert [mouse_id = %s] failed !!!", m_mouse_id.c_str());
 			return false;
-		}
+		}*/
 		return true;
 		 
 	}
@@ -315,15 +315,15 @@ namespace chen {
 	*/
 	bool cinput_device::OnMouseLeave(const uint8*& Data,   uint32 size)
 	{
-		// TODO@chensong 2022-01-20  OnMouseLeave 
+		// TODO@syzsong 2022-01-20  OnMouseLeave 
 		std::map<std::string, std::map<uint32, cmouse_info>>::iterator iter =  m_all_consumer.find(m_mouse_id);
-		if (iter == m_all_consumer.end())
+		/*if (iter == m_all_consumer.end())
 		{
 			WARNING_EX_LOG("mouse leave  not find  [mouse_id = %s] failed !!!", m_mouse_id.c_str());
 			return false;
 		}
 		iter->second.clear();
-		m_all_consumer.erase(iter);
+		m_all_consumer.erase(iter);*/
 
 		//std::map<uint32, cmouse_info>& cmouse_info = iter->second;
 		 

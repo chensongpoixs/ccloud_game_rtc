@@ -2,7 +2,7 @@
 #define _C_DEVICE_H_
 //#include "cnoncopyable.h"
 #include "json.hpp"
-namespace chen {
+namespace syz {
 
 #if defined(WEBRTC_WIN)
 	//void test_win() {}

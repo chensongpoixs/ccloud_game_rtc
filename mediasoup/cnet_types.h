@@ -1,7 +1,7 @@
 /***********************************************************************************************
 				created: 		2019-03-01
 
-				author:			chensong
+				author:			syzsong
 
 				purpose:		net_types
 ************************************************************************************************/
@@ -19,7 +19,7 @@
 
 #define CPG_UNUSED(object) (void)object
 
-namespace chen 
+namespace syz 
 {
 	typedef signed char		int8;
 	typedef unsigned char	uint8;

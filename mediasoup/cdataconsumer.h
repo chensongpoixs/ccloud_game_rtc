@@ -12,7 +12,7 @@
 #include <api/data_channel_interface.h>
 #include "json.hpp"
 //#include "crecv_transport.h"
-namespace chen {
+namespace syz {
 	class crecv_transport;
 	class cdataconsumer : public  webrtc::DataChannelObserver
 	{

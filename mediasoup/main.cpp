@@ -22,7 +22,7 @@ using json = nlohmann::json;
 
  
 bool stoped = false;
-//chen::ccloud_rendering ccloud_rendering_mgr;
+//syz::ccloud_rendering ccloud_rendering_mgr;
 
 
 void signalHandler(int signum)
@@ -33,7 +33,7 @@ void signalHandler(int signum)
 	s_client.stop();
 }
 
-int  main(int argc, char* argv[])
+int  main_test(int argc, char* argv[])
 { 
  
 

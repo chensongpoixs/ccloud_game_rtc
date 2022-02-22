@@ -1,6 +1,6 @@
 #include "csession_description.h"
 #include "clog.h"
-namespace chen {
+namespace syz {
 
 	/* CreateSessionDescriptionObserver */
 

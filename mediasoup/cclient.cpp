@@ -10,7 +10,7 @@
 #include "crecv_transport.h"
 #include "csend_transport.h"
 #include "cinput_device.h"
-namespace chen {
+namespace syz {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
 	static const char * MEDIASOUP_REQUEST_METHOD_GETROUTERRTPCAPABILITIES = "getRouterRtpCapabilities";
@@ -70,8 +70,7 @@ namespace chen {
 		, m_stoped(false)
 		, m_status(EMediasoup_None)
 		, m_produce_consumer(true)
-		, m_ui_type(EUI_None)
-		, m_viewer_ptr(nullptr){}
+		, m_ui_type(EUI_None) {}
 	cclient::~cclient(){}
 
 	
@@ -104,8 +103,8 @@ namespace chen {
 		m_server_notification_protoo_msg_call.insert(std::make_pair("peerClosed", &cclient::_notification_peer_closed));
 		SYSTEM_LOG("client init ok !!!");
 		m_webrtc_connect = false;
-		m_osg_work_thread = std::thread(&cclient::_osg_thread, this);
-		SYSTEM_LOG("osg video capturer thread ok !!!");
+		//m_osg_work_thread = std::thread(&cclient::_osg_thread, this);
+		//SYSTEM_LOG("osg video capturer thread ok !!!");
 		mediasoupclient::Initialize();
 		return true;
 	}
@@ -116,7 +115,7 @@ namespace chen {
 	}
 	void cclient::Loop()
 	{
-		std::string ws_url = "ws://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port)) + "/?roomId=" + g_cfg.get_string(ECI_Room_Name) + "&peerId=" + g_cfg.get_string(ECI_Client_Name);//ws://127.0.0.1:8888/?roomId=chensong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
+		std::string ws_url = "ws://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port)) + "/?roomId=" + g_cfg.get_string(ECI_Room_Name) + "&peerId=" + g_cfg.get_string(ECI_Client_Name);//ws://127.0.0.1:8888/?roomId=syzsong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
 		std::string origin = "http://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port));
 		std::list<std::string> msgs;
 		time_t cur_time = ::time(NULL);
@@ -175,7 +174,7 @@ namespace chen {
 				m_status = EMediasoup_WebSocket;
 				break;
 			}
-			case EMediasoup_Request_Connect_Webrtc_Transport: //暂时该状态没有使用 TODO@chensong  - 20220215 
+			case EMediasoup_Request_Connect_Webrtc_Transport: //暂时该状态没有使用 TODO@syzsong  - 20220215 
 			{
 				// 1.  wait server call transport dtls info
 				// 1.1 Send WebRTC Connect -> 
@@ -275,7 +274,7 @@ namespace chen {
 			case EMediasoup_WebSocket_Wait:
 			{
 				// 10 sleep 
-				// TODO@chensong 20220208 ---> 增加时间
+				// TODO@syzsong 20220208 ---> 增加时间
 				std::this_thread::sleep_for(std::chrono::milliseconds(g_cfg.get_uint32(ECI_WebSocket_Reconnect)));
 				m_status = EMediasoup_WebSocket_Init;
 				break;
@@ -463,10 +462,7 @@ namespace chen {
 	}
 	void cclient::Destory()
 	{
-		if (m_viewer_ptr)
-		{
-			m_viewer_ptr->setDone(true);
-		}
+		 
 
 		if (m_osg_work_thread.joinable())
 		{
@@ -726,6 +722,15 @@ namespace chen {
 		}
 		return m_send_transport->webrtc_video(rgba, width, height);
 		 
+	}
+	bool cclient::webrtc_run()
+	{
+		if (!m_webrtc_connect)
+		{
+			WARNING_EX_LOG("not connect webrtc video wait !!!");
+			return false;
+		}
+		return true;
 	}
 	bool cclient::_server_RouterRtpCapabilities(const  nlohmann::json & msg)
 	{
@@ -1008,16 +1013,7 @@ namespace chen {
 
 	void cclient::_osg_thread()
 	{
-		osg::DisplaySettings::instance()->setNumMultiSamples(16);
-
-		m_viewer_ptr = new osgViewer::Viewer;
-		m_viewer_ptr->setSceneData(osgDB::readNodeFile("D:/cow.ive"));
-		m_viewer_ptr->getCamera()->addPreDrawCallback(CaptureScreen::Get());
-		osgGA::EventHandler* event_ptr = new osgViewer::WindowSizeHandler;
-		m_viewer_ptr->addEventHandler(event_ptr);
-
-		m_viewer_ptr->run();
-		m_viewer_ptr = nullptr;
+		 
 	}
 	bool cclient::_default_replay(const nlohmann::json & reply)
 	{

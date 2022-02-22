@@ -1,14 +1,14 @@
 /***********************************************************************************************
 created: 		2022-01-20
 
-author:			chensong
+author:			syzsong
 
 purpose:		assertion macros
 ************************************************************************************************/
 #ifndef _C_ASSERTION_MACROS_H_
 #define _C_ASSERTION_MACROS_H_
 
-namespace chen {
+namespace syz {
 
 	// If we don't have a platform-specific define for the TEXT macro, define it now.
 #if !defined(TEXT) && !UE_BUILD_DOCS

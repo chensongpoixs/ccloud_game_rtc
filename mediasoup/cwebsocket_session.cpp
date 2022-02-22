@@ -1,7 +1,7 @@
 #include "cwebsocket_session.h"
 
 
-namespace chen {
+namespace syz {
 	cwebsocket_session::cwebsocket_session()
 	{}
 	cwebsocket_session::~cwebsocket_session()

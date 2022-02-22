@@ -34,8 +34,8 @@
 #include <thread>
 #include <atomic>
 #include "ccfg.h"
-#include "cosg_capture.h"
-namespace chen {
+ 
+namespace syz {
 	 
 
 	class ProxyVideoTrackSource : public webrtc::VideoTrackSource {
@@ -83,7 +83,7 @@ namespace chen {
 				height, libyuv::kRotate0, libyuv::FOURCC_ARGB); // GL_BGRA，  FOURCC_BGRA 、、GL_BGR
 
 
-																//chen::draw_font_func(i420_buffer_->MutableDataY(), i420_buffer_->MutableDataU(), i420_buffer_->MutableDataV(), "A", g_width, g_height, 3, 1, width , height);
+																//syz::draw_font_func(i420_buffer_->MutableDataY(), i420_buffer_->MutableDataU(), i420_buffer_->MutableDataV(), "A", g_width, g_height, 3, 1, width , height);
 
 																// seting 马流的信息 
 			{

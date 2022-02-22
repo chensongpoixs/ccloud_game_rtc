@@ -37,7 +37,7 @@ namespace mediasoupclient
 		bool validateRtpCapabilities(json& caps)
 		{
 		 
-			using namespace chen;
+			using namespace syz;
 			if (!caps.is_object())
 			{
 				ERROR_EX_LOG("caps is not an object");
@@ -97,7 +97,7 @@ namespace mediasoupclient
 		 */
 		bool validateRtpCodecCapability(json& codec)
 		{
-			using namespace chen;
+			using namespace syz;
 
 			static const std::regex MimeTypeRegex(
 			  "^(audio|video)/(.+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
@@ -212,7 +212,7 @@ namespace mediasoupclient
 		bool validateRtcpFeedback(json& fb)
 		{
 		 
-			using namespace chen;
+			using namespace syz;
 			if (!fb.is_object())
 			{
 				ERROR_EX_LOG("fb is not an object");
@@ -245,7 +245,7 @@ namespace mediasoupclient
 		bool validateRtpHeaderExtension(json& ext)
 		{
 			 
-			using namespace chen;
+			using namespace syz;
 			if (!ext.is_object())
 			{
 				ERROR_EX_LOG("ext is not an object");
@@ -316,7 +316,7 @@ namespace mediasoupclient
 		 */
 		void validateRtpParameters(json& params)
 		{
-			using namespace chen;
+			using namespace syz;
 
 			if (!params.is_object())
 				ERROR_EX_LOG("params is not an object");
@@ -396,7 +396,7 @@ namespace mediasoupclient
 		bool validateRtpCodecParameters(json& codec)
 		{
 			 
-			using namespace chen;
+			using namespace syz;
 			static const std::regex MimeTypeRegex(
 			  "^(audio|video)/(.+)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
@@ -512,7 +512,7 @@ namespace mediasoupclient
 		 */
 		void validateRtpHeaderExtensionParameters(json& ext)
 		{
-			using namespace chen;
+			using namespace syz;
 
 			if (!ext.is_object())
 				ERROR_EX_LOG("ext is not an object");
@@ -561,7 +561,7 @@ namespace mediasoupclient
 		 */
 		void validateRtpEncodingParameters(json& encoding)
 		{
-			using namespace chen;
+			using namespace syz;
 
 			if (!encoding.is_object())
 				ERROR_EX_LOG("encoding is not an object");
@@ -620,7 +620,7 @@ namespace mediasoupclient
 		void validateRtcpParameters(json& rtcp)
 		{
 		 
-			using namespace chen;
+			using namespace syz;
 			if (!rtcp.is_object())
 				ERROR_EX_LOG("rtcp is not an object");
 
@@ -643,7 +643,7 @@ namespace mediasoupclient
 		 */
 		void validateSctpCapabilities(json& caps)
 		{
-			using namespace chen;
+			using namespace syz;
 			if (!caps.is_object())
 				ERROR_EX_LOG("caps is not an object");
 
@@ -663,7 +663,7 @@ namespace mediasoupclient
 		 */
 		void validateNumSctpStreams(json& numStreams)
 		{
-			using namespace chen;
+			using namespace syz;
 			if (!numStreams.is_object())
 				ERROR_EX_LOG("numStreams is not an object");
 
@@ -687,7 +687,7 @@ namespace mediasoupclient
 		void validateSctpParameters(json& params)
 		{
 			 
-			using namespace chen;
+			using namespace syz;
 			if (!params.is_object())
 				ERROR_EX_LOG("params is not an object");
 
@@ -722,7 +722,7 @@ namespace mediasoupclient
 		 */
 		void validateSctpStreamParameters(json& params)
 		{
-			using namespace chen;
+			using namespace syz;
 			if (!params.is_object())
 				ERROR_EX_LOG("params is not an object");
 
@@ -799,7 +799,7 @@ namespace mediasoupclient
 		void validateIceParameters(json& params)
 		{
 			 
-			using namespace chen;
+			using namespace syz;
 			if (!params.is_object())
 				ERROR_EX_LOG("params is not an object");
 
@@ -834,7 +834,7 @@ namespace mediasoupclient
 		void validateIceCandidate(json& params)
 		{
 		 
-			using namespace chen;
+			using namespace syz;
 
 			static const std::regex ProtocolRegex(
 			  "(udp|tcp)", std::regex_constants::ECMAScript | std::regex_constants::icase);
@@ -909,7 +909,7 @@ namespace mediasoupclient
 		void validateIceCandidates(json& params)
 		{
 			 
-			using namespace chen;
+			using namespace syz;
 			if (!params.is_array())
 				ERROR_EX_LOG("params is not an array");
 
@@ -926,7 +926,7 @@ namespace mediasoupclient
 		 */
 		void validateDtlsFingerprint(json& params)
 		{
-			using namespace chen;
+			using namespace syz;
 			if (!params.is_object())
 				ERROR_EX_LOG("params is not an object");
 
@@ -956,7 +956,7 @@ namespace mediasoupclient
 		void validateDtlsParameters(json& params)
 		{
 			 
-			using namespace chen;
+			using namespace syz;
 			static const std::regex RoleRegex(
 			  "(auto|client|server)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 
@@ -996,7 +996,7 @@ namespace mediasoupclient
 		 */
 		void validateProducerCodecOptions(json& params)
 		{
-			using namespace chen;
+			using namespace syz;
 			if (!params.is_object())
 				ERROR_EX_LOG("params is not an object");
 
@@ -1056,7 +1056,7 @@ namespace mediasoupclient
 		bool  getExtendedRtpCapabilities(nlohmann::json& extendedRtpCapabilities, json& localCaps, json& remoteCaps)
 		{
 			 
-			using namespace chen;
+			using namespace syz;
 			// This may throw.
 			if (!validateRtpCapabilities(localCaps))
 			{

@@ -4,7 +4,7 @@
 #include "ccapturer_tracksource.h"
 #include <string>
 
-namespace chen {
+namespace syz {
 	class csend_transport : public ctransport
 	{
 	public:
@@ -32,7 +32,7 @@ namespace chen {
 		 bool webrtc_connect_transport_offer( );
 		 bool webrtc_transport_produce(const std::string & producerId);
 		bool webrtc_connect_transport_setup_connect_server_call();
-		// TODO@chensong 20220210 比较神奇的地方 必须要拷贝  原来是栈上空间 是会释放的  这是webrtc线程异步操作的结果 
+		// TODO@syzsong 20220210 比较神奇的地方 必须要拷贝  原来是栈上空间 是会释放的  这是webrtc线程异步操作的结果 
 		std::string get_kind() { return m_track->kind(); }
 		const nlohmann::json& get_sending_rtpParameters() const { return m_sendingRtpParametersByKind[m_track->kind()]; }
 	public:

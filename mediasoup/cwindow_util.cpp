@@ -8,7 +8,7 @@
 
 #include <thread>
 
-namespace chen {
+namespace syz {
 
 
 
@@ -92,7 +92,7 @@ namespace chen {
 	}
 	
 	/** 
-	* TODO@chensong 2022-01-19 
+	* TODO@syzsong 2022-01-19 
 	* 获取子窗口的api  -> 搞怎么一个东西用 三天 哭了
 	*/
 	HWND MainChildPoint(HWND mwnd, POINT pt)

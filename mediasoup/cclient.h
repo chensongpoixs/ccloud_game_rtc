@@ -9,13 +9,8 @@
 //#include "csend_transport.h"
 //#include "crecv_transport.h"
 #include "csingleton.h"
-#include <osgViewer/Viewer>
-#include <osgDB/ReadFile>
-#include <osg/ComputeBoundsVisitor>
-#include <osgviewer/viewereventhandlers>
-#include <osgEarthUtil/UTMGraticule>
-#include <osgUtil/Optimizer>
-namespace chen {
+ 
+namespace syz {
 
 	class csend_transport;
 	class crecv_transport;
@@ -27,7 +22,7 @@ namespace chen {
 		EMediasoup_Request_Create_Send_Webrtc_Transport,
 		EMediasoup_Request_Create_Recv_Webrtc_Transport,
 
-		EMediasoup_Request_Join_Room, // TODO@chensong 20220208 --> 先加入房间 后在开始生产与消费的操作
+		EMediasoup_Request_Join_Room, // TODO@syzsong 20220208 --> 先加入房间 后在开始生产与消费的操作
 		EMediasoup_Request_Connect_Webrtc_Transport,
 		EMediasoup_Request_Send_Connect_Set,
 		EMediasoup_Request_Recv_Connect_Set,
@@ -82,6 +77,8 @@ namespace chen {
 
 		// 线程不安全的
 		bool webrtc_video(unsigned char * rgba, int32_t width, int32_t height);
+
+		bool webrtc_run();
 
 		void transportofferasner(bool send, bool success);
 	private:
@@ -159,10 +156,10 @@ namespace chen {
 		cwebsocket_mgr					m_websocket_mgr;
 		time_t							m_produce_video;
 		bool							m_webrtc_connect;
-		osg::ref_ptr<osgViewer::Viewer> m_viewer_ptr;
+		 
 		std::thread						m_osg_work_thread;
 	};
-#define  s_client chen::csingleton<chen::cclient>::get_instance()
+#define  s_client syz::csingleton<syz::cclient>::get_instance()
 }
 
 #endif // !_C_CLIENT_H_

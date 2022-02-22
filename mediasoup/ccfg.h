@@ -1,7 +1,7 @@
 ﻿/***********************************************************************************************
 			created: 		2019-05-01
 
-			author:			chensong
+			author:			syzsong
 
 			purpose:		ccfg
 ************************************************************************************************/
@@ -10,7 +10,7 @@
 //#include "cconfig.h"
 #include "cconfig.h"
 //#include "csingleton.h"
-namespace chen {
+namespace syz {
 	enum ECNGIndex
 	{
 		ECI_MediaSoup_Host = 0,
@@ -44,7 +44,7 @@ namespace chen {
 	};
 
 	extern 	ccfg g_cfg;
-} //namespace chen
+} //namespace syz
 
 #endif //!#define _C_CFG_H_
 

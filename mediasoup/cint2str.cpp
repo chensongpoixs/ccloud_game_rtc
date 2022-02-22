@@ -1,7 +1,7 @@
 #include "cint2str.h"
 
 
-namespace chen {
+namespace syz {
 
 	static const char s_hex_digits[] = "0123456789ABCDEF";
 

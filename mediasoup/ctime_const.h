@@ -1,7 +1,7 @@
 ﻿/********************************************************************
 	created:	2019-03-24
 
-	author:		chensong
+	author:		syzsong
 	
 	purpose:	time const
 
@@ -9,7 +9,7 @@
 #ifndef _C_TIME_CONST_H
 #define _C_TIME_CONST_H
 
-namespace chen
+namespace syz
 {
 	// 时间常量
 	enum ETimeConstant
@@ -23,6 +23,6 @@ namespace chen
 	};
 
 	static const int ASCII_DATETIME_LEN = 20; //2016-04-24 14:06:59
-}  // namespace chen
+}  // namespace syz
 
 #endif //!#define _C_TIME_CONST_H

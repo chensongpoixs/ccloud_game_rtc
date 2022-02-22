@@ -1,7 +1,7 @@
 ﻿/***********************************************************************************************
 	created: 		2019-03-02
 	
-	author:			chensong
+	author:			syzsong
 					
 	purpose:		log
 ************************************************************************************************/
@@ -15,7 +15,7 @@
 //#include "cnoncopyable.h"
 #include "casync_log.h"
  
-namespace chen {
+namespace syz {
 	
 	class  clog //: private cnoncopyable
 	{
@@ -91,6 +91,6 @@ namespace chen {
 #define WARNING_EX_LOG(format, ...)	WARNING_LOG("[%s][%d]" format, FUNCTION, __LINE__, ##__VA_ARGS__)
 
 #define ERROR_EX_LOG(format, ...)	ERROR_LOG("[%s][%d]" format, FUNCTION, __LINE__, ##__VA_ARGS__)
-} // namespace chen
+} // namespace syz
 
 #endif //!#define _C_LOG_H_

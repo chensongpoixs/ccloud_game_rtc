@@ -1,7 +1,7 @@
 ﻿/********************************************************************
 created:	2019-03-24
 
-author:		chensong
+author:		syzsong
 
 purpose:	time tools
 
@@ -11,7 +11,7 @@ purpose:	time tools
 #define _C_TIME_API_H
 #include "ctime_const.h"
 #include <ctime>
-namespace chen
+namespace syz
 {
 
 	namespace ctime_base_api
@@ -31,7 +31,7 @@ namespace chen
 
 		// yyyy-MM-dd HH:mm:ss
 		int time64_datetime_format(const tm& now_tm, char* out, char date_conn, char datetime_conn, char time_conn);
-		//chen::ctime_base_api::time64_datetime_format(::time(NULL), buf, '-', ' ', ':');
+		//syz::ctime_base_api::time64_datetime_format(::time(NULL), buf, '-', ' ', ':');
 		int time64_datetime_format(time_t time, char* out, char date_conn, char datetime_conn, char time_conn);
 		int datetime_format(char* out, char date_conn, char datetime_conn, char time_conn);
 		time_t get_today_stamp_time64(int hour);
@@ -46,6 +46,6 @@ namespace chen
 
 
 
-}  // namespace chen
+}  // namespace syz
 
 #endif //!#define _C_TIME_API_H

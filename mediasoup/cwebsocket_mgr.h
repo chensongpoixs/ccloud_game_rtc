@@ -14,7 +14,7 @@
 #include <mutex>
 #include <list>
 
-namespace chen
+namespace syz
 {
 	enum CWEBSOCKET_TYPE
 	{

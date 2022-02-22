@@ -1,7 +1,7 @@
 ﻿/***********************************************************************************************
 					created: 		2019-04-27
 
-					author:			chensong
+					author:			syzsong
 
 					purpose:		config
 ************************************************************************************************/
@@ -12,7 +12,7 @@
 //#include "Util/Logging.hpp"
 //using namespace logging;
 #include "cnet_types.h"
-namespace chen {
+namespace syz {
 	using namespace rtc;
 	cconfig::cconfig():m_configs(NULL), m_values_size(0)
 	{
@@ -370,4 +370,4 @@ namespace chen {
 			RTC_LOG(LS_ERROR) << "read cfg insert  key = " << key.c_str() << ", value = " << value;
 		}
 	}
-}//namespace chen
+}//namespace syz

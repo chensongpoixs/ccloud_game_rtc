@@ -21,7 +21,7 @@
 #include "csession_description.h"
 #include "pc/video_track_source.h"
 #include "cinput_device.h"
-namespace chen {
+namespace syz {
 
 
 
@@ -70,8 +70,12 @@ namespace chen {
 		if (m_transceiver)
 		{
 
-			m_transceiver->sender()->SetTrack(nullptr);
-			m_peer_connection->RemoveTrack(m_transceiver->sender());
+			if (m_transceiver->sender())
+			{
+				m_transceiver->sender()->SetTrack(nullptr);
+				m_peer_connection->RemoveTrack(m_transceiver->sender());
+			}
+			
 			m_remote_sdp->CloseMediaSection(m_transceiver->mid().value());
 			//m_transceiver = nullptr;
 		}

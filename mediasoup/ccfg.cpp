@@ -1,13 +1,13 @@
 /***********************************************************************************************
 				created: 		2019-05-01
 
-				author:			chensong
+				author:			syzsong
 
 				purpose:		ccfg
 ************************************************************************************************/
 #include "ccfg.h"
 
-namespace chen {
+namespace syz {
 	ccfg g_cfg;
 	
 	ccfg::ccfg()
@@ -28,7 +28,7 @@ namespace chen {
 		set_string(ECI_MediaSoup_Host, "mediasoup_ip", "127.0.0.1");
 		set_uint32(ECI_MediaSoup_Http_Port, "mediasoup_http_port", 8888);
 		set_uint32(ECI_MediaSoup_WebSocket_Port, "mediasoup_websocket_port", 8888);
-		set_string(ECI_Room_Name, "room_name", "chensong");
+		set_string(ECI_Room_Name, "room_name", "syzsong");
 		set_string(ECI_Client_Name, "client_name", "test");
 		set_uint32(ECI_Video_Fps, "video_fps", 30);
 		set_uint32(ECI_WebSocket_Reconnect, "reconnect_timer", 10);
@@ -51,4 +51,4 @@ namespace chen {
 	{
 		cconfig::destroy();
 	}
-}//namespace chen 
+}//namespace syz 

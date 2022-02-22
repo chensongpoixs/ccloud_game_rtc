@@ -4,7 +4,7 @@
 
 #include <string>
 
-namespace chen {
+namespace syz {
 	enum ERecv_Type
 	{
 		ERecv_None = 0,
