@@ -18,36 +18,127 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cassertion_macros.h" />
+    <ClInclude Include="casync_log.h" />
+    <ClInclude Include="cbase64.h" />
+    <ClInclude Include="ccapturer_tracksource.h" />
+    <ClInclude Include="ccfg.h" />
+    <ClInclude Include="cclient.h" />
+    <ClInclude Include="cconfig.h" />
+    <ClInclude Include="cdataconsumer.h" />
+    <ClInclude Include="cdevice.h" />
+    <ClInclude Include="cinput_device.h" />
+    <ClInclude Include="cinput_device_event.h" />
+    <ClInclude Include="cint2str.h" />
+    <ClInclude Include="cint_point.h" />
+    <ClInclude Include="clog.h" />
+    <ClInclude Include="clog_define.h" />
+    <ClInclude Include="cmediasoup_mgr.h" />
+    <ClInclude Include="cnet_types.h" />
+    <ClInclude Include="cosd_util.h" />
+    <ClInclude Include="cproducer.h" />
+    <ClInclude Include="cprotocol.h" />
+    <ClInclude Include="crecv_transport.h" />
+    <ClInclude Include="csend_transport.h" />
+    <ClInclude Include="csession_description.h" />
+    <ClInclude Include="csingleton.h" />
+    <ClInclude Include="ctime_api.h" />
+    <ClInclude Include="ctime_const.h" />
+    <ClInclude Include="ctransport.h" />
+    <ClInclude Include="cwebscoket_connection.h" />
+    <ClInclude Include="cwebsocket_mgr.h" />
+    <ClInclude Include="cwebsocket_protoo.h" />
+    <ClInclude Include="cwebsocket_session.h" />
+    <ClInclude Include="cwindow_util.h" />
+    <ClInclude Include="desktop_capture_source.h" />
+    <ClInclude Include="json.hpp" />
+    <ClInclude Include="mediasoupclient.hpp" />
+    <ClInclude Include="ortc.hpp" />
+    <ClInclude Include="scalabilityMode.hpp" />
+    <ClInclude Include="sdptransform.hpp" />
+    <ClInclude Include="sdp\MediaSection.hpp" />
+    <ClInclude Include="sdp\RemoteSdp.hpp" />
+    <ClInclude Include="sdp\Utils.hpp" />
+    <ClInclude Include="Utils.hpp" />
+    <ClInclude Include="wsclient.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="casync_log.cpp" />
+    <ClCompile Include="cbase64.cpp" />
+    <ClCompile Include="ccapturer_tracksource.cpp" />
+    <ClCompile Include="ccfg.cpp" />
+    <ClCompile Include="cclient.cpp" />
+    <ClCompile Include="cconfig.cpp" />
+    <ClCompile Include="cdataconsumer.cpp" />
+    <ClCompile Include="cdevice.cpp" />
+    <ClCompile Include="cinput_device.cpp" />
+    <ClCompile Include="cinput_device_event.cpp" />
+    <ClCompile Include="cint2str.cpp" />
+    <ClCompile Include="clog.cpp" />
+    <ClCompile Include="cmediasoup_mgr.cpp" />
+    <ClCompile Include="cnet_types.cpp" />
+    <ClCompile Include="cosd_util.cpp" />
+    <ClCompile Include="cproducer.cpp" />
+    <ClCompile Include="crecv_transport.cpp" />
+    <ClCompile Include="csend_transport.cpp" />
+    <ClCompile Include="csession_description.cpp" />
+    <ClCompile Include="ctime_api.cpp" />
+    <ClCompile Include="ctransport.cpp" />
+    <ClCompile Include="cwebscoket_connection.cpp" />
+    <ClCompile Include="cwebsocket_mgr.cpp" />
+    <ClCompile Include="cwebsocket_protoo.cpp" />
+    <ClCompile Include="cwebsocket_session.cpp" />
+    <ClCompile Include="cwindow_util.cpp" />
+    <ClCompile Include="desktop_capture_source.cc" />
+    <ClCompile Include="grammar.cpp" />
+    <ClCompile Include="mediasoupclient.cpp" />
+    <ClCompile Include="ortc.cpp" />
+    <ClCompile Include="parser.cpp" />
+    <ClCompile Include="scalabilityMode.cpp" />
+    <ClCompile Include="sdp\MediaSection.cpp" />
+    <ClCompile Include="sdp\RemoteSdp.cpp" />
+    <ClCompile Include="sdp\Utils.cpp" />
+    <ClCompile Include="writer.cpp" />
+    <ClCompile Include="wsclient.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="client.cfg" />
+    <None Include="cow.ive" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{DBAF2E5E-C6B3-444F-9FAE-5EF6CA95A9FA}</ProjectGuid>
     <RootNamespace>mediasoup</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -70,14 +161,17 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\dep\c_dep\osg\include\osg;D:\Work\cmedia_server\webrtc_google\src;D:\Work\cmedia_server\webrtc_google\src\third_party\abseil-cpp;D:\Work\cmedia_server\webrtc_google\src\third_party\libyuv\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\dep\c_dep\osg\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(C_INCLUDE)\webrtc\lib\x64\debug;$(LibraryPath)</LibraryPath>
     <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)d</TargetName>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>D:\dep\c_dep\osg\include\osg;D:\Work\cmedia_server\webrtc_google\src;D:\Work\cmedia_server\webrtc_google\src\third_party\abseil-cpp;D:\Work\cmedia_server\webrtc_google\src\third_party\libyuv\include;$(IncludePath);</IncludePath>
-    <LibraryPath>D:\dep\c_dep\osg\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(C_INCLUDE)\webrtc\lib\x64\release;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -100,7 +194,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>OpenThreads.lib;osg.lib;osgAnimation.lib;osgDB.lib;osgFX.lib;osgGA.lib;osgManipulator.lib;osgParticle.lib;osgPresentation.lib;osgShadow.lib;osgSim.lib;osgTerrain.lib;osgText.lib;osgUtil.lib;osgViewer.lib;osgVolume.lib;osgWidget.lib;osgEarth.lib;osgEarthUtil.lib;osgEarthSymbology.lib;osgEarthAnnotation.lib;osgEarthFeatures.lib;osgEarthSplat.lib;lilyTools.lib;gdiplus.lib;D:\Work\cmedia_server\webrtc_google\src\out\test_vs2017_debug\obj\webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -136,95 +230,10 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>OpenThreads.lib;osg.lib;osgAnimation.lib;osgDB.lib;osgFX.lib;osgGA.lib;osgManipulator.lib;osgParticle.lib;osgPresentation.lib;osgShadow.lib;osgSim.lib;osgTerrain.lib;osgText.lib;osgUtil.lib;osgViewer.lib;osgVolume.lib;osgWidget.lib;osgEarth.lib;osgEarthUtil.lib;osgEarthSymbology.lib;osgEarthAnnotation.lib;osgEarthFeatures.lib;osgEarthSplat.lib;lilyTools.lib;gdiplus.lib;D:\Work\cmedia_server\webrtc_google\src\out\test_vs2017_release\obj\webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="casync_log.cpp" />
-    <ClCompile Include="cbase64.cpp" />
-    <ClCompile Include="ccapturer_tracksource.cpp" />
-    <ClCompile Include="ccfg.cpp" />
-    <ClCompile Include="cclient.cpp" />
-    <ClCompile Include="cconfig.cpp" />
-    <ClCompile Include="cdataconsumer.cpp" />
-    <ClCompile Include="cdevice.cpp" />
-    <ClCompile Include="cinput_device.cpp" />
-    <ClCompile Include="cinput_device_event.cpp" />
-    <ClCompile Include="cint2str.cpp" />
-    <ClCompile Include="clog.cpp" />
-    <ClCompile Include="cnet_types.cpp" />
-    <ClCompile Include="cosd_util.cpp" />
-    <ClCompile Include="cosg_capture.cpp" />
-    <ClCompile Include="cproducer.cpp" />
-    <ClCompile Include="crecv_transport.cpp" />
-    <ClCompile Include="csend_transport.cpp" />
-    <ClCompile Include="csession_description.cpp" />
-    <ClCompile Include="ctime_api.cpp" />
-    <ClCompile Include="ctransport.cpp" />
-    <ClCompile Include="cwebscoket_connection.cpp" />
-    <ClCompile Include="cwebsocket_mgr.cpp" />
-    <ClCompile Include="cwebsocket_protoo.cpp" />
-    <ClCompile Include="cwebsocket_session.cpp" />
-    <ClCompile Include="cwindow_util.cpp" />
-    <ClCompile Include="desktop_capture_source.cc" />
-    <ClCompile Include="grammar.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="mediasoupclient.cpp" />
-    <ClCompile Include="ortc.cpp" />
-    <ClCompile Include="parser.cpp" />
-    <ClCompile Include="scalabilityMode.cpp" />
-    <ClCompile Include="sdp\MediaSection.cpp" />
-    <ClCompile Include="sdp\RemoteSdp.cpp" />
-    <ClCompile Include="sdp\Utils.cpp" />
-    <ClCompile Include="writer.cpp" />
-    <ClCompile Include="wsclient.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="cassertion_macros.h" />
-    <ClInclude Include="casync_log.h" />
-    <ClInclude Include="cbase64.h" />
-    <ClInclude Include="ccapturer_tracksource.h" />
-    <ClInclude Include="ccfg.h" />
-    <ClInclude Include="cclient.h" />
-    <ClInclude Include="cconfig.h" />
-    <ClInclude Include="cdataconsumer.h" />
-    <ClInclude Include="cdevice.h" />
-    <ClInclude Include="cinput_device.h" />
-    <ClInclude Include="cinput_device_event.h" />
-    <ClInclude Include="cint2str.h" />
-    <ClInclude Include="cint_point.h" />
-    <ClInclude Include="clog.h" />
-    <ClInclude Include="clog_define.h" />
-    <ClInclude Include="cnet_types.h" />
-    <ClInclude Include="cosd_util.h" />
-    <ClInclude Include="cosg_capture.h" />
-    <ClInclude Include="cproducer.h" />
-    <ClInclude Include="cprotocol.h" />
-    <ClInclude Include="crecv_transport.h" />
-    <ClInclude Include="csend_transport.h" />
-    <ClInclude Include="csession_description.h" />
-    <ClInclude Include="csingleton.h" />
-    <ClInclude Include="ctime_api.h" />
-    <ClInclude Include="ctime_const.h" />
-    <ClInclude Include="ctransport.h" />
-    <ClInclude Include="cwebscoket_connection.h" />
-    <ClInclude Include="cwebsocket_mgr.h" />
-    <ClInclude Include="cwebsocket_protoo.h" />
-    <ClInclude Include="cwebsocket_session.h" />
-    <ClInclude Include="cwindow_util.h" />
-    <ClInclude Include="desktop_capture_source.h" />
-    <ClInclude Include="json.hpp" />
-    <ClInclude Include="mediasoupclient.hpp" />
-    <ClInclude Include="ortc.hpp" />
-    <ClInclude Include="scalabilityMode.hpp" />
-    <ClInclude Include="sdptransform.hpp" />
-    <ClInclude Include="sdp\MediaSection.hpp" />
-    <ClInclude Include="sdp\RemoteSdp.hpp" />
-    <ClInclude Include="sdp\Utils.hpp" />
-    <ClInclude Include="Utils.hpp" />
-    <ClInclude Include="wsclient.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
