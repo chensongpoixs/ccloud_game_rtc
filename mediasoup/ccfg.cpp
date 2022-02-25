@@ -34,6 +34,7 @@ namespace syz {
 		set_uint32(ECI_WebSocket_Reconnect, "reconnect_timer", 10);
 		set_int32(ECI_ReconnectWait, "reconnect_wait", 0);
 		set_int32(ECI_ProduceVideo, "produce_video", 0);
+		set_uint32(ECI_OsgWebrtcFrame, "osg_webrtc_frame", 3);
 		/*set_int32(ECI_Time_Adjust, "time_adjust", 0);
 		set_string(ECI_Log_DB_Host, "log_db_ip", "127.0.0.1");
 		set_int32(ECI_Log_DB_Port, "log_db_port", 3306);

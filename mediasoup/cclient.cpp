@@ -41,6 +41,14 @@ namespace syz {
 	static const char * WEBRTC_CLIENT = "client";
 
 
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	static const  int32 WEBRTC_FRAMES = 3;
+
+	static const  int32 OSG_RGBA_WIDTH = 3000;
+	static const  int32 OSG_RGBA_HEIGHT = 2000;
+
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #define  WEBSOCKET_PROTOO_CHECK_RESPONSE()  if (msg.find(WEBSOCKET_PROTOO_OK) == msg.end())\
 	{\
@@ -103,6 +111,26 @@ namespace syz {
 		m_server_notification_protoo_msg_call.insert(std::make_pair("peerClosed", &cclient::_notification_peer_closed));
 		SYSTEM_LOG("client init ok !!!");
 		m_webrtc_connect = false;
+		/*uint32 osg_webrtc_frame = g_cfg.get_uint32(ECI_OsgWebrtcFrame);
+		if (osg_webrtc_frame == 0)
+		{
+			osg_webrtc_frame = WEBRTC_FRAMES;
+		}
+		SYSTEM_LOG("osg webrtc frames = %u", osg_webrtc_frame);
+		m_frame_rgba_vec.reserve(osg_webrtc_frame);
+		for (uint32 i = 0; i < osg_webrtc_frame; ++i)
+		{
+			 
+			m_frame_rgba_vec[i].m_rgba_ptr = new unsigned char[OSG_RGBA_WIDTH * OSG_RGBA_HEIGHT * 4];
+			if (!m_frame_rgba_vec[i].m_rgba_ptr)
+			{
+				ERROR_EX_LOG("alloc osg rgab failed !!!");
+				return false;
+			} 
+		}
+		m_osg_frame = 0;
+		m_webrtc_frame = 0;
+		m_osg_copy_thread = std::thread(&cclient::_osg_copy_rgba_thread, this);*/
 		//m_osg_work_thread = std::thread(&cclient::_osg_thread, this);
 		//SYSTEM_LOG("osg video capturer thread ok !!!");
 		mediasoupclient::Initialize();
@@ -463,7 +491,10 @@ namespace syz {
 	void cclient::Destory()
 	{
 		 
-
+		if (m_osg_copy_thread.joinable())
+		{
+			m_osg_copy_thread.join();
+		}
 		if (m_osg_work_thread.joinable())
 		{
 			m_osg_work_thread.join();
@@ -481,7 +512,14 @@ namespace syz {
 			m_recv_transport = nullptr;
 		}
 		SYSTEM_LOG("m_recv_transport ok !!!");
-		
+		for (int32 i = 0; m_frame_rgba_vec.size(); ++i)
+		{
+			if (m_frame_rgba_vec[i].m_rgba_ptr)
+			{
+				delete[] m_frame_rgba_vec[i].m_rgba_ptr;
+				m_frame_rgba_vec[i].m_rgba_ptr = NULL;
+			}
+		}
 		m_websocket_mgr.destroy();
 		SYSTEM_LOG("g_websocket_mgr ok !!!");
 		m_peer_map.clear();
@@ -720,8 +758,22 @@ namespace syz {
 			WARNING_EX_LOG("m_send_transport == nullptr !!!");
 			return false;
 		}
+
+		if (!rgba || width <= 0 || height <= 0)
+		{
+			WARNING_EX_LOG(" osg copy param ? !!!");
+			return false;
+		}
+
+	/*	memcpy(m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_rgba_ptr, rgba, (width * height * 4));
+		m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_height = height;
+		m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_width = width;
+
+		++m_osg_frame;*/
+
 		return m_send_transport->webrtc_video(rgba, width, height);
 		 
+		return true;
 	}
 	bool cclient::webrtc_run()
 	{
@@ -1014,6 +1066,51 @@ namespace syz {
 	void cclient::_osg_thread()
 	{
 		 
+	}
+	void cclient::_osg_copy_rgba_thread()
+	{
+		std::chrono::steady_clock::time_point cur_time_ms;
+		std::chrono::steady_clock::time_point pre_time  ;
+		std::chrono::steady_clock::duration dur;
+		std::chrono::milliseconds ms;
+		uint32_t elapse = 0;
+		
+			
+		while (!m_stoped)
+		{
+			pre_time = std::chrono::steady_clock::now();
+			if  (m_osg_frame > m_webrtc_frame)
+			{
+				if ((!m_webrtc_connect || !m_send_transport) &&  (m_osg_frame - m_webrtc_frame > 5))
+				{
+					m_osg_frame = 0;
+					m_webrtc_frame = 0;
+				}
+				else
+				{ 
+						m_send_transport->webrtc_video(m_frame_rgba_vec[m_webrtc_frame % m_frame_rgba_vec.size()].m_rgba_ptr, m_frame_rgba_vec[m_webrtc_frame % m_frame_rgba_vec.size()].m_width, m_frame_rgba_vec[m_webrtc_frame % m_frame_rgba_vec.size()].m_height);
+
+						++m_webrtc_frame;
+				}
+			}
+			else
+			{
+				m_osg_frame = 0;
+				m_webrtc_frame = 0;
+			}
+			if (m_osg_frame > m_webrtc_frame)
+			{
+				cur_time_ms = std::chrono::steady_clock::now();
+				dur = cur_time_ms - pre_time;
+				ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+				elapse = static_cast<uint32_t>(ms.count());
+				if (elapse < 50)
+				{
+					std::this_thread::sleep_for(std::chrono::milliseconds(50 - elapse));
+				}
+			}
+			 
+		}
 	}
 	bool cclient::_default_replay(const nlohmann::json & reply)
 	{

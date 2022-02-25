@@ -54,6 +54,17 @@ namespace syz {
 
 	};
 
+
+	struct cosg_webrtc_rgba
+	{
+		unsigned char* m_rgba_ptr;
+		int32 m_width;
+		int32 m_height;
+		cosg_webrtc_rgba()
+			: m_rgba_ptr(nullptr)
+			, m_width(0)
+			, m_height(0) {}
+	};
 	class cclient
 	{
 	private:
@@ -131,6 +142,7 @@ namespace syz {
 		void _clear_register();
 
 		void _osg_thread();
+		void _osg_copy_rgba_thread();
 	private:
 		uint64			m_id;
 		bool			m_loaded;
@@ -158,6 +170,10 @@ namespace syz {
 		bool							m_webrtc_connect;
 		 
 		std::thread						m_osg_work_thread;
+		std::vector<cosg_webrtc_rgba>   m_frame_rgba_vec; // 
+		uint64							m_osg_frame;
+		uint64							m_webrtc_frame;
+		std::thread						m_osg_copy_thread;
 	};
 #define  s_client syz::csingleton<syz::cclient>::get_instance()
 }
