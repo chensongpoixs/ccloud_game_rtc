@@ -25,6 +25,9 @@ namespace cmediasoup
 
 		void   webrtc_video(unsigned char * rgba_ptr, int width, int height);
 
+		void webrtc_pause();
+		void webrtc_resume();
+		bool webrtc_video_staus() const { return m_webrtc_pause; }
 		bool  mediasoup_run();
 		
 	private:
@@ -35,6 +38,7 @@ namespace cmediasoup
 	private:
 		bool				m_init ;
 		std::thread			m_thread;
+		bool				m_webrtc_pause;
 	};
 }
 #endif // C_MEDIASOUP_H

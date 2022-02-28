@@ -6,6 +6,7 @@ namespace cmediasoup
 	using namespace syz;
 	cmediasoup_mgr::cmediasoup_mgr()
 		: m_init(false)
+		, m_webrtc_pause(false)
 	{
 	}
 	cmediasoup_mgr::~cmediasoup_mgr()
@@ -40,9 +41,20 @@ namespace cmediasoup
 			WARNING_EX_LOG("mediasoup_mgr  not init !!!");
 			return;
 		}
+		if (m_webrtc_pause)
+		{
+			return;
+		}
 		s_client.webrtc_video(rgba_ptr, width, height);
 	}
-
+	void cmediasoup_mgr::webrtc_pause()
+	{
+		m_webrtc_pause = true;
+	}
+	void cmediasoup_mgr::webrtc_resume()
+	{
+		m_webrtc_pause = false;
+	}
 	bool cmediasoup_mgr::mediasoup_run()
 	{
 		if (!m_init)
