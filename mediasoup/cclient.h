@@ -77,8 +77,9 @@ namespace syz {
 
 
 	public:
-		bool init(const char * config_name);
-		void Loop();
+		bool init();
+		void Loop(const std::string& mediasoupIp, uint16_t port, const std::string& roomName, const std::string& clientName
+			, uint32_t reconnect_waittime);
 		void stop();
 
 		void Destory();
@@ -147,6 +148,8 @@ namespace syz {
 		uint64			m_id;
 		bool			m_loaded;
 		bool			m_stoped;
+		std::string				m_room_name;
+		std::string				m_client_name;
 		EMediasoup_Type			m_status;
 		nlohmann::json	m_extendedRtpCapabilities;
 		nlohmann::json	m_recvRtpCapabilities;

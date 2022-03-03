@@ -82,7 +82,7 @@ namespace syz {
 	cclient::~cclient(){}
 
 	
-	bool cclient::init(const char * config_name)
+	bool cclient::init()
 	{
 		printf("Log init ...\n");
 		if (!LOG::init(ELogStorageScreenFile))
@@ -91,14 +91,14 @@ namespace syz {
 			return false;
 		}
 		SYSTEM_LOG("Log init ...\n");
-		bool init = g_cfg.init(config_name);
-		if (!init)
-		{
-			//RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
-			ERROR_EX_LOG("config init failed !!! config_name = %s", config_name);
-			return false;
-		}
-		SYSTEM_LOG("config init ok !!!");
+		//bool init = g_cfg.init(config_name);
+		//if (!init)
+		//{
+		//	//RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
+		//	ERROR_EX_LOG("config init failed !!! config_name = %s", config_name);
+		//	return false;
+		//}
+		//SYSTEM_LOG("config init ok !!!");
 		if (!s_input_device.init())
 		{
 			ERROR_EX_LOG("init input_device mouble !!!  ");
@@ -141,13 +141,19 @@ namespace syz {
 		m_stoped = true;
 		m_webrtc_connect = false;
 	}
-	void cclient::Loop()
+	void cclient::Loop(const std::string & mediasoupIp, uint16_t port, const std::string & roomName, const std::string & clientName
+	,	uint32_t websocket_reconnect_waittime)
 	{
-		std::string ws_url = "ws://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port)) + "/?roomId=" + g_cfg.get_string(ECI_Room_Name) + "&peerId=" + g_cfg.get_string(ECI_Client_Name);//ws://127.0.0.1:8888/?roomId=syzsong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
-		std::string origin = "http://" + g_cfg.get_string(ECI_MediaSoup_Host) + ":" + std::to_string(g_cfg.get_int32(ECI_MediaSoup_Http_Port));
+		// mediasoup_ip, mediasoup_port ;
+		// room_name , client_id;
+		//  Reconnect_waittime, 
+		std::string ws_url = "ws://" + mediasoupIp + ":" + std::to_string(port) + "/?roomId=" + roomName + "&peerId=" + clientName;//ws://127.0.0.1:8888/?roomId=syzsong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
+		//std::string origin = "http://" + mediasoupIp + ":" + std::to_string(port);
 		std::list<std::string> msgs;
 		time_t cur_time = ::time(NULL);
 		 
+		m_room_name = roomName;
+		m_client_name = clientName;
 		std::chrono::steady_clock::time_point cur_time_ms;
 		std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
 		std::chrono::steady_clock::duration dur;
@@ -262,15 +268,15 @@ namespace syz {
 					m_status = EMediasoup_Reset;
 					msgs.clear();
 				}
-				if (m_reconnect_wait && g_cfg.get_int32(ECI_ReconnectWait) > 0)
+				/*if (m_reconnect_wait && g_cfg.get_int32(ECI_ReconnectWait) > 0)
 				{
 					if (m_reconnect_wait < ::time(NULL))
 					{
 						m_status = EMediasoup_Reset;
 						m_reconnect_wait = 0;
 					}
-				}
-				if (m_status == EMediasoup_WebSocket && g_cfg.get_int32(ECI_ProduceVideo) > 0 && m_webrtc_connect)
+				}*/
+				/*if (m_status == EMediasoup_WebSocket && g_cfg.get_int32(ECI_ProduceVideo) > 0 && m_webrtc_connect)
 				{
 					if (m_produce_video < ::time(NULL))
 					{
@@ -288,7 +294,7 @@ namespace syz {
 						}
 						
 					}
-				}
+				}*/
 				break;
 			}
 			case EMediasoup_WebSocket_Close:
@@ -303,7 +309,7 @@ namespace syz {
 			{
 				// 10 sleep 
 				// TODO@syzsong 20220208 ---> 增加时间
-				std::this_thread::sleep_for(std::chrono::milliseconds(g_cfg.get_uint32(ECI_WebSocket_Reconnect)));
+				std::this_thread::sleep_for(std::chrono::milliseconds(websocket_reconnect_waittime));
 				m_status = EMediasoup_WebSocket_Init;
 				break;
 			}
@@ -329,8 +335,8 @@ namespace syz {
 				// 有人的时候推流 
 				//m_produce_consumer = false;
 				//m_ui_type = EUI_None;
-				cur_time = ::time(NULL) + g_cfg.get_uint32(ECI_WebSocket_Reconnect);
-				NORMAL_EX_LOG("reconnect  wait [%u s]  ...", g_cfg.get_uint32(ECI_WebSocket_Reconnect));
+				cur_time = ::time(NULL) + websocket_reconnect_waittime;
+				NORMAL_EX_LOG("reconnect  wait [%u s]  ...", websocket_reconnect_waittime);
 				m_status = EMediasoup_Wait;
 				break;
 			}
@@ -729,7 +735,7 @@ namespace syz {
 		};
 		nlohmann::json rtpParameters =
 		{
-			{"displayName", g_cfg.get_string(ECI_Client_Name)},
+			{"displayName", m_client_name},
 		{"device", device},
 		{"rtpCapabilities", m_recvRtpCapabilities},
 		{"sctpCapabilities", m_sctpCapabilities.dump()}
@@ -898,7 +904,7 @@ namespace syz {
 		m_status = EMediasoup_WebSocket;
 		m_produce_consumer = false;
 		m_recv_transport->webrtc_create_all_wait_consumer();
-		m_produce_video = ::time(NULL) + g_cfg.get_int32(ECI_ProduceVideo);
+		m_produce_video = ::time(NULL) +8;
 		m_webrtc_connect = true;
  		return true;
 	}
@@ -908,10 +914,10 @@ namespace syz {
 		WEBSOCKET_PROTOO_CHECK_RESPONSE();
 		m_send_transport->webrtc_connect_transport_offer( );
 		//m_produce_consumer = false;
-		if (g_cfg.get_int32(ECI_ReconnectWait) > 0)
+		/*if (g_cfg.get_int32(ECI_ReconnectWait) > 0)
 		{
 			m_reconnect_wait = ::time(NULL) + g_cfg.get_int32(ECI_ReconnectWait);
-		}
+		}*/
 		//m_status = EMediasoup_WebSocket; 
 		return true;
 	}

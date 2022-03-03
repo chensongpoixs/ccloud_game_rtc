@@ -44,7 +44,7 @@ namespace syz {
 		void destroy();
 	};
 
-	extern 	ccfg g_cfg;
+	//extern 	ccfg g_cfg;
 } //namespace syz
 
 #endif //!#define _C_CFG_H_

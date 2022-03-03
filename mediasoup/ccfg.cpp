@@ -8,7 +8,7 @@
 #include "ccfg.h"
 
 namespace syz {
-	ccfg g_cfg;
+	//ccfg g_cfg;
 	
 	ccfg::ccfg()
 	{

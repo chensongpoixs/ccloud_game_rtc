@@ -8,7 +8,7 @@ purpose:		log
 #ifndef C_MEDIASOUP_H
 #define C_MEDIASOUP_H
 #include <thread>
- 
+#include <string>
 namespace cmediasoup
 {
 	class __declspec(dllimport) cmediasoup_mgr
@@ -17,9 +17,10 @@ namespace cmediasoup
 		cmediasoup_mgr();
 		~cmediasoup_mgr();
 	public:
-		bool init(const char * file_name);
+		bool init( );
 
-		void startup();
+		void startup(const char * mediasoupIp, uint16_t mediasoupPort, const  char * roomName, const char* clientName
+			, uint32_t reconnectWaittime = 5);
 
 		void destroy();
 
@@ -39,6 +40,11 @@ namespace cmediasoup
 		bool				m_init ;
 		std::thread			m_thread;
 		bool				m_webrtc_pause;
+		std::string			m_mediasoup_ip;
+		uint16_t			m_mediasoup_port;
+		std::string			m_room_name;
+		std::string			m_client_name;
+		uint32_t			m_reconnect_wait;
 	};
 }
 #endif // C_MEDIASOUP_H

@@ -12,14 +12,21 @@ namespace cmediasoup
 	cmediasoup_mgr::~cmediasoup_mgr()
 	{
 	}
-	bool cmediasoup_mgr::init(const char * file_name)
+	bool cmediasoup_mgr::init( )
 	{
 		//if (!m_stoped)
-		m_init = s_client.init(file_name);
+		m_init = s_client.init( );
 		return m_init;
 	}
-	void cmediasoup_mgr::startup()
+	void cmediasoup_mgr::startup(const char* mediasoupIp, uint16_t port
+		, const char* roomName, const char* clientName
+		, uint32_t reconnect_waittime)
 	{
+		m_mediasoup_ip = mediasoupIp;
+		m_mediasoup_port = port;
+		m_room_name = roomName;
+		m_client_name = clientName;
+		m_reconnect_wait = reconnect_waittime;
 		m_thread = std::thread(&cmediasoup_mgr::_mediasoup_thread, this);
 	}
 	void cmediasoup_mgr::destroy()
@@ -70,6 +77,9 @@ namespace cmediasoup
 
 	void cmediasoup_mgr::_mediasoup_thread()
 	{
-		s_client.Loop();
+		printf("[info]mediasoupip = %s, port = %u, roomname = %s, client_name = %s, reconnectwiat = %u\n", m_mediasoup_ip.c_str(),
+			m_mediasoup_port, m_room_name.c_str(), m_client_name.c_str(), m_reconnect_wait);
+		s_client.Loop(m_mediasoup_ip, m_mediasoup_port, m_room_name, m_client_name, m_reconnect_wait);
+		printf("[%s][%d] mediasoup_thread exit !!! \n", __FUNCTION__, __LINE__);
 	}
 }
