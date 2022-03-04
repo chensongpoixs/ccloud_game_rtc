@@ -1,7 +1,7 @@
 ﻿/***********************************************************************************************
 						created: 		2018-10-02
 
-						author:			syzsong
+						author:			chensong
 
 						purpose:		async_log
 ************************************************************************************************/
@@ -27,7 +27,7 @@
 // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
 #endif
-namespace syz {
+namespace chen {
 
 #pragma pack(push,1)
 	struct clog_item
@@ -372,4 +372,4 @@ namespace syz {
 		m_log_item.clear();
 		 
 	}
-}//namespace syz
+}//namespace chen

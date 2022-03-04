@@ -11,7 +11,7 @@ static const std::regex ScalabilityModeRegex(
 
 namespace mediasoupclient
 {
-	using namespace syz;
+	using namespace chen;
 	json parseScalabilityMode(const std::string& scalabilityMode)
 	{
 		/* clang-format off */

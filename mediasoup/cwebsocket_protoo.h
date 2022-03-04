@@ -1,7 +1,7 @@
 #ifndef C_WEBSOCKET_PROTOO_H_
 #define C_WEBSOCKET_PROTOO_H_
 
-namespace syz {
+namespace chen {
 	namespace websocket_protoo
 	{
 

@@ -1,7 +1,7 @@
 ﻿/***********************************************************************************************
 created: 		2022-01-19
 
-author:			syzsong
+author:			chensong
 
 purpose:		input_device
 ************************************************************************************************/
@@ -13,7 +13,7 @@ purpose:		input_device
 #include "rtc_base/logging.h"
 #include "clog.h"
 
-namespace syz {
+namespace chen {
 	int32_t  g_width = 0;
 	int32_t  g_height = 0;
 	using FKeyCodeType = uint8;
@@ -195,7 +195,7 @@ namespace syz {
 		NORMAL_LOG("OnKeyDown==KeyCode = %u, Repeat = %u", KeyCode, Repeat);
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
-		// TODO@syzsong 2022-01-20  keydown -> keycode -> repeat 
+		// TODO@chensong 2022-01-20  keydown -> keycode -> repeat 
 		/*if (mwin)
 		{
 			::PostMessageW(mwin, WM_KEYDOWN, KeyCode, Repeat != 0);
@@ -293,14 +293,14 @@ namespace syz {
 	*/
 	bool cinput_device::OnKeyPress(const uint8*& Data,   uint32 size)
 	{
-		// TODO@syzsong 2022-01-20  KeyPress -->>>>> net 
+		// TODO@chensong 2022-01-20  KeyPress -->>>>> net 
 		return false;
 		return true;
 	}
 
 	bool cinput_device::OnMouseEnter(const uint8*& Data,   uint32 size)
 	{
-		// TODO@syzsong 2022-01-20  OnMouseEnter -->>>>> net 
+		// TODO@chensong 2022-01-20  OnMouseEnter -->>>>> net 
 		/*if (!m_all_consumer.insert(std::make_pair(m_mouse_id, std::map<uint32, cmouse_info>())).second)
 		{
 			WARNING_EX_LOG("mouse enter insert [mouse_id = %s] failed !!!", m_mouse_id.c_str());
@@ -315,7 +315,7 @@ namespace syz {
 	*/
 	bool cinput_device::OnMouseLeave(const uint8*& Data,   uint32 size)
 	{
-		// TODO@syzsong 2022-01-20  OnMouseLeave 
+		// TODO@chensong 2022-01-20  OnMouseLeave 
 		std::map<std::string, std::map<uint32, cmouse_info>>::iterator iter =  m_all_consumer.find(m_mouse_id);
 		/*if (iter == m_all_consumer.end())
 		{

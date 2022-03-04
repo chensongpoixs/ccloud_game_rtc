@@ -1,7 +1,7 @@
 /***********************************************************************************************
 created: 		2019-03-02
 
-author:			syzsong
+author:			chensong
 
 purpose:		log
 ************************************************************************************************/
@@ -9,8 +9,13 @@ purpose:		log
 #define C_MEDIASOUP_H
 #include <thread>
 #include <string>
+#include <functional>
 namespace cmediasoup
 {
+	typedef std::function<void(uint32_t status, uint32_t error_info)>     mediasoup_status_update_cb;
+
+
+
 	class __declspec(dllimport) cmediasoup_mgr
 	{
 	public:
@@ -31,6 +36,8 @@ namespace cmediasoup
 		bool webrtc_video_staus() const { return m_webrtc_pause; }
 		bool  mediasoup_run();
 		
+
+		void set_mediasoup_status_callback(mediasoup_status_update_cb callback);
 	private:
 		void _mediasoup_thread();
 	private:

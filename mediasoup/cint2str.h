@@ -4,7 +4,7 @@
 
 #include <cstdio>
 #include <string>
-namespace syz {
+namespace chen {
 
 	//convert int to hexadecimal string, add '\0' at end
 	template<typename T>

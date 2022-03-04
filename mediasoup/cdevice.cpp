@@ -13,7 +13,7 @@
 #include "clog.h"
 #include "Utils.hpp"
 #include "sdp/Utils.hpp"
-namespace syz {
+namespace chen {
 	constexpr uint16_t SctpNumStreamsOs{ 1024u };
 	constexpr uint16_t SctpNumStreamsMis{ 1024u };
 

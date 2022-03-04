@@ -1,14 +1,14 @@
 /***********************************************************************************************
 				created: 		2019-05-01
 
-				author:			syzsong
+				author:			chensong
 
 				purpose:		ccfg
 ************************************************************************************************/
 #include "ccfg.h"
 
-namespace syz {
-	//ccfg g_cfg;
+namespace chen {
+	ccfg g_cfg;
 	
 	ccfg::ccfg()
 	{
@@ -28,13 +28,14 @@ namespace syz {
 		set_string(ECI_MediaSoup_Host, "mediasoup_ip", "127.0.0.1");
 		set_uint32(ECI_MediaSoup_Http_Port, "mediasoup_http_port", 8888);
 		set_uint32(ECI_MediaSoup_WebSocket_Port, "mediasoup_websocket_port", 8888);
-		set_string(ECI_Room_Name, "room_name", "syzsong");
+		set_string(ECI_Room_Name, "room_name", "chensong");
 		set_string(ECI_Client_Name, "client_name", "test");
 		set_uint32(ECI_Video_Fps, "video_fps", 30);
 		set_uint32(ECI_WebSocket_Reconnect, "reconnect_timer", 10);
 		set_int32(ECI_ReconnectWait, "reconnect_wait", 0);
 		set_int32(ECI_ProduceVideo, "produce_video", 0);
 		set_uint32(ECI_OsgWebrtcFrame, "osg_webrtc_frame", 3);
+		set_uint32(ECI_DesktopCapture, "desktop_capture", 0);
 		/*set_int32(ECI_Time_Adjust, "time_adjust", 0);
 		set_string(ECI_Log_DB_Host, "log_db_ip", "127.0.0.1");
 		set_int32(ECI_Log_DB_Port, "log_db_port", 3306);
@@ -52,4 +53,4 @@ namespace syz {
 	{
 		cconfig::destroy();
 	}
-}//namespace syz 
+}//namespace chen 

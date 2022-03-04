@@ -1,13 +1,13 @@
 /***********************************************************************************************
 	created: 		2019-03-01
 	
-	author:			syzsong
+	author:			chensong
 					
 	purpose:		net_types
 ************************************************************************************************/
 #include "cnet_types.h"
 
-namespace syz 
+namespace chen 
 {
 	inline void check_socket_types_size()
 	{
@@ -20,4 +20,4 @@ namespace syz
 		static_assert(sizeof(int64) == 8, "sizeof(int64) != 8");
 		static_assert(sizeof(uint64) == 8, "sizeof(uint64) != 8");
 	}	
-}  // syz
+}  // chen

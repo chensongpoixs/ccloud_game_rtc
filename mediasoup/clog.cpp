@@ -1,14 +1,14 @@
 ﻿/***********************************************************************************************
 	created: 		2019-04-30
 	
-	author:			syzsong
+	author:			chensong
 					
 	purpose:		log
 ************************************************************************************************/
 #include "clog.h"
 #include <cstdarg>
 
-namespace syz {
+namespace chen {
 	static casync_log* g_log_ptr = nullptr;
 	clog::clog()
 		:m_len(0)
@@ -160,5 +160,5 @@ namespace syz {
 	}
 
 
-} //namespace syz
+} //namespace chen
 

@@ -44,6 +44,7 @@
     <ClInclude Include="sdp\MediaSection.hpp" />
     <ClInclude Include="sdp\RemoteSdp.hpp" />
     <ClInclude Include="sdp\Utils.hpp" />
+    <ClInclude Include="cdesktop_capture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />
@@ -83,6 +84,7 @@
     <ClCompile Include="sdp\MediaSection.cpp" />
     <ClCompile Include="sdp\RemoteSdp.cpp" />
     <ClCompile Include="sdp\Utils.cpp" />
+    <ClCompile Include="cdesktop_capture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="client.cfg" />

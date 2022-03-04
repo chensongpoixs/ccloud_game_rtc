@@ -9,8 +9,9 @@
 //#include "csend_transport.h"
 //#include "crecv_transport.h"
 #include "csingleton.h"
- 
-namespace syz {
+#include "cdesktop_capture.h"
+#include "cmediasoup_mgr.h"
+namespace chen {
 
 	class csend_transport;
 	class crecv_transport;
@@ -22,7 +23,7 @@ namespace syz {
 		EMediasoup_Request_Create_Send_Webrtc_Transport,
 		EMediasoup_Request_Create_Recv_Webrtc_Transport,
 
-		EMediasoup_Request_Join_Room, // TODO@syzsong 20220208 --> 先加入房间 后在开始生产与消费的操作
+		EMediasoup_Request_Join_Room, // TODO@chensong 20220208 --> 先加入房间 后在开始生产与消费的操作
 		EMediasoup_Request_Connect_Webrtc_Transport,
 		EMediasoup_Request_Send_Connect_Set,
 		EMediasoup_Request_Recv_Connect_Set,
@@ -89,8 +90,11 @@ namespace syz {
 
 		// 线程不安全的
 		bool webrtc_video(unsigned char * rgba, int32_t width, int32_t height);
-
+		bool webrtc_video(const webrtc::VideoFrame& frame);
 		bool webrtc_run();
+
+		void set_mediasoup_status_callback(cmediasoup::mediasoup_status_update_cb callback) { m_mediasoup_status_callback = callback ; }
+
 
 		void transportofferasner(bool send, bool success);
 	private:
@@ -145,6 +149,8 @@ namespace syz {
 		void _osg_thread();
 		void _osg_copy_rgba_thread();
 	private:
+		void _mediasoup_status_callback(uint32 status, uint32 error = 0);
+	private:
 		uint64			m_id;
 		bool			m_loaded;
 		bool			m_stoped;
@@ -177,8 +183,14 @@ namespace syz {
 		uint64							m_osg_frame;
 		uint64							m_webrtc_frame;
 		std::thread						m_osg_copy_thread;
+
+
+		DesktopCapture*					m_desktop_capture_ptr;
+
+		cmediasoup::mediasoup_status_update_cb		m_mediasoup_status_callback;
+
 	};
-#define  s_client syz::csingleton<syz::cclient>::get_instance()
+#define  s_client chen::csingleton<chen::cclient>::get_instance()
 }
 
 #endif // !_C_CLIENT_H_

@@ -3,7 +3,7 @@
 #include "clog.h"
 namespace cmediasoup
 {
-	using namespace syz;
+	using namespace chen;
 	cmediasoup_mgr::cmediasoup_mgr()
 		: m_init(false)
 		, m_webrtc_pause(false)
@@ -61,6 +61,10 @@ namespace cmediasoup
 	void cmediasoup_mgr::webrtc_resume()
 	{
 		m_webrtc_pause = false;
+	}
+	void cmediasoup_mgr::set_mediasoup_status_callback(mediasoup_status_update_cb callback)
+	{
+		s_client.set_mediasoup_status_callback(callback);
 	}
 	bool cmediasoup_mgr::mediasoup_run()
 	{

@@ -1,7 +1,7 @@
 ﻿/***********************************************************************************************
 created: 		2022-01-19
 
-author:			syzsong
+author:			chensong
 
 purpose:		input_device
 ************************************************************************************************/
@@ -16,7 +16,7 @@ purpose:		input_device
 #include "cint_point.h"
 #include "csingleton.h"
 #include <set>
-namespace syz {
+namespace chen {
 	 
 
 	struct cmouse_info 
@@ -124,7 +124,7 @@ namespace syz {
 		std::string							m_mouse_id; //当前操作的id
 	};
 	//extern cinput_device   g_input_device_mgr;
-	#define 	s_input_device syz::csingleton<syz::cinput_device>::get_instance()
+	#define 	s_input_device chen::csingleton<chen::cinput_device>::get_instance()
 }
 
 #endif // _C_INPUT_DEVICE_H_

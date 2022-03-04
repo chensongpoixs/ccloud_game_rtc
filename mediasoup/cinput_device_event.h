@@ -1,7 +1,7 @@
 /***********************************************************************************************
 created: 		2022-01-20
 
-author:			syzsong
+author:			chensong
 
 purpose:		input_device_event
 ************************************************************************************************/
@@ -13,7 +13,7 @@ purpose:		input_device_event
 #include "api/data_channel_interface.h"
 #include <map>
 #include "cprotocol.h"
-namespace syz {
+namespace chen {
 
 	namespace EMouseButtons
 	{

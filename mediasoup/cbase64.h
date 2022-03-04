@@ -6,7 +6,7 @@
 #include <utility>
 #include <cstdio>
 #include <string>
-namespace syz {
+namespace chen {
 namespace  base64{
 	inline
 		char const*

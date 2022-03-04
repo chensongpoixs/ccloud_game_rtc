@@ -35,7 +35,7 @@
 #include <atomic>
 #include "ccfg.h"
  
-namespace syz {
+namespace chen {
 	 
 
 	class ProxyVideoTrackSource : public webrtc::VideoTrackSource {
@@ -83,7 +83,7 @@ namespace syz {
 				height, libyuv::kRotate0, libyuv::FOURCC_ARGB); // GL_BGRA，  FOURCC_BGRA 、、GL_BGR
 
 
-																//syz::draw_font_func(i420_buffer_->MutableDataY(), i420_buffer_->MutableDataU(), i420_buffer_->MutableDataV(), "A", g_width, g_height, 3, 1, width , height);
+																//chen::draw_font_func(i420_buffer_->MutableDataY(), i420_buffer_->MutableDataU(), i420_buffer_->MutableDataV(), "A", g_width, g_height, 3, 1, width , height);
 
 																// seting 马流的信息 
 			{
@@ -98,6 +98,11 @@ namespace syz {
 				 video_source_ptr-> VideoOnFrame(captureFrame);
 			}
 
+			return true;
+		}
+		bool OnFrame(const webrtc::VideoFrame & frame)
+		{
+			video_source_ptr->VideoOnFrame(frame);
 			return true;
 		}
 	protected:

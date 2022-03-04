@@ -1,7 +1,7 @@
 #include "cwebsocket_mgr.h"
  
 #include "clog.h"
-namespace syz
+namespace chen
 {
 
 	 

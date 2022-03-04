@@ -2,7 +2,7 @@
 #include "clog.h"
 #include "crecv_transport.h"
 #include "cinput_device.h"
-namespace syz {
+namespace chen {
 
 
 	bool cdataconsumer::init(const std::string& id_,

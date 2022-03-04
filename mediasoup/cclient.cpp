@@ -10,7 +10,7 @@
 #include "crecv_transport.h"
 #include "csend_transport.h"
 #include "cinput_device.h"
-namespace syz {
+namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
 	static const char * MEDIASOUP_REQUEST_METHOD_GETROUTERRTPCAPABILITIES = "getRouterRtpCapabilities";
@@ -78,7 +78,8 @@ namespace syz {
 		, m_stoped(false)
 		, m_status(EMediasoup_None)
 		, m_produce_consumer(true)
-		, m_ui_type(EUI_None) {}
+		, m_ui_type(EUI_None)
+		, m_mediasoup_status_callback(nullptr) {}
 	cclient::~cclient(){}
 
 	
@@ -91,14 +92,15 @@ namespace syz {
 			return false;
 		}
 		SYSTEM_LOG("Log init ...\n");
-		//bool init = g_cfg.init(config_name);
-		//if (!init)
-		//{
-		//	//RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
-		//	ERROR_EX_LOG("config init failed !!! config_name = %s", config_name);
-		//	return false;
-		//}
-		//SYSTEM_LOG("config init ok !!!");
+		static const   char* config_file = "client.cfg";
+		bool init = g_cfg.init(config_file);
+		if (!init)
+		{
+			//	//RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
+			ERROR_EX_LOG("config init failed !!! config_name = %s", config_file);
+			return false;
+		}
+		SYSTEM_LOG("config init ok !!!");
 		if (!s_input_device.init())
 		{
 			ERROR_EX_LOG("init input_device mouble !!!  ");
@@ -120,19 +122,30 @@ namespace syz {
 		m_frame_rgba_vec.reserve(osg_webrtc_frame);
 		for (uint32 i = 0; i < osg_webrtc_frame; ++i)
 		{
-			 
+
 			m_frame_rgba_vec[i].m_rgba_ptr = new unsigned char[OSG_RGBA_WIDTH * OSG_RGBA_HEIGHT * 4];
 			if (!m_frame_rgba_vec[i].m_rgba_ptr)
 			{
 				ERROR_EX_LOG("alloc osg rgab failed !!!");
 				return false;
-			} 
+			}
 		}
 		m_osg_frame = 0;
 		m_webrtc_frame = 0;
 		m_osg_copy_thread = std::thread(&cclient::_osg_copy_rgba_thread, this);*/
 		//m_osg_work_thread = std::thread(&cclient::_osg_thread, this);
 		//SYSTEM_LOG("osg video capturer thread ok !!!");
+		if (g_cfg.get_int32(ECI_DesktopCapture))
+		{
+			m_desktop_capture_ptr = DesktopCapture::Create(60, 0);
+			SYSTEM_LOG("desktop create fps ok !!!");
+		}
+		else
+		{
+			m_desktop_capture_ptr = nullptr;
+		}
+		
+		
 		mediasoupclient::Initialize();
 		return true;
 	}
@@ -144,10 +157,14 @@ namespace syz {
 	void cclient::Loop(const std::string & mediasoupIp, uint16_t port, const std::string & roomName, const std::string & clientName
 	,	uint32_t websocket_reconnect_waittime)
 	{
+		if (m_desktop_capture_ptr)
+		{
+			m_desktop_capture_ptr->StartCapture();
+		}
 		// mediasoup_ip, mediasoup_port ;
 		// room_name , client_id;
 		//  Reconnect_waittime, 
-		std::string ws_url = "ws://" + mediasoupIp + ":" + std::to_string(port) + "/?roomId=" + roomName + "&peerId=" + clientName;//ws://127.0.0.1:8888/?roomId=syzsong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
+		std::string ws_url = "ws://" + mediasoupIp + ":" + std::to_string(port) + "/?roomId=" + roomName + "&peerId=" + clientName;//ws://127.0.0.1:8888/?roomId=chensong&peerId=xiqhlyrn", "http://127.0.0.1:8888")
 		//std::string origin = "http://" + mediasoupIp + ":" + std::to_string(port);
 		std::list<std::string> msgs;
 		time_t cur_time = ::time(NULL);
@@ -187,6 +204,8 @@ namespace syz {
 					m_status = EMediasoup_Reset;
 					continue;
 				}
+
+				_mediasoup_status_callback(EMediasoup_WebSocket_Init, 0);
 				m_status = EMediasoup_WebSocket;
 				// 1.1 获取服务器的处理能力
 				// 2. connect failed wait 5s..
@@ -208,7 +227,7 @@ namespace syz {
 				m_status = EMediasoup_WebSocket;
 				break;
 			}
-			case EMediasoup_Request_Connect_Webrtc_Transport: //暂时该状态没有使用 TODO@syzsong  - 20220215 
+			case EMediasoup_Request_Connect_Webrtc_Transport: //暂时该状态没有使用 TODO@chensong  - 20220215 
 			{
 				// 1.  wait server call transport dtls info
 				// 1.1 Send WebRTC Connect -> 
@@ -308,7 +327,7 @@ namespace syz {
 			case EMediasoup_WebSocket_Wait:
 			{
 				// 10 sleep 
-				// TODO@syzsong 20220208 ---> 增加时间
+				// TODO@chensong 20220208 ---> 增加时间
 				std::this_thread::sleep_for(std::chrono::milliseconds(websocket_reconnect_waittime));
 				m_status = EMediasoup_WebSocket_Init;
 				break;
@@ -496,7 +515,12 @@ namespace syz {
 	}
 	void cclient::Destory()
 	{
-		 
+		m_mediasoup_status_callback = nullptr;
+		if (m_desktop_capture_ptr)
+		{
+			m_desktop_capture_ptr->StopCapture();
+			m_desktop_capture_ptr = nullptr;
+		 }
 		if (m_osg_copy_thread.joinable())
 		{
 			m_osg_copy_thread.join();
@@ -781,6 +805,22 @@ namespace syz {
 		 
 		return true;
 	}
+	bool cclient::webrtc_video(const webrtc::VideoFrame& frame)
+	{
+		if (!m_webrtc_connect)
+		{
+			WARNING_EX_LOG("not connect webrtc video wait !!!");
+			return false;
+		}
+		if (!m_send_transport)
+		{
+			WARNING_EX_LOG("m_send_transport == nullptr !!!");
+			return false;
+		}
+
+		 
+		return m_send_transport->webrtc_video(frame);
+	}
 	bool cclient::webrtc_run()
 	{
 		if (!m_webrtc_connect)
@@ -906,6 +946,7 @@ namespace syz {
 		m_recv_transport->webrtc_create_all_wait_consumer();
 		m_produce_video = ::time(NULL) +8;
 		m_webrtc_connect = true;
+		_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
  		return true;
 	}
 
@@ -919,6 +960,7 @@ namespace syz {
 			m_reconnect_wait = ::time(NULL) + g_cfg.get_int32(ECI_ReconnectWait);
 		}*/
 		//m_status = EMediasoup_WebSocket; 
+		_mediasoup_status_callback(EMediasoup_Request_Join_Room, 0);
 		return true;
 	}
 
@@ -1116,6 +1158,13 @@ namespace syz {
 				}
 			}
 			 
+		}
+	}
+	void cclient::_mediasoup_status_callback(uint32 status, uint32 error)
+	{
+		if (m_mediasoup_status_callback)
+		{
+			m_mediasoup_status_callback(status, error);
 		}
 	}
 	bool cclient::_default_replay(const nlohmann::json & reply)

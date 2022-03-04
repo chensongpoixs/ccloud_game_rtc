@@ -1,7 +1,7 @@
 /********************************************************************
 created:	2019-03-24
 
-author:		syzsong
+author:		chensong
 
 purpose:	time tools
 
@@ -15,7 +15,7 @@ purpose:	time tools
 #ifdef _MSC_VER
 #pragma warning (disable:4996)
 #endif
-namespace syz
+namespace chen
 {
 	namespace ctime_base_api
 	{
@@ -183,4 +183,4 @@ namespace syz
 //    long long get_mstime(void)
 //    { return get_ustime() / 1000; }
 //    }
-}//namespace syz 
+}//namespace chen 

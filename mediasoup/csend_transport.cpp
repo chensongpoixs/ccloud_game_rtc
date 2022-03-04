@@ -21,7 +21,7 @@
 #include "csession_description.h"
 #include "pc/video_track_source.h"
 #include "cinput_device.h"
-namespace syz {
+namespace chen {
 
 
 
@@ -61,6 +61,16 @@ namespace syz {
 		{
 			s_input_device.set_point(width, height);
 			return m_capturer_ptr->OnFrame(rgba, width, height);
+		}
+		WARNING_EX_LOG("send transport capturer = nullptr");
+		return  false;
+	}
+	bool csend_transport::webrtc_video(const webrtc::VideoFrame& frame)
+	{
+		if (m_capturer_ptr)
+		{
+			s_input_device.set_point(frame.width(), frame.height());
+			return m_capturer_ptr->OnFrame(frame);
 		}
 		WARNING_EX_LOG("send transport capturer = nullptr");
 		return  false;

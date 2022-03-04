@@ -1,7 +1,7 @@
 ﻿/***********************************************************************************************
 			created: 		2019-05-01
 
-			author:			syzsong
+			author:			chensong
 
 			purpose:		ccfg
 ************************************************************************************************/
@@ -10,7 +10,7 @@
 //#include "cconfig.h"
 #include "cconfig.h"
 //#include "csingleton.h"
-namespace syz {
+namespace chen {
 	enum ECNGIndex
 	{
 		ECI_MediaSoup_Host = 0,
@@ -23,6 +23,7 @@ namespace syz {
 		ECI_ReconnectWait,
 		ECI_ProduceVideo,
 		ECI_OsgWebrtcFrame,
+		ECI_DesktopCapture,
 	//	ECI_Time_Zone,
 	//	ECI_Time_Adjust,
 	//	ECI_Log_DB_Host,
@@ -44,8 +45,8 @@ namespace syz {
 		void destroy();
 	};
 
-	//extern 	ccfg g_cfg;
-} //namespace syz
+	extern 	ccfg g_cfg;
+} //namespace chen
 
 #endif //!#define _C_CFG_H_
 

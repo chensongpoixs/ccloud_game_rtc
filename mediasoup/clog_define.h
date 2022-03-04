@@ -1,14 +1,14 @@
 ﻿/***********************************************************************************************
 created: 		2019-03-02
 
-author:			syzsong
+author:			chensong
 
 purpose:		log
 ************************************************************************************************/
 #ifndef C_LOG_DEFINE_H
 #define C_LOG_DEFINE_H
 
-namespace syz
+namespace chen
 {
 	enum ELogLevelType
 	{
@@ -42,7 +42,7 @@ namespace syz
 		ELogStorageScreenFilePost	= 0X07, 
 	};
 
-}//namespace syz
+}//namespace chen
 
 
 

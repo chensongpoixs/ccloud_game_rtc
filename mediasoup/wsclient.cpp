@@ -252,7 +252,7 @@ class _RealWebSocket : public wsclient::WebSocket
             int ret = ::send(sockfd, (char*)&txbuf[0], txbuf.size(), 0);
 
 			{
-				using namespace syz;
+				using namespace chen;
 				NORMAL_EX_LOG("io websocket send len = %u", ret);
 			}
             if (false) { } // ??
@@ -542,7 +542,7 @@ wsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, cons
 			 
         }
         //snprintf(line, 256, "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==\r\n");
-		std::string websocketkey = syz::base64_encode(std::to_string(::time(NULL)));
+		std::string websocketkey = chen::base64_encode(std::to_string(::time(NULL)));
 		snprintf(line, 256, "Sec-WebSocket-Key: %s==\r\n", websocketkey.c_str());
 		::send(sockfd, line, strlen(line), 0);
 		 

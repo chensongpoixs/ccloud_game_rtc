@@ -32,7 +32,7 @@ namespace mediasoupclient
 					{ "netType",        "IN"                             },
 					{ "sessionId",      10000                            },
 					{ "sessionVersion", 0                                },
-					{ "username",       "syzsong"             }
+					{ "username",       "chensong"             }
 				}
 			},
 			{ "name", "-" },
@@ -74,7 +74,7 @@ namespace mediasoupclient
 				{ "mids", ""       }
 			}
 		};
-		using namespace syz;
+		using namespace chen;
 		//NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
 		// clang-format on
 	}
@@ -112,7 +112,7 @@ namespace mediasoupclient
 	{
 		 
 		{
-			using namespace syz;
+			using namespace chen;
 			NORMAL_EX_LOG("dtlsParameters = %s", dtlsParameters.dump().c_str());
 		}
 		dtlsParameters["role"] = role;

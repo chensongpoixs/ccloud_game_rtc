@@ -1,7 +1,7 @@
 ﻿/***********************************************************************************************
 created: 		2022-01-20
 
-author:			syzsong
+author:			chensong
 
 purpose:		protocol
 ************************************************************************************************/
@@ -12,7 +12,7 @@ purpose:		protocol
 #include "api/data_channel_interface.h"
 #include <vector>
 
-namespace syz {
+namespace chen {
 
 	enum  EToStreamMsg :uint8
 	{
@@ -56,7 +56,7 @@ namespace syz {
 		MouseDoubleClick = 76,
 		// Touch Input Messages. Range = 80..89.
 		TouchStart = 80,
-		Tousyzd = 81,
+		Touchend = 81,
 		TouchMove = 82,
 
 		// Gamepad Input Messages. Range = 90..99

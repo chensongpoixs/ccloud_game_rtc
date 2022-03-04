@@ -2,7 +2,7 @@
 /***********************************************************************************************
 created: 		2022-01-20
 
-author:			syzsong
+author:			chensong
 
 purpose:		cint_point
 ************************************************************************************************/
@@ -12,7 +12,7 @@ purpose:		cint_point
 #include "cnet_types.h"
 
 
-namespace syz {
+namespace chen {
 
 	/**
 	* Structure for integer points in 2-d space.

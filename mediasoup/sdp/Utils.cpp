@@ -240,7 +240,7 @@ namespace mediasoupclient
 
 				if (jsonSsrcIt == mSsrcs.end())
 				{
-					using namespace syz;
+					using namespace chen;
 					ERROR_EX_LOG("a=ssrc line with msid information not found");
 				}
 
@@ -296,7 +296,7 @@ namespace mediasoupclient
 					return (
 					  jsonAttributeIt->get<std::string>() == "cname" && jsonIdIt->get<uint32_t>() == firstSsrc);
 				});
-				using  namespace syz;
+				using  namespace chen;
 				if (jsonSsrcIt == mSsrcs.end())
 					ERROR_EX_LOG("CNAME line not found");
 
@@ -423,7 +423,7 @@ namespace mediasoupclient
 					auto ssrc = line["id"].get<uint32_t>();
 					ssrcs.push_back(ssrc);
 				}
-				using namespace syz;
+				using namespace chen;
 				if (ssrcs.empty())
 					ERROR_EX_LOG("no a=ssrc lines found");
 

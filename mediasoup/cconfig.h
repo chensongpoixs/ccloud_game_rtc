@@ -1,7 +1,7 @@
 /***********************************************************************************************
 				created: 		2019-04-27
 
-				author:			syzsong
+				author:			chensong
 
 				purpose:		config
 ************************************************************************************************/
@@ -16,7 +16,7 @@
 #include <iostream>
 #include <string>
 #include "cnet_types.h"
-namespace syz {
+namespace chen {
 	class ccfg_file //: private cnoncopyable
 	{
 	private:
@@ -107,7 +107,7 @@ namespace syz {
 		int64           m_values_size;
 		ccfg_file		m_cfg_file;
 	};
-}//namespace syz
+}//namespace chen
 
 #endif //!#define _C_CONFIG_H_
 
