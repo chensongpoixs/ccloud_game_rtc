@@ -535,13 +535,13 @@ namespace chen {
 			m_send_transport->Destroy();
 			m_send_transport = nullptr;
 		}
-		SYSTEM_LOG("m_send_transport ok !!!");
+		SYSTEM_LOG("m_send_transport destroy ok !!!");
 		if (m_recv_transport)
 		{
 			m_recv_transport->Destroy();
 			m_recv_transport = nullptr;
 		}
-		SYSTEM_LOG("m_recv_transport ok !!!");
+		SYSTEM_LOG("m_recv_transport destroy ok !!!");
 		for (int32 i = 0; m_frame_rgba_vec.size(); ++i)
 		{
 			if (m_frame_rgba_vec[i].m_rgba_ptr)
@@ -551,11 +551,12 @@ namespace chen {
 			}
 		}
 		m_websocket_mgr.destroy();
-		SYSTEM_LOG("g_websocket_mgr ok !!!");
+		SYSTEM_LOG("g_websocket_mgr destroy ok !!!");
 		m_peer_map.clear();
 		_clear_register();
 		m_produce_consumer = true;
 		mediasoupclient::Cleanup();
+		SYSTEM_LOG("mediasoup destroy ok !!!");
 		LOG::destroy();
 	  
 	}
