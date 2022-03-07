@@ -79,7 +79,8 @@ namespace chen {
 		, m_status(EMediasoup_None)
 		, m_produce_consumer(true)
 		, m_ui_type(EUI_None)
-		, m_mediasoup_status_callback(nullptr) {}
+		, m_mediasoup_status_callback(nullptr)
+		, m_websocket_timer(0){}
 	cclient::~cclient(){}
 
 	
@@ -191,6 +192,11 @@ namespace chen {
 					//RTC_LOG(LS_ERROR) << "weboscket connect failed !!! url = " << ws_url;
 					WARNING_EX_LOG("weboscket connect url = %s failed !!!   ", ws_url.c_str());
 					m_status = EMediasoup_Reset;
+					++m_websocket_timer;
+					if (m_websocket_timer > g_cfg.get_uint32(ECI_WebSocketTimers))
+					{
+						_mediasoup_status_callback(EMediasoup_WebSocket_Init, 1);
+					}
 					continue;;
 				}
 				 
@@ -204,7 +210,7 @@ namespace chen {
 					m_status = EMediasoup_Reset;
 					continue;
 				}
-
+				m_websocket_timer = 0;
 				_mediasoup_status_callback(EMediasoup_WebSocket_Init, 0);
 				m_status = EMediasoup_WebSocket;
 				// 1.1 获取服务器的处理能力

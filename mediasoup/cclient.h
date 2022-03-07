@@ -188,7 +188,7 @@ namespace chen {
 		DesktopCapture*					m_desktop_capture_ptr;
 
 		cmediasoup::mediasoup_status_update_cb		m_mediasoup_status_callback;
-
+		uint32							m_websocket_timer;
 	};
 #define  s_client chen::csingleton<chen::cclient>::get_instance()
 }
