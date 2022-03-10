@@ -81,9 +81,9 @@ namespace cmediasoup
 
 	void cmediasoup_mgr::_mediasoup_thread()
 	{
-		printf("[info]mediasoupip = %s, port = %u, roomname = %s, client_name = %s, reconnectwiat = %u\n", m_mediasoup_ip.c_str(),
+		SYSTEM_LOG("[info]mediasoupip = %s, port = %u, roomname = %s, client_name = %s, reconnectwiat = %u\n", m_mediasoup_ip.c_str(),
 			m_mediasoup_port, m_room_name.c_str(), m_client_name.c_str(), m_reconnect_wait);
 		s_client.Loop(m_mediasoup_ip, m_mediasoup_port, m_room_name, m_client_name, m_reconnect_wait);
-		printf("[%s][%d] mediasoup_thread exit !!! \n", __FUNCTION__, __LINE__);
+		SYSTEM_LOG("[%s][%d] mediasoup_thread exit !!! \n", __FUNCTION__, __LINE__);
 	}
 }

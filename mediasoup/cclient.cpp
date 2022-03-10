@@ -152,6 +152,7 @@ namespace chen {
 	}
 	void cclient::stop()
 	{
+		SYSTEM_LOG("client sop OK !!!");
 		m_stoped = true;
 		m_webrtc_connect = false;
 	}
@@ -399,7 +400,7 @@ namespace chen {
 			
 			
 		}
-		
+		NORMAL_EX_LOG("mediasoup Loop exit !!!");
 	}
 	void cclient::_presssmsg(std::list<std::string> & msgs)
 	{
@@ -521,12 +522,14 @@ namespace chen {
 	}
 	void cclient::Destory()
 	{
+		SYSTEM_LOG("mediasoup clinet destroy ...");
 		m_mediasoup_status_callback = nullptr;
 		if (m_desktop_capture_ptr)
 		{
 			m_desktop_capture_ptr->StopCapture();
 			m_desktop_capture_ptr = nullptr;
 		 }
+		SYSTEM_LOG("osg copy thread destroy ...");
 		if (m_osg_copy_thread.joinable())
 		{
 			m_osg_copy_thread.join();
@@ -535,6 +538,7 @@ namespace chen {
 		{
 			m_osg_work_thread.join();
 		}
+		SYSTEM_LOG("osg copy thread destroy OK !!!");
 		//m_stoped = true;
 		if (m_send_transport)
 		{

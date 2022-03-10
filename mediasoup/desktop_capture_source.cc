@@ -4,8 +4,7 @@
 #include "api/video/video_rotation.h"
 #include "rtc_base/logging.h"
 
-
-
+ 
 void VideoCaptureSource::AddOrUpdateSink(
     rtc::VideoSinkInterface<webrtc::VideoFrame>* sink,
     const rtc::VideoSinkWants& wants) {
@@ -50,7 +49,7 @@ void VideoCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
 		//RTC_LOG(LS_INFO) << "video adapter input failed !!!";
 		return;
 	}
-	
+
 	if (out_height != frame.height() || out_width != frame.width()) {
 		// Video adapter has requested a down-scale. Allocate a new buffer and
 		// return scaled version.
