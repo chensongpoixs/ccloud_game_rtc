@@ -45,6 +45,40 @@
     <ClInclude Include="sdp\RemoteSdp.hpp" />
     <ClInclude Include="sdp\Utils.hpp" />
     <ClInclude Include="cdesktop_capture.h" />
+    <ClInclude Include="NvCodec\encoder_info.h">
+      <Filter>NvCodec</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\nv_encoder.h">
+      <Filter>NvCodec</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\nvenc.h">
+      <Filter>NvCodec</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\Utils\Logger.h">
+      <Filter>NvCodec\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\Utils\NvCodecUtils.h">
+      <Filter>NvCodec\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\Utils\NvEncoderCLIOptions.h">
+      <Filter>NvCodec\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\NvEncoder\nvEncodeAPI.h">
+      <Filter>NvCodec\NvEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\NvEncoder\NvEncoder.h">
+      <Filter>NvCodec\NvEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\NvEncoder\NvEncoderCuda.h">
+      <Filter>NvCodec\NvEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\NvEncoder\NvEncoderD3D9.h">
+      <Filter>NvCodec\NvEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\NvEncoder\NvEncoderD3D11.h">
+      <Filter>NvCodec\NvEncoder</Filter>
+    </ClInclude>
+    <ClInclude Include="external_video_encoder_factory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />
@@ -85,12 +119,52 @@
     <ClCompile Include="sdp\RemoteSdp.cpp" />
     <ClCompile Include="sdp\Utils.cpp" />
     <ClCompile Include="cdesktop_capture.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="NvCodec\nv_encoder.cc">
+      <Filter>NvCodec</Filter>
+    </ClCompile>
+    <ClCompile Include="NvCodec\nvenc.cpp">
+      <Filter>NvCodec</Filter>
+    </ClCompile>
+    <ClCompile Include="NvCodec\NvEncoder\NvEncoder.cpp">
+      <Filter>NvCodec\NvEncoder</Filter>
+    </ClCompile>
+    <ClCompile Include="NvCodec\NvEncoder\NvEncoderCuda.cpp">
+      <Filter>NvCodec\NvEncoder</Filter>
+    </ClCompile>
+    <ClCompile Include="NvCodec\NvEncoder\NvEncoderD3D9.cpp">
+      <Filter>NvCodec\NvEncoder</Filter>
+    </ClCompile>
+    <ClCompile Include="NvCodec\NvEncoder\NvEncoderD3D11.cpp">
+      <Filter>NvCodec\NvEncoder</Filter>
+    </ClCompile>
+    <ClCompile Include="external_video_encoder_factory.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="client.cfg" />
     <None Include="cow.ive" />
+    <None Include="NvCodec\Utils\BitDepth.cu">
+      <Filter>NvCodec\Utils</Filter>
+    </None>
+    <None Include="NvCodec\Utils\ColorSpace.cu">
+      <Filter>NvCodec\Utils</Filter>
+    </None>
+    <None Include="NvCodec\Utils\Resize.cu">
+      <Filter>NvCodec\Utils</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="NvCodec">
+      <UniqueIdentifier>{8aeba417-ffa9-4850-a1ef-9c26eb98677e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NvCodec\Utils">
+      <UniqueIdentifier>{4acc625f-9586-4578-a4c4-18030bf63c4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NvCodec\NvEncoder">
+      <UniqueIdentifier>{a4aab4e9-5b86-4cff-8104-61a38368e6c0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

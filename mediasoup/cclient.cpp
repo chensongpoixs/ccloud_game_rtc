@@ -791,18 +791,18 @@ namespace chen {
 	{
 		if (!m_webrtc_connect)
 		{
-			WARNING_EX_LOG("not connect webrtc video wait !!!");
+			//WARNING_EX_LOG("not connect webrtc video wait !!!");
 			return false;
 		}
 		if (!m_send_transport)
 		{
-			WARNING_EX_LOG("m_send_transport == nullptr !!!");
+			//WARNING_EX_LOG("m_send_transport == nullptr !!!");
 			return false;
 		}
 
 		if (!rgba || width <= 0 || height <= 0)
-		{
-			WARNING_EX_LOG(" osg copy param ? !!!");
+		{//
+			//WARNING_EX_LOG(" osg copy param ? !!!");
 			return false;
 		}
 
@@ -820,12 +820,12 @@ namespace chen {
 	{
 		if (!m_webrtc_connect)
 		{
-			WARNING_EX_LOG("not connect webrtc video wait !!!");
+			//WARNING_EX_LOG("not connect webrtc video wait !!!");
 			return false;
 		}
 		if (!m_send_transport)
 		{
-			WARNING_EX_LOG("m_send_transport == nullptr !!!");
+			//WARNING_EX_LOG("m_send_transport == nullptr !!!");
 			return false;
 		}
 

@@ -45,7 +45,7 @@ namespace cmediasoup
 		if (!m_init)
 		{
 			
-			WARNING_EX_LOG("mediasoup_mgr  not init !!!");
+			//WARNING_EX_LOG("mediasoup_mgr  not init !!!");
 			return;
 		}
 		if (m_webrtc_pause)

@@ -12,7 +12,7 @@
 #include "cproducer.h"
 #include <memory>
 #include "cclient.h"
- 
+#include "external_video_encoder_factory.h"
 #include "cdataconsumer.h"
 #include "csession_description.h"
 #include "pc/video_track_source.h"
@@ -52,7 +52,7 @@ namespace chen {
 			nullptr /*default_adm*/,
 			webrtc::CreateBuiltinAudioEncoderFactory(),
 			webrtc::CreateBuiltinAudioDecoderFactory(),
-			webrtc::CreateBuiltinVideoEncoderFactory(),
+			webrtc::CreateBuiltinExternalVideoEncoderFactory(),
 			webrtc::CreateBuiltinVideoDecoderFactory(),
 			nullptr /*audio_mixer*/,
 			nullptr /*audio_processing*/);

@@ -116,7 +116,7 @@ namespace chen {
             .set_timestamp_ms(rtc::TimeMillis())
             .set_rotation(webrtc::kVideoRotation_0)
             .build();
-        captureFrame.set_ntp_time_ms(0);
+       // captureFrame.set_ntp_time_ms(0);
         s_client.webrtc_video(captureFrame);
        // DesktopCaptureSource::OnFrame(captureFrame);
         // rtc media info 
@@ -138,7 +138,7 @@ namespace chen {
 
             while (start_flag_) {
                 dc_->CaptureFrame();
-                //std::this_thread::sleep_for(std::chrono::milliseconds(1000 / fps_));
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 60));
             }
             }));
     }

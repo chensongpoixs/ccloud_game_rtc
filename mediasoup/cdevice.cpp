@@ -8,7 +8,7 @@
 #include <api/video_codecs/builtin_video_decoder_factory.h>
 #include <api/video_codecs/builtin_video_encoder_factory.h>
 #include <rtc_base/ssl_adapter.h>
- 
+#include "external_video_encoder_factory.h"
 #include "csession_description.h"
 #include "clog.h"
 #include "Utils.hpp"
@@ -236,9 +236,9 @@ namespace chen {
 				this->workerThread.get(),
 				this->signalingThread.get(),
 				nullptr /*default_adm*/,
-				webrtc::CreateBuiltinAudioEncoderFactory(),
+				 webrtc::CreateBuiltinAudioEncoderFactory() ,
 				webrtc::CreateBuiltinAudioDecoderFactory(),
-				webrtc::CreateBuiltinVideoEncoderFactory(),
+			/*webrtc::CreateBuiltinVideoEncoderFactory()*/	webrtc::CreateBuiltinExternalVideoEncoderFactory() ,
 				webrtc::CreateBuiltinVideoDecoderFactory(),
 				nullptr /*audio_mixer*/,
 				nullptr /*audio_processing*/);
