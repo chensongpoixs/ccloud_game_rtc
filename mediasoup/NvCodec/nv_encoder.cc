@@ -18,7 +18,7 @@
 #include "system_wrappers/include/metrics.h"
 #include "third_party/libyuv/include/libyuv/convert.h"
 #include "third_party/libyuv/include/libyuv/scale.h"
-
+#include "third_party/libyuv/include/libyuv.h"
 namespace webrtc {
 
 namespace {
@@ -85,71 +85,6 @@ VideoFrameType ConvertToVideoFrameType(EVideoFrameType type) {
 // is updated to point to each fragment, with offsets and lengths set as to
 // exclude the start codes.
 
-//static void RtpFragmentize(EncodedImage* encoded_image,
-//	const VideoFrameBuffer& frame_buffer,
-//	SFrameBSInfo* info,
-//	RTPFragmentationHeader* frag_header) {
-//	// Calculate minimum buffer size required to hold encoded data.
-//	size_t required_capacity = 0;
-//	size_t fragments_count = 0;
-//	for (int layer = 0; layer < info->iLayerNum; ++layer) {
-//		const SLayerBSInfo& layerInfo = info->sLayerInfo[layer];
-//		for (int nal = 0; nal < layerInfo.iNalCount; ++nal, ++fragments_count) {
-//			RTC_CHECK_GE(layerInfo.pNalLengthInByte[nal], 0);
-//			// Ensure |required_capacity| will not overflow.
-//			RTC_CHECK_LE(layerInfo.pNalLengthInByte[nal],
-//				std::numeric_limits<size_t>::max() - required_capacity);
-//			required_capacity += layerInfo.pNalLengthInByte[nal];
-//		}
-//	}
-//	if (encoded_image->capacity() < required_capacity) {
-//		// Increase buffer size. Allocate enough to hold an unencoded image, this
-//		// should be more than enough to hold any encoded data of future frames of
-//		// the same size (avoiding possible future reallocation due to variations in
-//		// required size).
-//		size_t new_capacity = CalcBufferSize(VideoType::kI420, frame_buffer.width(),
-//			frame_buffer.height());
-//		if (new_capacity < required_capacity) {
-//			// Encoded data > unencoded data. Allocate required bytes.
-//			RTC_LOG(LS_WARNING)
-//				<< "Encoding produced more bytes than the original image "
-//				<< "data! Original bytes: " << new_capacity
-//				<< ", encoded bytes: " << required_capacity << ".";
-//			new_capacity = required_capacity;
-//		}
-//		encoded_image->Allocate(new_capacity);
-//	}
-//
-//	// Iterate layers and NAL units, note each NAL unit as a fragment and copy
-//	// the data to |encoded_image->_buffer|.
-//	const uint8_t start_code[4] = { 0, 0, 0, 1 };
-//	frag_header->VerifyAndAllocateFragmentationHeader(fragments_count);
-//	size_t frag = 0;
-//	encoded_image->set_size(0);
-//	for (int layer = 0; layer < info->iLayerNum; ++layer) {
-//		const SLayerBSInfo& layerInfo = info->sLayerInfo[layer];
-//		// Iterate NAL units making up this layer, noting fragments.
-//		size_t layer_len = 0;
-//		for (int nal = 0; nal < layerInfo.iNalCount; ++nal, ++frag) {
-//			// Because the sum of all layer lengths, |required_capacity|, fits in a
-//			// |size_t|, we know that any indices in-between will not overflow.
-//			RTC_DCHECK_GE(layerInfo.pNalLengthInByte[nal], 4);
-//			RTC_DCHECK_EQ(layerInfo.pBsBuf[layer_len + 0], start_code[0]);
-//			RTC_DCHECK_EQ(layerInfo.pBsBuf[layer_len + 1], start_code[1]);
-//			RTC_DCHECK_EQ(layerInfo.pBsBuf[layer_len + 2], start_code[2]);
-//			RTC_DCHECK_EQ(layerInfo.pBsBuf[layer_len + 3], start_code[3]);
-//			frag_header->fragmentationOffset[frag] =
-//				encoded_image->size() + layer_len + sizeof(start_code);
-//			frag_header->fragmentationLength[frag] =
-//				layerInfo.pNalLengthInByte[nal] - sizeof(start_code);
-//			layer_len += layerInfo.pNalLengthInByte[nal];
-//		}
-//		// Copy the entire layer's data (including start codes).
-//		memcpy(encoded_image->data() + encoded_image->size(), layerInfo.pBsBuf,
-//			layer_len);
-//		encoded_image->set_size(encoded_image->size() + layer_len);
-//	}
-//}
 
 
 
@@ -162,7 +97,7 @@ static void RtpFragmentize(EncodedImage* encoded_image,
 	encoded_image->set_size(0);
 
 	required_capacity = frame_packet.size();
-	encoded_image->Allocate(required_capacity);
+	//encoded_image->Allocate(required_capacity);
 
 	// TODO(nisse): Use a cache or buffer pool to avoid allocation?
 	encoded_image->Allocate(required_capacity);
@@ -659,7 +594,7 @@ void NvEncoder::LayerConfig::SetStreamState(bool send_stream)
 	}
 	sending = send_stream;
 }
-
+//static FILE *out_file_ptr = ::fopen("test_chensong2.rgb", "wb+");
 bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 							std::vector<uint8_t>& frame_packet) 
 {
@@ -669,6 +604,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 		return false;
 	}
 
+	/*
 	if (video_format_ == EVideoFormatType::videoFormatI420) {
 		if (image_buffer_ != nullptr) {
 			if (webrtc::ConvertFromI420(input_frame, webrtc::VideoType::kARGB, 0,
@@ -680,6 +616,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 			return false;
 		}
 	}
+	*/
 
 	int width = input_frame.width();
 	int height = input_frame.height();
@@ -691,10 +628,17 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 		HRESULT hr = context->Map(texture, D3D11CalcSubresource(0, 0, 0), D3D11_MAP_WRITE, 0, &dsec);
 		if (SUCCEEDED(hr)) {
 #if 1
-			for (int y = 0; y < height; y++) {
-				memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
-						image_buffer_.get() + y * width * 4, width * 4);
-			}
+			//for (int y = 0; y < height; y++) 
+			//{
+			//	memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
+			//		input_frame.video_frame_buffer()->ToI420()->DataY()  + y * width * 4, width * 4);
+			//	/*memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
+			//			image_buffer_.get() + y * width * 4, width * 4);*/
+			//}
+			libyuv::ARGBToARGB(input_frame.video_frame_buffer()->ToI420()->DataY(), width * 4, (uint8_t*)dsec.pData, dsec.RowPitch, width, height);
+			//memcpy(dsec.pData, input_frame.video_frame_buffer()->ToI420()->DataY(), width * height * 4);
+			/*::fwrite(image_buffer_.get(), 1, width * height * 4, out_file_ptr);
+			::fflush(out_file_ptr);*/
 #else
 			// nv12
 			uint8_t* y_plane_ = image_buffer_.get();
@@ -715,7 +659,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 			int frame_size = nvenc_info.encode_texture(nv_encoders_[index], texture, out_buffer.get(), max_buffer_size);
 			if (frame_size > 0) {
 				frame_packet.resize(frame_size);
-				memcpy(&frame_packet[0], out_buffer.get(), frame_size);
+				::memcpy(&frame_packet[0], out_buffer.get(), frame_size);
 			}		
 		}
 	}

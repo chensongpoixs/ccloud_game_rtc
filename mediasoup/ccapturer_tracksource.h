@@ -70,17 +70,22 @@ namespace chen {
 			}
 
 			if (!i420_buffer_.get() ||
-				i420_buffer_->width() * i420_buffer_->height() < width * height) {
+				i420_buffer_->width() * i420_buffer_->height() < width * height) 
+			{
+				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
+			}
+			else if (i420_buffer_->width() * i420_buffer_->height() < width * height) 
+			{
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
 
 
-
-			libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
-				i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
-				i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
-				i420_buffer_->StrideV(), 0, 0, width, height, width,
-				height, libyuv::kRotate0, libyuv::FOURCC_ARGB); // GL_BGRA，  FOURCC_BGRA 、、GL_BGR
+			::memcpy(i420_buffer_->MutableDataY(), rgba, width * height * 4);
+			//libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
+			//	i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
+			//	i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
+			//	i420_buffer_->StrideV(), 0, 0, width, height, width,
+			//	height, libyuv::kRotate0, libyuv::FOURCC_ARGB); // GL_BGRA，  FOURCC_BGRA 、、GL_BGR
 
 
 																//chen::draw_font_func(i420_buffer_->MutableDataY(), i420_buffer_->MutableDataU(), i420_buffer_->MutableDataV(), "A", g_width, g_height, 3, 1, width , height);
