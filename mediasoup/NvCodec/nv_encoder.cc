@@ -162,13 +162,19 @@ static void RtpFragmentize(EncodedImage* encoded_image,
 	encoded_image->set_size(0);
 
 	required_capacity = frame_packet.size();
-	//encoded_image->Allocate(required_capacity);
+	encoded_image->Allocate(required_capacity);
 
 	// TODO(nisse): Use a cache or buffer pool to avoid allocation?
 	encoded_image->Allocate(required_capacity);
 
-	memcpy(encoded_image->data(), &frame_packet[0], frame_packet.size());
 
+	///////////////////////////////////////H264 NAL///////////////////////////////////////////////////////
+
+	memcpy(encoded_image->data() + encoded_image->size(), &frame_packet[0], frame_packet.size());
+	encoded_image->set_size(encoded_image->size() + frame_packet.size());
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	std::vector<webrtc::H264::NaluIndex> nalus = webrtc::H264::FindNaluIndices(
 		encoded_image->data(), encoded_image->size());
 	size_t fragments_count = nalus.size();
