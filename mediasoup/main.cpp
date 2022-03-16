@@ -21,7 +21,7 @@ void signalHandler(int signum)
 
 
 
-int main(int argc, char *argv[])
+int test_main(int argc, char *argv[])
 {
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
