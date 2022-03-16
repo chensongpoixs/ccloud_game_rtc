@@ -200,7 +200,7 @@ NvEncoder::NvEncoder(const cricket::VideoCodec& codec)
       num_temporal_layers_(1),
       tl0sync_limit_(0) 
 {
-	RTC_CHECK(absl::EqualsIgnoreCase(codec.name, cricket::kH264CodecName));
+	//RTC_CHECK(/*absl::EqualsIgnoreCase(codec.name, cricket::kH264CodecName)*/ codec.name == cricket::kH264CodecName);
 	std::string packetization_mode_string;
 	if (codec.GetParam(cricket::kH264FmtpPacketizationMode, &packetization_mode_string) 
 		&& packetization_mode_string == "1") {

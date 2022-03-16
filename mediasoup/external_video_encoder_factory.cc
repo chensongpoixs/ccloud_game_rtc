@@ -1,8 +1,13 @@
 #include "external_video_encoder_factory.h"
+//extern "C"
+//{
+#include "absl/strings/match.h"
 #include "absl/memory/memory.h"
+//}
+
 #include "media/engine/internal_decoder_factory.h"
 #include "rtc_base/logging.h"
-#include "absl/strings/match.h"
+
 #include "modules/video_coding/codecs/h264/include/h264.h"
 #include "modules/video_coding/codecs/vp8/include/vp8.h"
 #include "modules/video_coding/codecs/vp9/include/vp9.h"
@@ -11,7 +16,7 @@
 
 #include "nv_encoder.h"
 
-namespace webrtc {
+namespace chen {
 
 class ExternalEncoderFactory : public webrtc::VideoEncoderFactory {
 public:
@@ -33,7 +38,7 @@ public:
 
 	std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(
 		const webrtc::SdpVideoFormat& format) override {
-		if (absl::EqualsIgnoreCase(format.name, cricket::kH264CodecName)) {
+		if (format.name == cricket::kH264CodecName/*absl::EqualsIgnoreCase(format.name, cricket::kH264CodecName)*/) {
 			if (webrtc::H264Encoder::IsSupported()) {
 				if (nvenc_info.is_supported()) {
 					return absl::make_unique<webrtc::NvEncoder>(cricket::VideoCodec(format));

@@ -5,10 +5,10 @@
 #include "rtc_base/system/rtc_export.h"
 #include "api/video_codecs/video_encoder_factory.h"
 
-namespace webrtc {
+namespace chen {
 
 // Creates a new factory that can create the built-in types of video decoders.
-RTC_EXPORT std::unique_ptr<webrtc::VideoEncoderFactory> CreateBuiltinExternalVideoEncoderFactory();
+ std::unique_ptr<webrtc::VideoEncoderFactory> CreateBuiltinExternalVideoEncoderFactory();
 
 } // namespace webrtc
 
