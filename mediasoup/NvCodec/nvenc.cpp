@@ -228,6 +228,10 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	else if (enc->format == DXGI_FORMAT_B8G8R8A8_UNORM) {
 		eBufferFormat = NV_ENC_BUFFER_FORMAT_ARGB;
 	}
+	else if (enc->format == DXGI_FORMAT_R8G8B8A8_UNORM)
+	{
+		eBufferFormat = NV_ENC_BUFFER_FORMAT_ARGB; // error 
+	}
 	else {
 		printf("[nvenc] Error: Unsupported dxgi format. \n");
 		return false;

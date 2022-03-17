@@ -634,8 +634,8 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 			//		input_frame.video_frame_buffer()->ToI420()->DataY()  + y * width * 4, width * 4);
 			//	/*memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
 			//			image_buffer_.get() + y * width * 4, width * 4);*/
-			//}
-			libyuv::ARGBToARGB(input_frame.video_frame_buffer()->ToI420()->DataY(), width * 4, (uint8_t*)dsec.pData, dsec.RowPitch, width, height);
+			//}//FOURCC_ARGB
+			libyuv::ABGRToARGB(input_frame.video_frame_buffer()->ToI420()->DataY(), width * 4, (uint8_t*)dsec.pData, dsec.RowPitch, width, height);
 			//memcpy(dsec.pData, input_frame.video_frame_buffer()->ToI420()->DataY(), width * height * 4);
 			/*::fwrite(image_buffer_.get(), 1, width * height * 4, out_file_ptr);
 			::fflush(out_file_ptr);*/
