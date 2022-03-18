@@ -27,6 +27,16 @@ namespace chen {
 	using FControllerButtonIndex = uint8;
 	using FControllerAnalog = double;
 	using FControllerAxis = uint8;
+	////PostMessage
+#define MESSAGE(g_wnd, message_id, param1, param2) MSG msg;  \
+														  msg.hwnd = g_wnd;			\
+												          msg.message = message_id;	\
+														  msg.wParam = param1;		\
+														  msg.lParam = param2;		\
+														  msg.time = ::time(NULL);	\
+														  msg.pt.x = g_width; msg.pt.y = g_height; \
+														  ::TranslateMessage(&msg); \
+														 ::DispatchMessage(&msg);
 	//使用全局变量操作的哈 
 #define SET_POINT() POINT pt; pt.x = g_width; pt.y = g_height;
 #if defined(_MSC_VER)
@@ -204,11 +214,12 @@ namespace chen {
 		WINDOW_CHILD();
 		if (childwin)
 		{
-			::PostMessageW(childwin, WM_KEYDOWN, KeyCode, 1);
+			//PostMessageW
+			MESSAGE(childwin, WM_KEYDOWN, KeyCode, 1);
 		}
 		else if (mwin)
 		{
-			::PostMessageW(mwin, WM_KEYDOWN, KeyCode, 1);
+			MESSAGE(mwin, WM_KEYDOWN, KeyCode, 1);
 		}
 		else
 		{
@@ -255,11 +266,11 @@ namespace chen {
 		WINDOW_CHILD();
 		if (childwin)
 		{
-			::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(childwin, WM_KEYUP, KeyCode, 1);
 		}
 		else if (mwin)
 		{
-			::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -368,7 +379,7 @@ namespace chen {
 		}*/
 		if (mwin)
 		{
-			::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -409,7 +420,7 @@ namespace chen {
 		//WINDOW_BNTTON_UP(vec);
 		if (mwin)
 		{
-			::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		/*if (mwin)
 		{
@@ -454,7 +465,7 @@ namespace chen {
 		//WINDOW_BNTTON_UP(vec);
 		if (mwin)
 		{
-			::PostMessageW(mwin, WM_MOUSEMOVE, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
+			MESSAGE(mwin, WM_MOUSEMOVE, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
 		}
 		else
 		{
@@ -500,11 +511,11 @@ namespace chen {
 		}*/
 		if (childwin)
 		{
-			::PostMessageW(childwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(childwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
 		}
 		else if (mwin)
 		{
-			::PostMessageW(mwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(mwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -537,7 +548,8 @@ namespace chen {
 		WINDOW_MAIN();
 		if (mwin)
 		{
-			::PostMessage(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
+			//::PostMessage(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
+			MESSAGE(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
 		}
 		else
 		{
