@@ -148,13 +148,14 @@ void NvEncoder::CreateDefaultEncoderParams(NV_ENC_INITIALIZE_PARAMS* pIntializeP
     pIntializeParams->encodeHeight = m_nHeight;
     pIntializeParams->darWidth = m_nWidth;
     pIntializeParams->darHeight = m_nHeight;
-    pIntializeParams->frameRateNum = 30;
+	//TODO@chensong 设置视频编码  一秒的帧数
+    pIntializeParams->frameRateNum = 60;
     pIntializeParams->frameRateDen = 1;
     pIntializeParams->enablePTD = 1;
     pIntializeParams->reportSliceOffsets = 0;
     pIntializeParams->enableSubFrameWrite = 0;
-    pIntializeParams->maxEncodeWidth = m_nWidth;
-    pIntializeParams->maxEncodeHeight = m_nHeight;
+    pIntializeParams->maxEncodeWidth = 4096;
+    pIntializeParams->maxEncodeHeight = 4096;
     pIntializeParams->enableMEOnlyMode = m_bMotionEstimationOnly;
 #if defined(_WIN32)
     pIntializeParams->enableEncodeAsync = true;
@@ -164,8 +165,9 @@ void NvEncoder::CreateDefaultEncoderParams(NV_ENC_INITIALIZE_PARAMS* pIntializeP
     m_nvenc.nvEncGetEncodePresetConfig(m_hEncoder, codecGuid, presetGuid, &presetConfig);
     memcpy(pIntializeParams->encodeConfig, &presetConfig.presetCfg, sizeof(NV_ENC_CONFIG));
     pIntializeParams->encodeConfig->frameIntervalP = 1;
-    pIntializeParams->encodeConfig->gopLength = NVENC_INFINITE_GOPLENGTH;
-
+	// TODO@chensong 2022-03-18 设置gop的长度   哈哈  这个不是真的真的编码设置gop的大小哈
+    //pIntializeParams->encodeConfig->gopLength = 2;
+	pIntializeParams->encodeConfig->gopLength = NVENC_INFINITE_GOPLENGTH;
     pIntializeParams->encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_CONSTQP;
 
     if (pIntializeParams->presetGUID != NV_ENC_PRESET_LOSSLESS_DEFAULT_GUID
@@ -299,7 +301,7 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
     m_nMaxEncodeWidth = m_initializeParams.maxEncodeWidth;
     m_nMaxEncodeHeight = m_initializeParams.maxEncodeHeight;
 
-    m_nEncoderBuffer = m_encodeConfig.frameIntervalP + m_encodeConfig.rcParams.lookaheadDepth + m_nExtraOutputDelay;
+	m_nEncoderBuffer = 2;// m_encodeConfig.frameIntervalP + m_encodeConfig.rcParams.lookaheadDepth + m_nExtraOutputDelay;
     m_nOutputDelay = m_nEncoderBuffer - 1;
     m_vMappedInputBuffers.resize(m_nEncoderBuffer, nullptr);
 

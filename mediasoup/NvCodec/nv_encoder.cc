@@ -291,7 +291,9 @@ int32_t NvEncoder::InitEncode(const VideoCodec* inst,
 		nvenc_config.width = configurations_[i].width;
 		nvenc_config.height = configurations_[i].height;
 		nvenc_config.framerate = (uint32_t)configurations_[i].max_frame_rate;
-		nvenc_config.gop = configurations_[i].key_frame_interval * 2;
+		//TODO@chensong 2022-03-18 设置GOP 的大小 哈 ^_^ 不知道为什么 webrtc中设置gop key_frame_interval 字段是有效的、
+		//根据程序
+		nvenc_config.gop = 45;// configurations_[i].key_frame_interval;
 		nvenc_config.bitrate = configurations_[i].target_bps;
 		if (!nvenc_info.init(nv_encoders_[i], &nvenc_config)) {
 			Release();
@@ -634,7 +636,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 			//		input_frame.video_frame_buffer()->ToI420()->DataY()  + y * width * 4, width * 4);
 			//	/*memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
 			//			image_buffer_.get() + y * width * 4, width * 4);*/
-			//}//FOURCC_ARGB
+			//}//FOURCC_ARGB//NV_ENC_BUFFER_FORMAT_ABGR
 			libyuv::ABGRToARGB(input_frame.video_frame_buffer()->ToI420()->DataY(), width * 4, (uint8_t*)dsec.pData, dsec.RowPitch, width, height);
 			//memcpy(dsec.pData, input_frame.video_frame_buffer()->ToI420()->DataY(), width * height * 4);
 			/*::fwrite(image_buffer_.get(), 1, width * height * 4, out_file_ptr);
