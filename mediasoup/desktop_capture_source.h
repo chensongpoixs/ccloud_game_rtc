@@ -7,6 +7,7 @@
 #include "media/base/video_broadcaster.h"
 
 
+namespace chen {
 
 class VideoCaptureSource
     : public rtc::VideoSourceInterface<webrtc::VideoFrame> {
@@ -32,4 +33,5 @@ class VideoCaptureSource
 };
 
 
+}
 #endif  // EXAMPLES_DESKTOP_CAPTURE_DESKTOP_CAPTURER_SOURCE_TEST_H_
