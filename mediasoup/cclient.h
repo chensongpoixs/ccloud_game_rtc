@@ -97,6 +97,9 @@ namespace chen {
 
 
 		void transportofferasner(bool send, bool success);
+
+		//webrtc连接失败回调用重新连接哈
+		void webrtc_connect_failed_callback();
 	private:
 
 		bool _load(nlohmann::json routerRtpCapabilities);

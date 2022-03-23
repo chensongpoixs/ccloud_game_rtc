@@ -111,6 +111,15 @@ namespace chen {
 
 	 
 
+	void ctransport::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state)
+	{
+		NORMAL_EX_LOG("OnSignalingChange new_state = %d", new_state);
+		if (m_client_ptr && new_state == webrtc::PeerConnectionInterface::kClosed)
+		{
+			m_client_ptr->webrtc_connect_failed_callback();
+		}
+	}
+
 	// 好家伙  webrtc封装太好 ^_^  接口定义 PeerConnectionObserver
 	void ctransport::OnAddTrack(
 		rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
@@ -126,6 +135,15 @@ namespace chen {
 	}
 	 
 	 
+	void ctransport::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state)
+	{
+		NORMAL_EX_LOG("OnSignalingChange new_state = %d", new_state);
+		if (m_client_ptr && new_state == webrtc::PeerConnectionInterface::kClosed)
+		{
+			m_client_ptr->webrtc_connect_failed_callback();
+		}
+	}
+
 	void ctransport::OnIceCandidate(const webrtc::IceCandidateInterface* candidate)
 	{
 		NORMAL_EX_LOG("OnIceCandidate");
@@ -144,6 +162,10 @@ namespace chen {
 	}
 	void ctransport::OnFailure(webrtc::RTCError error)
 	{
-		//m_client_ptr->transportofferasner(m_send, false);
+		if (m_client_ptr)
+		{
+			m_client_ptr->transportofferasner(false, false);
+		}
+		
 	}
 }

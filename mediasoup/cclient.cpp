@@ -624,7 +624,24 @@ namespace chen {
 		{
 			m_status = EMediasoup_Reset;
 			ERROR_EX_LOG("- EMediasoup_Reset --recv send = %d failed !!!", send);
+			++m_websocket_timer;
+			if (m_websocket_timer > g_cfg.get_uint32(ECI_WebSocketTimers))
+			{
+				_mediasoup_status_callback(EMediasoup_WebSocket_Init, 1);
+			}
 		}
+	}
+	void cclient::webrtc_connect_failed_callback()
+	{
+		WARNING_EX_LOG("webrtc connect failed callback wait ------> reconnect_times = %d", m_websocket_timer);
+		m_status = EMediasoup_Reset;
+		++m_websocket_timer;
+		if (m_websocket_timer > g_cfg.get_uint32(ECI_WebSocketTimers))
+		{
+			_mediasoup_status_callback(EMediasoup_WebSocket_Init, 1);
+		}
+		
+
 	}
 	bool cclient::_send_router_rtpcapabilities()
 	{

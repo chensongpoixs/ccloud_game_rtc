@@ -62,10 +62,8 @@ namespace chen {
 		//
 
 		void OnSignalingChange(
-			webrtc::PeerConnectionInterface::SignalingState new_state) override 
-		{
-			NORMAL_EX_LOG("OnSignalingChange");
-		}
+			webrtc::PeerConnectionInterface::SignalingState new_state) override;
+		
 
 
 		// 好家伙  webrtc封装太好 ^_^  接口定义 PeerConnectionObserver
@@ -85,10 +83,8 @@ namespace chen {
 			NORMAL_EX_LOG("OnRenegotiationNeeded");
 		}
 		void OnIceConnectionChange(
-			webrtc::PeerConnectionInterface::IceConnectionState new_state) override 
-		{
-			NORMAL_EX_LOG("OnIceConnectionChange");
-		}
+			webrtc::PeerConnectionInterface::IceConnectionState new_state) override;
+		
 		void OnIceGatheringChange(
 			webrtc::PeerConnectionInterface::IceGatheringState new_state) override 
 		{
