@@ -115,7 +115,8 @@ static void RtpFragmentize(EncodedImage* encoded_image,
 	size_t fragments_count = nalus.size();
 	// const uint8_t start_code[4] = {0, 0, 0, 1};
 	frag_header->VerifyAndAllocateFragmentationHeader(fragments_count);
-	for (size_t i = 0; i < nalus.size(); i++) {
+	for (size_t i = 0; i < nalus.size(); ++i) 
+	{
 		frag_header->fragmentationOffset[i] = nalus[i].payload_start_offset;
 		frag_header->fragmentationLength[i] = nalus[i].payload_size;
 	}

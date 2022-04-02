@@ -16,7 +16,7 @@ namespace cmediasoup
 
 
 
-	class __declspec(dllimport) cmediasoup_mgr
+	class /*__declspec(dllimport)*/ cmediasoup_mgr
 	{
 	public:
 		cmediasoup_mgr();

@@ -34,9 +34,11 @@ struct nvenc_data
 
 static bool is_supported(void)
 {
+	return false;
 	static HMODULE hModule = NULL;
 
-	if (hModule == NULL) {
+	if (hModule == NULL) 
+	{
 #if defined(_WIN64)
 		hModule = LoadLibrary(TEXT("nvEncodeAPI64.dll"));
 #elif defined(_WIN32)
@@ -44,7 +46,8 @@ static bool is_supported(void)
 #endif
 	}
 
-	if (hModule == NULL) {
+	if (hModule == NULL) 
+	{
 		printf("[nvenc] Error: NVENC library file is not found. Please ensure NV driver is installed. \n");
 		return false;
 	}
@@ -59,7 +62,8 @@ static bool is_supported(void)
 	uint32_t version = 0;
 	uint32_t currentVersion = (NVENCAPI_MAJOR_VERSION << 4) | NVENCAPI_MINOR_VERSION;
 	NVENC_API_CALL(NvEncodeAPIGetMaxSupportedVersion(&version));
-	if (currentVersion > version) {
+	if (currentVersion > version) 
+	{
 		printf("[nvenc] Error: Current Driver Version does not support this NvEncodeAPI version, please upgrade driver");
 		return false;
 	}

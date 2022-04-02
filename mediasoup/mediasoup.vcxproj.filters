@@ -79,6 +79,15 @@
       <Filter>NvCodec\NvEncoder</Filter>
     </ClInclude>
     <ClInclude Include="external_video_encoder_factory.h" />
+    <ClInclude Include="VpuCodec\cvpu_enc.h">
+      <Filter>VpuCodec</Filter>
+    </ClInclude>
+    <ClInclude Include="VpuCodec\cvpu_encoder.h">
+      <Filter>VpuCodec</Filter>
+    </ClInclude>
+    <ClInclude Include="VpuCodec\cbm_vpu.h">
+      <Filter>VpuCodec\BmEncoder</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />
@@ -139,6 +148,15 @@
       <Filter>NvCodec\NvEncoder</Filter>
     </ClCompile>
     <ClCompile Include="external_video_encoder_factory.cc" />
+    <ClCompile Include="VpuCodec\cvpu_enc.cpp">
+      <Filter>VpuCodec</Filter>
+    </ClCompile>
+    <ClCompile Include="VpuCodec\cvpu_encoder.cpp">
+      <Filter>VpuCodec</Filter>
+    </ClCompile>
+    <ClCompile Include="VpuCodec\cbm_vpu.cpp">
+      <Filter>VpuCodec\BmEncoder</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="client.cfg" />
@@ -165,6 +183,12 @@
     </Filter>
     <Filter Include="NvCodec\NvEncoder">
       <UniqueIdentifier>{a4aab4e9-5b86-4cff-8104-61a38368e6c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VpuCodec">
+      <UniqueIdentifier>{6df81f65-cb19-4222-a64e-bf9b8d15d178}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VpuCodec\BmEncoder">
+      <UniqueIdentifier>{f8242be8-e551-4983-b468-0f5f80b6ca68}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
