@@ -15,6 +15,21 @@ namespace chen {
 #define BM_MAX_MB_NUM                      0x40000     // MB num for max resolution = 8192x8192/(16x16)
 #define BM_VPU_ALIGN16(_x)             (((_x)+0x0f)&~0x0f)
 #define BM_VPU_ALIGN64(_x)             (((_x)+0x3f)&~0x3f)
+
+
+
+#define BM_VPU_MS()                     std::chrono::steady_clock::time_point cur_time;  \
+    std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();   \
+                                        std::chrono::steady_clock::duration dur;         \
+                                         std::chrono::milliseconds ms;                   \
+                                            uint32_t elapse;
+
+
+
+
+
+   
+
     static void logging_fn(BmVpuLogLevel level,
         char const* file, int const line, char const* fn,
         const char* format, ...)
@@ -120,7 +135,7 @@ namespace chen {
             ptrdiff_t bwidth = width;
             if (i != 0)
             {
-                bwidth = (width + 1) / 4;
+                bwidth = ((width + 1)/2)/ 2;
             }
             //DEBUG_EX_LOG("[info]  bmvpu_upload_data[%d] ... \n", i);
             int ret = bmvpu_upload_data(video_encoder->core_idx, src, src_linesize,
@@ -211,16 +226,16 @@ namespace chen {
         m_eop.fps_den = 1000; //
 
         // bitrate in kbps 
-        m_eop.bitrate = 30000;
+        m_eop.bitrate = 3000;
         m_eop.vbv_buffer_size = m_eop.bitrate * 2;
-        m_eop.enc_mode = 3; // 编码时 的量化 速度
+        m_eop.enc_mode = 2; // 编码时 的量化 速度
 
         m_eop.intra_period = 4; // gop size;
         // I-P-P-P-P-P
         m_eop.gop_preset = 6;
 
         // 是否开启 ROI 编码的时量化 重要地方进行量化 
-        m_eop.roi_enable = 1;
+        m_eop.roi_enable = 0;
 
         // set YUV420 或者 NV12 
         m_eop.chroma_interleave = 0;
@@ -464,7 +479,7 @@ namespace chen {
         //DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ...\n");
 
 
-
+        BM_VPU_MS();
 
         addr = (uint8_t*)bmvpu_dma_buffer_get_physical_address(src_fb->dma_buffer);
         if (!addr) 
@@ -472,8 +487,13 @@ namespace chen {
             DEBUG_EX_LOG("[error]bmvpu_dma_buffer_get_physical_address failed\n");
             return -16;
         }
+        cur_time = std::chrono::steady_clock::now();
 
-
+        dur = cur_time - pre_time;
+        ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+         elapse = static_cast<uint32_t>(ms.count());
+        DEBUG_EX_LOG("bmvpu_dma_buffer_get_physical_address ms = %u", elapse);
+        pre_time = cur_time;
        // DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ok !!! \n");
 
 
@@ -525,7 +545,13 @@ namespace chen {
             memcpy(dst_u, src_u, width * height / 4);
             memcpy(dst_v, src_v, width * height / 4);*/
         }
+        cur_time = std::chrono::steady_clock::now();
 
+        dur = cur_time - pre_time;
+        ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+         elapse = static_cast<uint32_t>(ms.count());
+        DEBUG_EX_LOG("bm_image_upload ms = %u", elapse);
+        pre_time = cur_time;
        // DEBUG_EX_LOG("[info][%s] copying .. Done\n", __FUNCTION__);
 
         /* Flush cache to DMA buffer */
@@ -548,6 +574,16 @@ namespace chen {
         unsigned int output_code = 0; // TODO
 
         m_output_frame.data_size = 0;
+
+        cur_time = std::chrono::steady_clock::now();
+
+        dur = cur_time - pre_time;
+        ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+        elapse = static_cast<uint32_t>(ms.count());
+        DEBUG_EX_LOG("bmvpu_dma_buffer_unmap ms = %u", elapse);
+        pre_time = cur_time;
+
+
         enc_ret = static_cast<BmVpuEncReturnCodes>(bmvpu_enc_encode(m_video_encoder, &m_input_frame,
             &m_output_frame, &m_enc_params, &output_code));
         if (enc_ret == BM_VPU_ENC_RETURN_CODE_END)
@@ -560,7 +596,13 @@ namespace chen {
             DEBUG_EX_LOG("[error] could not encode this image : %s\n", bmvpu_enc_error_string(enc_ret));
             return -17;
         }
+        cur_time = std::chrono::steady_clock::now();
 
+        dur = cur_time - pre_time;
+        ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+        elapse = static_cast<uint32_t>(ms.count());
+        DEBUG_EX_LOG("bmvpu_enc_encode ms = %u", elapse);
+        pre_time = cur_time;
         if (m_output_frame.data_size > 0)
         {
             frame_type = m_output_frame.frame_type;
@@ -592,7 +634,13 @@ namespace chen {
             frame_packet.resize(m_output_frame.data_size);
         //    DEBUG_EX_LOG("encoder frame data size = %u", m_output_frame.data_size);
             ::memcpy(&frame_packet[0], bs_buffer_ptr.mem.get(), m_output_frame.data_size);
+            cur_time = std::chrono::steady_clock::now();
 
+            dur = cur_time - pre_time;
+            ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+            elapse = static_cast<uint32_t>(ms.count());
+            DEBUG_EX_LOG("nal copy  ms = %u", elapse);
+            pre_time = cur_time;
         }
        // DEBUG_EX_LOG("encoder frame end ok \n");
 
