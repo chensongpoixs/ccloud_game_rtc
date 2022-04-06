@@ -87,7 +87,7 @@ namespace chen {
 #define DEBUG_LOG(format, ...)		VAR_LOG(ELogLevel_Debug, format, ##__VA_ARGS__)
 
 #define NORMAL_EX_LOG(format, ...)	NORMAL_LOG("[%s][%d]" format, FUNCTION, __LINE__, ##__VA_ARGS__)
-
+#define DEBUG_EX_LOG(format, ...)	DEBUG_LOG("[%s][%d]" format, FUNCTION, __LINE__, ##__VA_ARGS__) 
 #define WARNING_EX_LOG(format, ...)	WARNING_LOG("[%s][%d]" format, FUNCTION, __LINE__, ##__VA_ARGS__)
 
 #define ERROR_EX_LOG(format, ...)	ERROR_LOG("[%s][%d]" format, FUNCTION, __LINE__, ##__VA_ARGS__)
