@@ -135,6 +135,121 @@ namespace chen {
         return 0;
 
     }
+    static int SetMapData(int soc_idx, /*AVCodecContext* avctx,*/ BmVpuEncParams* encoding_params, int picWidth, int picHeight/*AVBMRoiInfo* roi*/)
+    {
+        typedef union {
+            struct {
+                unsigned char  mb_force_mode : 2; //lint !e46 [ 1: 0]
+                unsigned char  mb_qp : 6; //lint !e46 [ 7: 2]
+            } field;
+        } AvcEncCustomMap; // for AVC custom map on wave  (1 MB = 8bits)
+        //BmVpuEncContext* ctx = (BmVpuEncContext*)(avctx->priv_data);
+        int i, sumQp = 0;
+        int h, w, ctuPos, initQp;
+        {
+            int mbAddr = 0;
+            int MbWidth = BM_VPU_ALIGN16(picWidth) >> 4;
+            int MbHeight = BM_VPU_ALIGN16(picHeight) >> 4;
+            //typedef union {
+            //    struct {
+            //        int mb_force_mode;
+            //        int mb_qp;
+            //    }H264;
+
+            //    struct {
+            //        int ctu_force_mode;
+            //        int ctu_coeff_drop;
+
+            //        int sub_ctu_qp_0;
+            //        int sub_ctu_qp_1;
+            //        int sub_ctu_qp_2;
+            //        int sub_ctu_qp_3;
+
+            //        int lambda_sad_0;
+            //        int lambda_sad_1;
+            //        int lambda_sad_2;
+            //        int lambda_sad_3;
+            //    }HEVC;
+            //} RoiField;
+            //typedef struct AVBMRoiInfo {
+            //    // int numbers;
+            //    /* Enable ROI map. */
+            //    int customRoiMapEnable;
+            //    /* Enable custom lambda map. */
+            //    int customLambdaMapEnable;
+            //    /* Force CTU to be encoded with intra or to be skipped.  */
+            //    int customModeMapEnable;
+            //    /* Force all coefficients to be zero after TQ or not for each CTU (to be dropped).*/
+            //    int customCoefDropEnable;
+            //    RoiField field[0x40000];
+            //} AVBMRoiInfo;
+            //AVBMRoiInfo roiinfo  ;
+            //memset(&roiinfo, 0, sizeof(AVBMRoiInfo));
+            //roiinfo.customRoiMapEnable = 1;
+            //roiinfo.customModeMapEnable = 0;
+            //for (int i = 0; i < (BM_VPU_ALIGN16(picHeight) >> 4); i++) 
+            //{
+            //    for (int j = 0; j < (BM_VPU_ALIGN16(picWidth) >> 4); j++) 
+            //    {
+            //        int pos = i * (BM_VPU_ALIGN16(picWidth) >> 4) + j;
+            //        // test_1
+            //        if ((j >= 9) && (i >= 11)) 
+            //        {
+            //            roiinfo.field[pos].H264.mb_qp = 10;
+            //        }
+            //        else 
+            //        {
+            //            roiinfo.field[pos].H264.mb_qp = 20;
+            //        }
+
+            //        // test_2
+            //        // roiinfo->field[pos].H264.mb_qp = frame_nums%51;
+
+            //        // test_3
+            //        // if (i> 10) {
+            //        //     roiinfo->field[pos].H264.mb_qp = 29;
+            //        // } else {
+            //        //     roiinfo->field[pos].H264.mb_qp = 15;
+            //        // }
+            //    }
+            //}
+            AvcEncCustomMap     customMapBuf[BM_MAX_MB_NUM];
+            {
+                int bufSize = MbWidth * MbHeight;
+
+               /* for (h = 0; h < MbHeight; h++) 
+                {
+                    for (w = 0; w < MbWidth; w++) {
+                        mbAddr = w + h * MbWidth;
+                        customMapBuf[mbAddr].field.mb_qp = MAX(MIN(10 & 0x3f, 51), 0);
+                        sumQp += customMapBuf[mbAddr].field.mb_qp;
+                    }
+                }*/
+                encoding_params->customMapOpt[encoding_params->customMapOptUsedIndex].roiAvgQp = (sumQp + (bufSize >> 1)) / bufSize; // round off.
+                encoding_params->customMapOpt[encoding_params->customMapOptUsedIndex].customRoiMapEnable = 1;
+            }
+            /* {
+                for (h = 0; h < MbHeight; h++) {
+                    for (w = 0; w < MbWidth; w++) {
+                        mbAddr = w + h * MbWidth;
+                        customMapBuf[mbAddr].field.mb_force_mode = roi->field[mbAddr].H264.mb_force_mode & 0x3;
+                    }
+                }
+                encoding_params->customMapOpt[encoding_params->customMapOptUsedIndex].customModeMapEnable = 1;
+            }*/
+
+            int core_idx = bmvpu_enc_get_core_idx(soc_idx);
+            int ret = bmvpu_upload_data(core_idx, (uint8_t *)&customMapBuf[0], sizeof(AvcEncCustomMap) * BM_MAX_MB_NUM, encoding_params->customMapOpt[encoding_params->customMapOptUsedIndex].addrCustomMap, sizeof(AvcEncCustomMap) * BM_MAX_MB_NUM, sizeof(AvcEncCustomMap) * BM_MAX_MB_NUM, 1);
+            if (ret < 0)
+            {
+               // av_log(avctx, AV_LOG_ERROR, "bmvpu_upload_data failed");
+                return -1;
+            }
+
+        }
+        
+        return 0;
+    }
 
 	cbm_encoder::cbm_encoder()
 		: m_soc_idx(-1)
@@ -213,14 +328,14 @@ namespace chen {
         // bitrate in kbps 
         m_eop.bitrate = 30000;
         m_eop.vbv_buffer_size = m_eop.bitrate * 2;
-        m_eop.enc_mode = 1; // 编码时 的量化 速度
+        m_eop.enc_mode = 2; // 编码时 的量化 速度
 
-        m_eop.intra_period = 10; // gop size;
+        m_eop.intra_period = 50; // gop size;
         // I-P-P-P-P-P
         m_eop.gop_preset = 6;
 
         // 是否开启 ROI 编码的时量化 重要地方进行量化 
-        m_eop.roi_enable = 0;
+        m_eop.roi_enable = 1;
 
         // set YUV420 或者 NV12 
         m_eop.chroma_interleave = 0;
@@ -556,6 +671,11 @@ namespace chen {
 
         m_enc_params.customMapOptUsedIndex = (++m_enc_params.customMapOptUsedIndex) % (m_initial_info.min_num_src_fb);
 
+      /*  if (SetMapData(m_soc_idx, &m_enc_params, width, height) != 0)
+        {
+            ERROR_EX_LOG("setmap Data error failed ");
+            return -45;
+        }*/
         enc_ret = static_cast<BmVpuEncReturnCodes>(bmvpu_enc_encode(m_video_encoder, &m_input_frame,
             &m_output_frame, &m_enc_params, &output_code));
         if (enc_ret == BM_VPU_ENC_RETURN_CODE_END)
