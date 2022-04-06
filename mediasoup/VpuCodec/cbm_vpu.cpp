@@ -70,7 +70,7 @@ namespace chen {
         //    memset(buffer->mem, 0, size);
         //}
         buffer->mem.reset(new uint8_t[size]);
-        DEBUG_EX_LOG("[info][%s][%d][size = %u][mem = %p]\n", __FUNCTION__, __LINE__, size, buffer->mem.get());
+     //   DEBUG_EX_LOG("[info][%s][%d][size = %u][mem = %p]\n", __FUNCTION__, __LINE__, size, buffer->mem.get());
         //bs_buffer_t* s = (bs_buffer_t*)(context);
 
         /*int ret;
@@ -87,7 +87,7 @@ namespace chen {
     }
     static void finish_output_buffer(void* context, void* acquired_handle)
     {
-        DEBUG_EX_LOG("[info][%s][%d][acquired_handle = %p]\n", __FUNCTION__, __LINE__, acquired_handle);
+      //  DEBUG_EX_LOG("[info][%s][%d][acquired_handle = %p]\n", __FUNCTION__, __LINE__, acquired_handle);
         ((void)(context));
     }
 
@@ -122,7 +122,7 @@ namespace chen {
             {
                 bwidth = (width + 1)/2 ;
             }
-            DEBUG_EX_LOG("[info]  bmvpu_upload_data[%d] ... \n", i);
+           // DEBUG_EX_LOG("[info]  bmvpu_upload_data[%d] ... \n", i);
             int ret = bmvpu_upload_data(video_encoder->core_idx, src, src_linesize,
                 dst, dst_linesize, bwidth, h);
             if (ret < 0)
@@ -130,7 +130,7 @@ namespace chen {
                 DEBUG_EX_LOG("[error] bmvpu_upload_data failed !!! (i = %d)\n", i);
                 return -1;
             }
-            DEBUG_EX_LOG("[info]  bmvpu_upload_data[%d] end ok  ... \n", i);
+           // DEBUG_EX_LOG("[info]  bmvpu_upload_data[%d] end ok  ... \n", i);
         }
         return 0;
 
@@ -320,15 +320,15 @@ namespace chen {
         m_eop.frame_width = width;
         m_eop.frame_height = height;
         m_eop.color_format = m_enc_color_format;
-        m_eop.timebase_den = 25;
+        m_eop.timebase_den = 60;
         m_eop.timebase_num = 1;
-        m_eop.fps_num = 25;
+        m_eop.fps_num = 60;
         m_eop.fps_den = 1000; //
 
         // bitrate in kbps 
-        m_eop.bitrate = 30000;
+        m_eop.bitrate = 3000;
         m_eop.vbv_buffer_size = m_eop.bitrate * 2;
-        m_eop.enc_mode = 2; // 编码时 的量化 速度
+        m_eop.enc_mode = 3; // 编码时 的量化 速度
 
         m_eop.intra_period = 50; // gop size;
         // I-P-P-P-P-P
@@ -561,13 +561,13 @@ namespace chen {
                 DEBUG_EX_LOG("[error] frame buffer is NULL, pop failed\n");
                 return -15;
             }
-            DEBUG_EX_LOG("[info] myIndex = 0x%x, %p, pop \n", fb->myIndex, fb);
+          //  DEBUG_EX_LOG("[info] myIndex = 0x%x, %p, pop \n", fb->myIndex, fb);
             for (int i = 0; i < m_initial_info.min_num_src_fb; ++i)
             {
                 if (&m_src_fb_list[i] == fb)
                 {
                     src_fb = fb;
-                    DEBUG_EX_LOG("[info] find frame buffer i = %d\n", i);
+               //     DEBUG_EX_LOG("[info] find frame buffer i = %d\n", i);
                     break;
                 }
             }
@@ -577,7 +577,7 @@ namespace chen {
             DEBUG_EX_LOG("[error]bm_queue_pop not find src_fd failed !!!");
             return -16;
         }
-        DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ...\n");
+     //   DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ...\n");
 
 
 
@@ -590,7 +590,7 @@ namespace chen {
         }
 
 
-        DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ok !!! \n");
+     //   DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ok !!! \n");
 
 
 
@@ -618,7 +618,7 @@ namespace chen {
         fflush(out_yuv_new_file_ptr);
         fwrite(v_ptr, 1, (width ) * height/4, out_yuv_new_file_ptr);
         fflush(out_yuv_new_file_ptr);*/
-        DEBUG_EX_LOG("[info][%s] copying ...\n", __FUNCTION__);
+      //  DEBUG_EX_LOG("[info][%s] copying ...\n", __FUNCTION__);
         {
             const uint8_t* src_data[4] = { src_y, src_u, src_v, NULL };
             const int src_linesizes[4] = { src_stride_y, src_stride_u, src_stride_v, 0 };
@@ -626,7 +626,7 @@ namespace chen {
 
 
             uint64_t dst_data[4] = { (uint64_t)dst_y, (uint64_t)dst_u, (uint64_t)dst_v, 0L };
-            DEBUG_EX_LOG("[info] bm_image_upload ...\n");
+          //  DEBUG_EX_LOG("[info] bm_image_upload ...\n");
             ret = bm_image_upload(m_video_encoder,
                 dst_data, dst_linesizes,
                 src_data, src_linesizes,
@@ -636,7 +636,7 @@ namespace chen {
                 DEBUG_EX_LOG("[error]bm_image_upload failed\n");
                 return -20;
             }
-            DEBUG_EX_LOG("[info] bm_image_upload ok !!!\n");
+        //    DEBUG_EX_LOG("[info] bm_image_upload ok !!!\n");
 
             /*uint8_t* dst_data[4] = { dst_y, dst_u, dst_v, NULL };
 
@@ -646,7 +646,7 @@ namespace chen {
             memcpy(dst_v, src_v, width * height / 4);*/
         }
 
-        DEBUG_EX_LOG("[info][%s] copying .. Done\n", __FUNCTION__);
+       // DEBUG_EX_LOG("[info][%s] copying .. Done\n", __FUNCTION__);
 
         /* Flush cache to DMA buffer */
         bmvpu_dma_buffer_flush(src_fb->dma_buffer);
@@ -658,7 +658,7 @@ namespace chen {
         m_enc_params.skip_frame = 0;
         m_input_frame.framebuffer = src_fb;
         m_input_frame.context = NULL;
-        DEBUG_EX_LOG("[info] set input frame ok !!!\n");
+       // DEBUG_EX_LOG("[info] set input frame ok !!!\n");
 
 
 
@@ -713,16 +713,16 @@ namespace chen {
                     continue;
                 }
                 bm_queue_push(m_frame_unused_queue, &fb);
-                DEBUG_EX_LOG("[info] Myindex = 0x%x, push\n", fb->myIndex);
+             //   DEBUG_EX_LOG("[info] Myindex = 0x%x, push\n", fb->myIndex);
                 break;
             }
 
             frame_packet.resize(m_output_frame.data_size);
-            DEBUG_EX_LOG("encoder frame data size = %u", m_output_frame.data_size);
+          //  DEBUG_EX_LOG("encoder frame data size = %u", m_output_frame.data_size);
             ::memcpy(&frame_packet[0], bs_buffer_ptr.mem.get(), m_output_frame.data_size);
 
         }
-        DEBUG_EX_LOG("encoder frame end ok \n");
+       // DEBUG_EX_LOG("encoder frame end ok \n");
 
         return 0;
     }

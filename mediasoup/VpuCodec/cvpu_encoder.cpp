@@ -538,7 +538,10 @@ namespace chen {
 			dur = cur_time_ms - pre_time;
 			ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
 			uint32_t elapse = static_cast<uint32_t>(ms.count());
-			DEBUG_EX_LOG("encoder frame ms = %u", elapse);
+			if (elapse > 5)
+			{
+				WARNING_EX_LOG("encoder frame ms = %u", elapse);
+			}
 			if (ret != 0 || frame_packet.size() == 0) 
 			{
 				ERROR_EX_LOG("encoder frame failed !!!");
