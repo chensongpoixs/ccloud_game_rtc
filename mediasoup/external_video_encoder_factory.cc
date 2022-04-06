@@ -40,6 +40,7 @@ public:
 	std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(
 		const webrtc::SdpVideoFormat& format) override {
 		if (format.name == cricket::kH264CodecName/*absl::EqualsIgnoreCase(format.name, cricket::kH264CodecName)*/) {
+			//return webrtc::H264Encoder::Create(cricket::VideoCodec(format));
 			return absl::make_unique<chen::cvpu_encoder>(cricket::VideoCodec(format));
 			/*if (webrtc::H264Encoder::IsSupported()) {
 				if (nvenc_info.is_supported()) {
