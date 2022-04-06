@@ -25,7 +25,7 @@
 //
 //static void var_log(const char* format, ...)
 //{
-//    return;
+//    
 //    if (out_file_ptr)
 //    {
 //        clock_guard lock(g_mutex);
@@ -46,10 +46,10 @@
 //    }
 //}
 //#define DEBUG_LOG(format, ...)		var_log(format, ##__VA_ARGS__)
-#define DEBUG_EX_LOG(format, ...)		DEBUG_LOG("[%s][%d]" format, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+//#define DEBUG_EX_LOG(format, ...)		DEBUG_LOG("[%s][%d]" format, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 //
-//
-//
+
+
 
 
 namespace chen {
@@ -70,7 +70,7 @@ namespace chen {
         // ±àÂë²ÎÊý
       bool init(int soc_idx, int width, int height);
 
-      int encoder_image( uint8_t * y_ptr,  uint8_t * u_ptr,  uint8_t* v_ptr, int width, int height, std::vector<uint8_t> & frame_packet, BmVpuFrameType & frame_type);
+      int encoder_image(uint8_t * y_ptr, uint8_t * u_ptr, uint8_t* v_ptr, int width, int height, std::vector<uint8_t> & frame_packet, BmVpuFrameType & frame_type);
 	
       void destroy();
     private:

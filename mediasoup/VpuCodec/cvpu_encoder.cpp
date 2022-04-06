@@ -47,11 +47,84 @@ namespace chen {
 	};
 
 
+
+	//std::vector<webrtc::H264::NaluIndex> webrtc_FindNaluIndices(const uint8_t* buffer,
+	//	size_t buffer_size) {
+	//	// This is sorta like Boyer-Moore, but with only the first optimization step:
+	//	// given a 3-byte sequence we're looking at, if the 3rd byte isn't 1 or 0,
+	//	// skip ahead to the next 3-byte sequence. 0s and 1s are relatively rare, so
+	//	// this will skip the majority of reads/checks.
+	//	std::vector<webrtc::H264::NaluIndex> sequences;
+	//	if (buffer_size < 4)
+	//	{
+	//		return sequences;
+	//	}
+
+	//	const size_t end = buffer_size - 4;
+	//	for (size_t i = 0; i < end;) 
+	//	{
+	//		if (buffer[i + 3] > 1) 
+	//		{
+	//			i += 4;
+	//		}
+	//		else if (buffer[i + 3] == 1 && buffer[i + 2] == 0 && buffer[i + 1] == 0 && buffer[i] == 0) {
+	//			// We found a start sequence, now check if it was a 3 of 4 byte one.
+	//			webrtc::H264::NaluIndex index = { i, i + 4, 0 };
+	//			if (index.start_offset > 0 && buffer[index.start_offset - 1] == 0)
+	//			{
+	//				--index.start_offset;
+	//			}
+
+	//			// Update length of previous entry.
+	//			auto it = sequences.rbegin();
+	//			if (it != sequences.rend())
+	//			{
+	//				it->payload_size = index.start_offset - it->payload_start_offset;
+	//			}
+
+	//			sequences.push_back(index);
+
+	//			i += 4;
+	//		}
+	//		else 
+	//		{
+	//			++i;
+	//		}
+	//	}
+
+	//	// Update length of last entry, if any.
+	//	auto it = sequences.rbegin();
+	//	if (it != sequences.rend())
+	//	{
+	//		it->payload_size = buffer_size - it->payload_start_offset;
+	//	}
+
+	//	return sequences;
+	//}
+
+
+
+
+	//static int frame_count = 0;
 	static void webrtc_RtpFragmentize(webrtc::EncodedImage* encoded_image,
 		const webrtc::VideoFrameBuffer& frame_buffer,
 		std::vector<uint8_t>& frame_packet,
 		webrtc::RTPFragmentationHeader* frag_header)
 	{
+		
+		//static std::string out_file_name_bm_h264 = "./bm_h264/bm_h264.h264";
+		//static FILE* out_file_bm_h264_ptr = NULL; 
+		//if (!out_file_bm_h264_ptr)
+		//{
+		//	out_file_bm_h264_ptr = ::fopen(out_file_name_bm_h264.c_str(), "wb+");
+		//}
+		//if (out_file_bm_h264_ptr)
+		//{
+		//	::fwrite(&frame_packet[0], 1, frame_packet.size(), out_file_bm_h264_ptr);
+		//	::fflush(out_file_bm_h264_ptr);
+		//	/*::fclose(out_file_bm_h264_ptr);
+		//	out_file_bm_h264_ptr = NULL;*/
+		//}
 		size_t required_capacity = 0;
 		encoded_image->set_size(0);
 
@@ -69,7 +142,7 @@ namespace chen {
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		std::vector<webrtc::H264::NaluIndex> nalus = webrtc::H264::FindNaluIndices(
+		std::vector<webrtc::H264::NaluIndex> nalus = webrtc::H264:: FindNaluIndices(
 			encoded_image->data(), encoded_image->size());
 		size_t fragments_count = nalus.size();
 		// const uint8_t start_code[4] = {0, 0, 0, 1};
@@ -186,7 +259,7 @@ namespace chen {
 			vpu_encoders_[i] = bm_encoder_ptr;
 			// Set internal settings from codec_settings
 			configurations_[i].simulcast_idx = idx;
-			configurations_[i].sending = false;
+			configurations_[i].sending = true;
 			configurations_[i].width = codec_.simulcastStream[idx].width;
 			configurations_[i].height = codec_.simulcastStream[idx].height;
 			configurations_[i].max_frame_rate = static_cast<float>(codec_.maxFramerate);
@@ -371,6 +444,7 @@ namespace chen {
 			RTC_LOG(LS_WARNING)
 				<< "InitEncode() has been called, but a callback function "
 				<< "has not been set with RegisterEncodeCompleteCallback()";
+			ERROR_EX_LOG(" InitEncode() has been called, but a callback function ");
 			ReportError();
 			return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
 		}
@@ -382,9 +456,9 @@ namespace chen {
 		//{
 		//	::fwrite(frame_buffer->DataY(), 1, frame_buffer->width() * frame_buffer->height(),  out_file_yuv_ptr);
 		//	::fflush(out_file_yuv_ptr);
-		//	::fwrite(frame_buffer->DataU(), 1, (frame_buffer->width() ) * frame_buffer->height() /4, out_file_yuv_ptr);
+		//	::fwrite(frame_buffer->DataU(), 1, ((frame_buffer->width() + 1)/2 ) * frame_buffer->height() /2, out_file_yuv_ptr);
 		//	::fflush(out_file_yuv_ptr);
-		//	::fwrite(frame_buffer->DataV(), 1,(frame_buffer->width() ) * frame_buffer->height() / 4, out_file_yuv_ptr);
+		//	::fwrite(frame_buffer->DataV(), 1, ((frame_buffer->width() + 1) / 2) * frame_buffer->height() / 2, out_file_yuv_ptr);
 		//	::fflush(out_file_yuv_ptr);
 		//	//::fclose(out_file_yuv_ptr);
 		//	DEBUG_EX_LOG("width = %u, height = %u", frame_buffer->width(), frame_buffer->height());
@@ -393,7 +467,7 @@ namespace chen {
 
 
 		bool send_key_frame = false;
-		for (size_t i = 0; i < configurations_.size(); ++i) {
+		/*for (size_t i = 0; i < configurations_.size(); ++i) {
 			if (configurations_[i].key_frame_request && configurations_[i].sending) {
 				send_key_frame = true;
 				break;
@@ -406,7 +480,7 @@ namespace chen {
 					break;
 				}
 			}
-		}
+		}*/
 
 		RTC_DCHECK_EQ(configurations_[0].width, frame_buffer->width());
 		RTC_DCHECK_EQ(configurations_[0].height, frame_buffer->height());
@@ -450,37 +524,47 @@ namespace chen {
 
 			if (!bm_encoder_ptr)
 			{
+				ERROR_EX_LOG("vpu_encoder not find (i = %u) !!!", i);
 				return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
 			}
 			BmVpuFrameType encoder_frame_type;
+			
+			std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
+			std::chrono::steady_clock::duration dur;
+			std::chrono::milliseconds ms;
 			int ret = bm_encoder_ptr->encoder_image( (uint8_t*)frame_buffer->DataY(), (uint8_t*)frame_buffer->DataU(), (uint8_t*)frame_buffer->DataV(), frame_buffer->width(), frame_buffer->height(), frame_packet, encoder_frame_type);
-
+			std::chrono::steady_clock::time_point cur_time_ms = std::chrono::steady_clock::now();
+			
+			dur = cur_time_ms - pre_time;
+			ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+			uint32_t elapse = static_cast<uint32_t>(ms.count());
+			DEBUG_EX_LOG("encoder frame ms = %u", elapse);
 			if (ret != 0 || frame_packet.size() == 0) 
 			{
+				ERROR_EX_LOG("encoder frame failed !!!");
 				return WEBRTC_VIDEO_CODEC_OK;
 			}
 			else 
-			{
-
-				
-
-
+			{ 
 				switch (encoder_frame_type)
 				{
 				case BM_VPU_FRAME_TYPE_IDR:
-					
+				case BM_VPU_FRAME_TYPE_I:
 				{
 					encoded_images_[i]._frameType = webrtc::VideoFrameType::kVideoFrameKey;
 					break;
 				}
-				case BM_VPU_FRAME_TYPE_I:
+				
 				case BM_VPU_FRAME_TYPE_P:
 				{
+					// return WEBRTC_VIDEO_CODEC_OK;
+					//encoded_images_[i]._frameType = webrtc::VideoFrameType::kVideoFrameKey;
 					encoded_images_[i]._frameType = webrtc::VideoFrameType::kVideoFrameDelta;
 					break;
 				}
 				case videoFrameTypeInvalid:
 				default:
+					ERROR_EX_LOG("encoder frame  [type =  %d] error failed !!!", encoder_frame_type);
 					return WEBRTC_VIDEO_CODEC_OK;
 					break;
 				}
@@ -518,19 +602,20 @@ namespace chen {
 
 			// Encoder can skip frames to save bandwidth in which case
 			// |encoded_images_[i]._length| == 0.
-			if (encoded_images_[i].size() > 0) {
+			if (encoded_images_[i].size() > 0)
+			{
 				// Parse QP.
-				//h264_bitstream_parser_.ParseBitstream(encoded_images_[i].data(),
-				//                                      encoded_images_[i].size());
-				//h264_bitstream_parser_.GetLastSliceQp(&encoded_images_[i].qp_);
-				encoded_images_[i].qp_ = 3;
+				/*h264_bitstream_parser_.ParseBitstream(encoded_images_[i].data(),
+				                                      encoded_images_[i].size());*/
+				h264_bitstream_parser_.GetLastSliceQp(&encoded_images_[i].qp_);
+				//encoded_images_[i].qp_ = 10;
 
 				// Deliver encoded image.
 				webrtc::CodecSpecificInfo codec_specific;
 				codec_specific.codecType = webrtc::kVideoCodecH264;
 				codec_specific.codecSpecific.H264.packetization_mode = packetization_mode_;
 				codec_specific.codecSpecific.H264.temporal_idx = webrtc::kNoTemporalIdx;
-				codec_specific.codecSpecific.H264.idr_frame = info.eFrameType == videoFrameTypeIDR;
+				codec_specific.codecSpecific.H264.idr_frame = encoder_frame_type == BM_VPU_FRAME_TYPE_IDR || BM_VPU_FRAME_TYPE_I == encoder_frame_type;
 				codec_specific.codecSpecific.H264.base_layer_sync = false;
 
 				// if (info.eFrameType == videoFrameTypeIDR &&
@@ -539,6 +624,10 @@ namespace chen {
 				//}
 				//DEBUG_EX_LOG("bm_encoder callback image ok ....");
 				encoded_image_callback_->OnEncodedImage(encoded_images_[i], &codec_specific, &frag_header);
+			}
+			else
+			{
+				ERROR_EX_LOG("--- encoder_frame_type = %u", encoder_frame_type);
 			}
 		}
 

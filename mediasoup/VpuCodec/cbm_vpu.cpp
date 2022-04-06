@@ -1,6 +1,6 @@
 #include "cbm_vpu.h"
-
 #include "../clog.h"
+
 namespace chen {
 
 #ifndef MIN
@@ -15,21 +15,7 @@ namespace chen {
 #define BM_MAX_MB_NUM                      0x40000     // MB num for max resolution = 8192x8192/(16x16)
 #define BM_VPU_ALIGN16(_x)             (((_x)+0x0f)&~0x0f)
 #define BM_VPU_ALIGN64(_x)             (((_x)+0x3f)&~0x3f)
-
-
-
-#define BM_VPU_MS()                     std::chrono::steady_clock::time_point cur_time;  \
-    std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();   \
-                                        std::chrono::steady_clock::duration dur;         \
-                                         std::chrono::milliseconds ms;                   \
-                                            uint32_t elapse;
-
-
-
-
-
-   
-
+    using namespace chen;
     static void logging_fn(BmVpuLogLevel level,
         char const* file, int const line, char const* fn,
         const char* format, ...)
@@ -46,7 +32,6 @@ namespace chen {
         case BM_VPU_LOG_LEVEL_LOG:     lvlstr = "LOG";     break;
         default: break;
         }
-        using namespace chen;
 
         DEBUG_EX_LOG("%s:%d (%s)   %s: ", file, line, fn, lvlstr);
 
@@ -85,7 +70,7 @@ namespace chen {
         //    memset(buffer->mem, 0, size);
         //}
         buffer->mem.reset(new uint8_t[size]);
-        //DEBUG_EX_LOG("[info][%s][%d][size = %u][mem = %p]\n", __FUNCTION__, __LINE__, size, buffer->mem.get());
+        DEBUG_EX_LOG("[info][%s][%d][size = %u][mem = %p]\n", __FUNCTION__, __LINE__, size, buffer->mem.get());
         //bs_buffer_t* s = (bs_buffer_t*)(context);
 
         /*int ret;
@@ -102,7 +87,7 @@ namespace chen {
     }
     static void finish_output_buffer(void* context, void* acquired_handle)
     {
-        //DEBUG_EX_LOG("[info][%s][%d][acquired_handle = %p]\n", __FUNCTION__, __LINE__, acquired_handle);
+        DEBUG_EX_LOG("[info][%s][%d][acquired_handle = %p]\n", __FUNCTION__, __LINE__, acquired_handle);
         ((void)(context));
     }
 
@@ -135,9 +120,9 @@ namespace chen {
             ptrdiff_t bwidth = width;
             if (i != 0)
             {
-                bwidth = ((width + 1)/2)/ 2;
+                bwidth = (width + 1)/2 ;
             }
-            //DEBUG_EX_LOG("[info]  bmvpu_upload_data[%d] ... \n", i);
+            DEBUG_EX_LOG("[info]  bmvpu_upload_data[%d] ... \n", i);
             int ret = bmvpu_upload_data(video_encoder->core_idx, src, src_linesize,
                 dst, dst_linesize, bwidth, h);
             if (ret < 0)
@@ -145,7 +130,7 @@ namespace chen {
                 DEBUG_EX_LOG("[error] bmvpu_upload_data failed !!! (i = %d)\n", i);
                 return -1;
             }
-           // DEBUG_EX_LOG("[info]  bmvpu_upload_data[%d] end ok  ... \n", i);
+            DEBUG_EX_LOG("[info]  bmvpu_upload_data[%d] end ok  ... \n", i);
         }
         return 0;
 
@@ -220,17 +205,17 @@ namespace chen {
         m_eop.frame_width = width;
         m_eop.frame_height = height;
         m_eop.color_format = m_enc_color_format;
-        m_eop.timebase_den = 50;
+        m_eop.timebase_den = 25;
         m_eop.timebase_num = 1;
-        m_eop.fps_num = 50;
+        m_eop.fps_num = 25;
         m_eop.fps_den = 1000; //
 
         // bitrate in kbps 
-        m_eop.bitrate = 3000;
+        m_eop.bitrate = 30000;
         m_eop.vbv_buffer_size = m_eop.bitrate * 2;
-        m_eop.enc_mode = 2; // 编码时 的量化 速度
+        m_eop.enc_mode = 1; // 编码时 的量化 速度
 
-        m_eop.intra_period = 4; // gop size;
+        m_eop.intra_period = 10; // gop size;
         // I-P-P-P-P-P
         m_eop.gop_preset = 6;
 
@@ -438,7 +423,8 @@ namespace chen {
 
         return true;
     }
-    int cbm_encoder::encoder_image( uint8_t* y_ptr,   uint8_t* u_ptr,   uint8_t* v_ptr, int width, int height, std::vector<uint8_t>& frame_packet, BmVpuFrameType& frame_type)
+   // FILE* out_yuv_new_file_ptr = fopen("chensong.yuv", "wb+");
+    int cbm_encoder::encoder_image(uint8_t* y_ptr, uint8_t* u_ptr, uint8_t* v_ptr, int width, int height, std::vector<uint8_t>& frame_packet, BmVpuFrameType& frame_type)
     {
         /*int width = 1920;
         int height = 1080;*/
@@ -460,13 +446,13 @@ namespace chen {
                 DEBUG_EX_LOG("[error] frame buffer is NULL, pop failed\n");
                 return -15;
             }
-           // DEBUG_EX_LOG("[info] myIndex = 0x%x, %p, pop \n", fb->myIndex, fb);
+            DEBUG_EX_LOG("[info] myIndex = 0x%x, %p, pop \n", fb->myIndex, fb);
             for (int i = 0; i < m_initial_info.min_num_src_fb; ++i)
             {
                 if (&m_src_fb_list[i] == fb)
                 {
                     src_fb = fb;
-                   // DEBUG_EX_LOG("[info] find frame buffer i = %d\n", i);
+                    DEBUG_EX_LOG("[info] find frame buffer i = %d\n", i);
                     break;
                 }
             }
@@ -476,10 +462,10 @@ namespace chen {
             DEBUG_EX_LOG("[error]bm_queue_pop not find src_fd failed !!!");
             return -16;
         }
-        //DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ...\n");
+        DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ...\n");
 
 
-        BM_VPU_MS();
+
 
         addr = (uint8_t*)bmvpu_dma_buffer_get_physical_address(src_fb->dma_buffer);
         if (!addr) 
@@ -487,14 +473,9 @@ namespace chen {
             DEBUG_EX_LOG("[error]bmvpu_dma_buffer_get_physical_address failed\n");
             return -16;
         }
-        cur_time = std::chrono::steady_clock::now();
 
-        dur = cur_time - pre_time;
-        ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
-         elapse = static_cast<uint32_t>(ms.count());
-        DEBUG_EX_LOG("bmvpu_dma_buffer_get_physical_address ms = %u", elapse);
-        pre_time = cur_time;
-       // DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ok !!! \n");
+
+        DEBUG_EX_LOG("[info]bmvpu_dma_buffer_map alloc ok !!! \n");
 
 
 
@@ -513,12 +494,16 @@ namespace chen {
         src_y = y_ptr;// data[0];
         src_u = u_ptr;// data[1];
         src_v = v_ptr;// data[2];
-        src_stride_y = width; // linesize[0];
-        src_stride_u = (width +1) / 2; // linesize[1];
-        src_stride_v = (width+1 ) / 2; // linesize[2];
-
-
-       // DEBUG_EX_LOG("[info][%s] copying ...\n", __FUNCTION__);
+        src_stride_y = width ;//width; // linesize[0];
+        src_stride_u = (width + 1) /2; // linesize[1];
+        src_stride_v = (width + 1) /2; // linesize[2];
+       /* fwrite(y_ptr, 1, width * height, out_yuv_new_file_ptr);
+        fflush(out_yuv_new_file_ptr);
+        fwrite(u_ptr, 1, (width) * height/4, out_yuv_new_file_ptr);
+        fflush(out_yuv_new_file_ptr);
+        fwrite(v_ptr, 1, (width ) * height/4, out_yuv_new_file_ptr);
+        fflush(out_yuv_new_file_ptr);*/
+        DEBUG_EX_LOG("[info][%s] copying ...\n", __FUNCTION__);
         {
             const uint8_t* src_data[4] = { src_y, src_u, src_v, NULL };
             const int src_linesizes[4] = { src_stride_y, src_stride_u, src_stride_v, 0 };
@@ -526,7 +511,7 @@ namespace chen {
 
 
             uint64_t dst_data[4] = { (uint64_t)dst_y, (uint64_t)dst_u, (uint64_t)dst_v, 0L };
-         //   DEBUG_EX_LOG("[info] bm_image_upload ...\n");
+            DEBUG_EX_LOG("[info] bm_image_upload ...\n");
             ret = bm_image_upload(m_video_encoder,
                 dst_data, dst_linesizes,
                 src_data, src_linesizes,
@@ -536,7 +521,7 @@ namespace chen {
                 DEBUG_EX_LOG("[error]bm_image_upload failed\n");
                 return -20;
             }
-         //   DEBUG_EX_LOG("[info] bm_image_upload ok !!!\n");
+            DEBUG_EX_LOG("[info] bm_image_upload ok !!!\n");
 
             /*uint8_t* dst_data[4] = { dst_y, dst_u, dst_v, NULL };
 
@@ -545,14 +530,8 @@ namespace chen {
             memcpy(dst_u, src_u, width * height / 4);
             memcpy(dst_v, src_v, width * height / 4);*/
         }
-        cur_time = std::chrono::steady_clock::now();
 
-        dur = cur_time - pre_time;
-        ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
-         elapse = static_cast<uint32_t>(ms.count());
-        DEBUG_EX_LOG("bm_image_upload ms = %u", elapse);
-        pre_time = cur_time;
-       // DEBUG_EX_LOG("[info][%s] copying .. Done\n", __FUNCTION__);
+        DEBUG_EX_LOG("[info][%s] copying .. Done\n", __FUNCTION__);
 
         /* Flush cache to DMA buffer */
         bmvpu_dma_buffer_flush(src_fb->dma_buffer);
@@ -564,7 +543,7 @@ namespace chen {
         m_enc_params.skip_frame = 0;
         m_input_frame.framebuffer = src_fb;
         m_input_frame.context = NULL;
-       // DEBUG_EX_LOG("[info] set input frame ok !!!\n");
+        DEBUG_EX_LOG("[info] set input frame ok !!!\n");
 
 
 
@@ -575,14 +554,7 @@ namespace chen {
 
         m_output_frame.data_size = 0;
 
-        cur_time = std::chrono::steady_clock::now();
-
-        dur = cur_time - pre_time;
-        ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
-        elapse = static_cast<uint32_t>(ms.count());
-        DEBUG_EX_LOG("bmvpu_dma_buffer_unmap ms = %u", elapse);
-        pre_time = cur_time;
-
+        m_enc_params.customMapOptUsedIndex = (++m_enc_params.customMapOptUsedIndex) % (m_initial_info.min_num_src_fb);
 
         enc_ret = static_cast<BmVpuEncReturnCodes>(bmvpu_enc_encode(m_video_encoder, &m_input_frame,
             &m_output_frame, &m_enc_params, &output_code));
@@ -596,13 +568,7 @@ namespace chen {
             DEBUG_EX_LOG("[error] could not encode this image : %s\n", bmvpu_enc_error_string(enc_ret));
             return -17;
         }
-        cur_time = std::chrono::steady_clock::now();
 
-        dur = cur_time - pre_time;
-        ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
-        elapse = static_cast<uint32_t>(ms.count());
-        DEBUG_EX_LOG("bmvpu_enc_encode ms = %u", elapse);
-        pre_time = cur_time;
         if (m_output_frame.data_size > 0)
         {
             frame_type = m_output_frame.frame_type;
@@ -627,22 +593,16 @@ namespace chen {
                     continue;
                 }
                 bm_queue_push(m_frame_unused_queue, &fb);
-              //  DEBUG_EX_LOG("[info] Myindex = 0x%x, push\n", fb->myIndex);
+                DEBUG_EX_LOG("[info] Myindex = 0x%x, push\n", fb->myIndex);
                 break;
             }
 
             frame_packet.resize(m_output_frame.data_size);
-        //    DEBUG_EX_LOG("encoder frame data size = %u", m_output_frame.data_size);
+            DEBUG_EX_LOG("encoder frame data size = %u", m_output_frame.data_size);
             ::memcpy(&frame_packet[0], bs_buffer_ptr.mem.get(), m_output_frame.data_size);
-            cur_time = std::chrono::steady_clock::now();
 
-            dur = cur_time - pre_time;
-            ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
-            elapse = static_cast<uint32_t>(ms.count());
-            DEBUG_EX_LOG("nal copy  ms = %u", elapse);
-            pre_time = cur_time;
         }
-       // DEBUG_EX_LOG("encoder frame end ok \n");
+        DEBUG_EX_LOG("encoder frame end ok \n");
 
         return 0;
     }
