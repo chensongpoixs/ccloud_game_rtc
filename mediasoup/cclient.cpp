@@ -83,6 +83,30 @@ namespace chen {
 		, m_websocket_timer(0){}
 	cclient::~cclient(){}
 
+	static void show_work_dir()
+	{
+		WCHAR czFileName[1024] = { 0 };
+		GetModuleFileName(NULL, czFileName, _countof(czFileName) - 1);
+		//	std::to_string(czFileName);
+			 //第一次调用确认转换后单字节字符串的长度，用于开辟空间
+		int pSize = WideCharToMultiByte(CP_OEMCP, 0, czFileName, wcslen(czFileName), NULL, 0, NULL, NULL);
+		char* pCStrKey = new char[pSize + 1];
+		if (!pCStrKey)
+		{
+			ERROR_EX_LOG("alloc failed !!!");
+			return;
+		}
+		//第二次调用将双字节字符串转换成单字节字符串
+		WideCharToMultiByte(CP_OEMCP, 0, czFileName, wcslen(czFileName), pCStrKey, pSize, NULL, NULL);
+
+		//std::string path(czFileName);
+		NORMAL_EX_LOG("work path = %s", pCStrKey);
+		if (pCStrKey)
+		{
+			delete[] pCStrKey;
+			pCStrKey = NULL;
+		}
+	}
 	
 	bool cclient::init()
 	{
@@ -92,6 +116,7 @@ namespace chen {
 			std::cerr << " log init failed !!!";
 			return false;
 		}
+		show_work_dir();
 		SYSTEM_LOG("Log init ...\n");
 		static const   char* config_file = "client.cfg";
 		bool init = g_cfg.init(config_file);

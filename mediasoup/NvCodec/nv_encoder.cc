@@ -19,10 +19,11 @@
 #include "third_party/libyuv/include/libyuv/convert.h"
 #include "third_party/libyuv/include/libyuv/scale.h"
 #include "third_party/libyuv/include/libyuv.h"
+#include "../ccfg.h"
 namespace webrtc {
 
 namespace {
-
+	using namespace chen;
 const bool kOpenH264EncoderDetailedLogging = false;
 
 // QP scaling thresholds.
@@ -293,8 +294,9 @@ int32_t NvEncoder::InitEncode(const VideoCodec* inst,
 		nvenc_config.framerate = (uint32_t)configurations_[i].max_frame_rate;
 		//TODO@chensong 2022-03-18 设置GOP 的大小 哈 ^_^ 不知道为什么 webrtc中设置gop key_frame_interval 字段是有效的、
 		//根据程序
-		nvenc_config.gop = 45;// configurations_[i].key_frame_interval;
-		nvenc_config.bitrate = configurations_[i].target_bps;
+		using namespace chen;
+		nvenc_config.gop = g_cfg.get_uint32(ECI_RtcVideoGop);// configurations_[i].key_frame_interval;
+		nvenc_config.bitrate = 100000;
 		if (!nvenc_info.init(nv_encoders_[i], &nvenc_config)) {
 			Release();
 			ReportError();

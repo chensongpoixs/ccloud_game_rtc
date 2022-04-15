@@ -8,7 +8,7 @@
 * is strictly prohibited.
 *
 */
-
+#include "../../clog.h"
 #include "NvEncoder/NvEncoderCuda.h"
 
 #define CUDA_DRVAPI_CALL( call )                                                                                                 \

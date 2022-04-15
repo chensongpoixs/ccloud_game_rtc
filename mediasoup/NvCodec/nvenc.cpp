@@ -8,6 +8,10 @@
 #include <dxgi.h>
 #include <d3d11.h>
 #include <dxgi1_2.h>
+#include "../clog.h"
+#include "../ccfg.h"
+
+namespace chen {
 
 struct nvenc_data
 {
@@ -35,7 +39,7 @@ struct nvenc_data
 static bool is_supported(void)
 {
 	static HMODULE hModule = NULL;
-
+	using namespace chen;
 	if (hModule == NULL) {
 #if defined(_WIN64)
 		hModule = LoadLibrary(TEXT("nvEncodeAPI64.dll"));
@@ -44,8 +48,10 @@ static bool is_supported(void)
 #endif
 	}
 
-	if (hModule == NULL) {
-		printf("[nvenc] Error: NVENC library file is not found. Please ensure NV driver is installed. \n");
+	if (hModule == NULL) 
+	{
+		//printf("[nvenc] Error: NVENC library file is not found. Please ensure NV driver is installed. \n");
+		ERROR_EX_LOG("[nvenc] Error: NVENC library file is not found. Please ensure NV driver is installed. ");
 		return false;
 	}
 
@@ -59,8 +65,10 @@ static bool is_supported(void)
 	uint32_t version = 0;
 	uint32_t currentVersion = (NVENCAPI_MAJOR_VERSION << 4) | NVENCAPI_MINOR_VERSION;
 	NVENC_API_CALL(NvEncodeAPIGetMaxSupportedVersion(&version));
-	if (currentVersion > version) {
-		printf("[nvenc] Error: Current Driver Version does not support this NvEncodeAPI version, please upgrade driver");
+	if (currentVersion > version) 
+	{
+		//printf("[nvenc] Error: Current Driver Version does not support this NvEncodeAPI version, please upgrade driver");
+		ERROR_EX_LOG("[nvenc] Error: Current Driver Version does not support this NvEncodeAPI version, please upgrade driver");
 		return false;
 	}
 
@@ -69,6 +77,8 @@ static bool is_supported(void)
 
 static void* nvenc_create()
 {
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	if (!is_supported()) {
 		return nullptr;
 	}
@@ -112,6 +122,7 @@ static void* nvenc_create()
 
 	if (enc->d3d11_device == nullptr) {
 		printf("[nvenc] Error: Failed to create d3d11 device. \n");
+		ERROR_EX_LOG("[nvenc] Error: Failed to create d3d11 device.");
 		goto failed;
 	}
 
@@ -131,6 +142,8 @@ failed:
 
 static void nvenc_destroy(void **nvenc_data)
 {
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	struct nvenc_data *enc = (struct nvenc_data *)(*nvenc_data);
 
 	enc->mutex.lock();
@@ -184,6 +197,8 @@ static void nvenc_destroy(void **nvenc_data)
 
 static bool nvenc_init(void *nvenc_data, void *encoder_config)
 {
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	if (nvenc_data == nullptr) {
 		return false;
 	}
@@ -210,6 +225,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	HRESULT hr = enc->d3d11_device->CreateTexture2D(&desc, nullptr, &enc->copy_texture);
 	if (FAILED(hr)) {
 		printf("[nvenc] Error: Failed to create texture. \n");
+		ERROR_EX_LOG("[nvenc] Error: Failed to create texture.");
 		return false;
 	}
 
@@ -234,6 +250,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	}
 	else {
 		printf("[nvenc] Error: Unsupported dxgi format. \n");
+		ERROR_EX_LOG("[nvenc] Error: Unsupported dxgi format. ");
 		return false;
 	}
 
@@ -246,6 +263,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	}
 	else {
 		printf("[nvenc] Error: Unsupported codec. \n");
+		ERROR_EX_LOG("[nvenc] Error: Unsupported codec.");
 		return false;
 	}
 
@@ -258,13 +276,13 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 
 	initializeParams.maxEncodeWidth = enc->width;
 	initializeParams.maxEncodeHeight = enc->height;
-	initializeParams.frameRateNum = enc->framerate;
-	initializeParams.encodeConfig->gopLength = enc->gop;
-	initializeParams.encodeConfig->rcParams.averageBitRate = enc->bitrate ;
-	initializeParams.encodeConfig->rcParams.maxBitRate = enc->bitrate;
+	initializeParams.frameRateNum = 60;
+	initializeParams.encodeConfig->gopLength = g_cfg.get_uint32(ECI_RtcVideoGop);
+	initializeParams.encodeConfig->rcParams.averageBitRate = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000 ;
+	initializeParams.encodeConfig->rcParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;
 	//initializeParams.encodeConfig->rcParams.vbvBufferSize = enc->bitrate; // / (initializeParams.frameRateNum / initializeParams.frameRateDen);
 	//initializeParams.encodeConfig->rcParams.vbvInitialDelay = initializeParams.encodeConfig->rcParams.vbvInitialDelay;
-	initializeParams.encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR;
+	initializeParams.encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
 	initializeParams.encodeConfig->rcParams.qpMapMode = NV_ENC_QP_MAP_DELTA;
 
 	enc->nvenc->CreateEncoder(&initializeParams);
@@ -274,6 +292,8 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 
 int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture, uint8_t* out_buf, uint32_t out_buf_size)
 {
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	if (nvenc_data == nullptr) {
 		return -1;
 	}
@@ -309,6 +329,8 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture, uint8_t* ou
 int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unlock_key, 
 	uint8_t* out_buf, uint32_t out_buf_size)
 {
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	if (nvenc_data == nullptr || handle == nullptr) {
 		return 0;
 	}
@@ -374,21 +396,28 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 	if (nvenc_data == nullptr) {
 		return 0;
 	}
-
+	using namespace chen;
+	if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcAvgRate))
+	{
+		WARNING_EX_LOG("[bitrate_bps = %u ]too big [defalut bitrate = %u]", bitrate_bps/ 1000, g_cfg.get_uint32(ECI_RtcAvgRate));
+		bitrate_bps = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;
+	}
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
 
-	if (enc->nvenc != nullptr) {
+	if (enc->nvenc != nullptr)
+	{
 		NV_ENC_RECONFIGURE_PARAMS reconfigureParams;
 		NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
+		encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
 		reconfigureParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
 		reconfigureParams.forceIDR = true;
 		reconfigureParams.reInitEncodeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
 		reconfigureParams.reInitEncodeParams.encodeConfig = &encodeConfig;
 		enc->nvenc->GetInitializeParams(&reconfigureParams.reInitEncodeParams);
-		reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.averageBitRate = bitrate_bps;
-		reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.maxBitRate = bitrate_bps;
+		reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.averageBitRate = bitrate_bps; // bitrate_bps;
+		reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000; // bitrate_bps;
 		enc->nvenc->Reconfigure(&reconfigureParams);
 	}
 
@@ -400,7 +429,11 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 	if (nvenc_data == nullptr) {
 		return 0;
 	}
-
+	using namespace chen;
+	if (framerate < g_cfg.get_uint32(ECI_RtcFrames))
+	{
+		WARNING_EX_LOG("framerate = %u", framerate);
+	}
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
@@ -408,6 +441,7 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 	if (enc->nvenc != nullptr) {
 		NV_ENC_RECONFIGURE_PARAMS reconfigureParams;
 		NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
+		encodeConfig.gopLength = g_cfg.get_uint32(ECI_RtcVideoGop);
 		reconfigureParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
 		reconfigureParams.forceIDR = true;
 		reconfigureParams.reInitEncodeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
@@ -422,7 +456,10 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 
 int nvenc_request_idr(void *nvenc_data)
 {
-	if (nvenc_data == nullptr) {
+	using namespace chen;
+	//ERROR_EX_LOG("");
+	if (nvenc_data == nullptr)
+	{
 		return 0;
 	}
 
@@ -439,6 +476,8 @@ int nvenc_request_idr(void *nvenc_data)
 
 int nvenc_get_sequence_params(void *nvenc_data, uint8_t* outBuf, uint32_t max_buf_size)
 {
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	if (nvenc_data == nullptr) {
 		return 0;
 	}
@@ -464,7 +503,8 @@ int nvenc_set_region_of_interest(void* nvenc_data, int x, int y, int width, int 
 	if (nvenc_data == nullptr) {
 		return 0;
 	}
-
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	struct nvenc_data* enc = (struct nvenc_data*)nvenc_data;
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
@@ -478,6 +518,8 @@ int nvenc_set_region_of_interest(void* nvenc_data, int x, int y, int width, int 
 
 static ID3D11Device* get_device(void *nvenc_data)
 {	
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	if (nvenc_data == nullptr) {
 		return nullptr;
 	}
@@ -490,6 +532,8 @@ static ID3D11Device* get_device(void *nvenc_data)
 
 static ID3D11Texture2D* get_texture(void *nvenc_data)
 {
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	if (nvenc_data == nullptr) {
 		return nullptr;
 	}
@@ -503,6 +547,8 @@ static ID3D11Texture2D* get_texture(void *nvenc_data)
 
 static ID3D11DeviceContext* get_context(void *nvenc_data)
 {
+	using namespace chen;
+	//ERROR_EX_LOG("");
 	if (nvenc_data == nullptr) {
 		return nullptr;
 	}
@@ -530,3 +576,4 @@ struct encoder_info nvenc_info = {
 	get_context
 };
 
+}

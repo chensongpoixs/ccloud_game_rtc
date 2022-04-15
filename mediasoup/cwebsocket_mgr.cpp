@@ -24,6 +24,10 @@ namespace chen
 			printf("WSAStartup Failed.\n");
 			 
 		}
+
+
+		
+		//PathRemoveFileSpec(czFileName);
 #endif
 	}
 	cwebsocket_mgr::~cwebsocket_mgr()
@@ -33,6 +37,8 @@ namespace chen
 #endif
 	}
 
+
+	
 
 	bool cwebsocket_mgr::init(std::string ws_url )
 	{

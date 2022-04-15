@@ -6,7 +6,7 @@
 #include <vector>
 #include <dxgi.h>
 #include <d3d11.h>
-
+namespace chen {
 struct encoder_config
 {
 	uint32_t width;
@@ -35,5 +35,5 @@ struct encoder_info
 	ID3D11Texture2D* (*get_texture)(void *encoder_data);
 	ID3D11DeviceContext* (*get_context)(void *encoder_data);
 };
-
+}
 #endif

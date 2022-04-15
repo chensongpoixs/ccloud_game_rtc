@@ -10,7 +10,7 @@
 */
 
 #pragma once
-
+#include "../../clog.h"
 #include <vector>
 #include "nvEncodeAPI.h"
 #include <stdint.h>
@@ -49,9 +49,12 @@ inline NVENCException NVENCException::makeNVENCException(const std::string& erro
     return exception;
 }
 
+
+
+
 #define NVENC_THROW_ERROR( errorStr, errorCode )                                                         \
     do                                                                                                   \
-    {                                                                                                    \
+    {  using namespace chen;  ERROR_EX_LOG("errorStr = %s, errorCode = %u", errorStr,  errorCode);       \
         throw NVENCException::makeNVENCException(errorStr, errorCode, __FUNCTION__, __FILE__, __LINE__); \
     } while (0)
 
@@ -61,7 +64,7 @@ inline NVENCException NVENCException::makeNVENCException(const std::string& erro
     {                                                                                                              \
         NVENCSTATUS errorCode = nvencAPI;                                                                          \
         if( errorCode != NV_ENC_SUCCESS)                                                                           \
-        {                                                                                                          \
+        {       using namespace chen;  ERROR_EX_LOG("nvencAPI = %s, errorCode = %u", #nvencAPI,  errorCode);       \
             std::ostringstream errorLog;                                                                           \
             errorLog << #nvencAPI << " returned error " << errorCode;                                              \
             throw NVENCException::makeNVENCException(errorLog.str(), errorCode, __FUNCTION__, __FILE__, __LINE__); \

@@ -28,7 +28,7 @@ namespace chen {
 			, m_key(false) {}
 	};
 
-
+	
 	class cinput_device
 	{
 	private:
@@ -122,6 +122,7 @@ namespace chen {
 		FIntPoint							m_int_point;
 		std::map<std::string, std::map<uint32, cmouse_info>>	m_all_consumer; 
 		std::string							m_mouse_id; //当前操作的id
+		
 	};
 	//extern cinput_device   g_input_device_mgr;
 	#define 	s_input_device chen::csingleton<chen::cinput_device>::get_instance()

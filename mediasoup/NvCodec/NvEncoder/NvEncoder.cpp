@@ -8,7 +8,7 @@
 * is strictly prohibited.
 *
 */
-
+#include "../../clog.h"
 #ifndef WIN32
 //#include <dlfcn.h>
 #endif
@@ -16,6 +16,9 @@
 
 #ifndef _WIN32
 #include <cstring>
+
+
+
 static inline bool operator==(const GUID &guid1, const GUID &guid2) {
     return !memcmp(&guid1, &guid2, sizeof(GUID));
 }
@@ -154,8 +157,8 @@ void NvEncoder::CreateDefaultEncoderParams(NV_ENC_INITIALIZE_PARAMS* pIntializeP
     pIntializeParams->enablePTD = 1;
     pIntializeParams->reportSliceOffsets = 0;
     pIntializeParams->enableSubFrameWrite = 0;
-    pIntializeParams->maxEncodeWidth = 4096;
-    pIntializeParams->maxEncodeHeight = 4096;
+    pIntializeParams->maxEncodeWidth = m_nWidth;
+    pIntializeParams->maxEncodeHeight = m_nHeight;
     pIntializeParams->enableMEOnlyMode = m_bMotionEstimationOnly;
 #if defined(_WIN32)
     pIntializeParams->enableEncodeAsync = true;
@@ -168,8 +171,10 @@ void NvEncoder::CreateDefaultEncoderParams(NV_ENC_INITIALIZE_PARAMS* pIntializeP
 	// TODO@chensong 2022-03-18 设置gop的长度   哈哈  这个不是真的真的编码设置gop的大小哈
     //pIntializeParams->encodeConfig->gopLength = 2;
 	pIntializeParams->encodeConfig->gopLength = NVENC_INFINITE_GOPLENGTH;
-    pIntializeParams->encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_CONSTQP;
-
+    pIntializeParams->encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
+	pIntializeParams->encodeConfig->rcParams.aqStrength = 4000;
+	pIntializeParams->encodeConfig->rcParams.maxBitRate = 100000;
+	pIntializeParams->encodeConfig->profileGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
     if (pIntializeParams->presetGUID != NV_ENC_PRESET_LOSSLESS_DEFAULT_GUID
         && pIntializeParams->presetGUID != NV_ENC_PRESET_LOSSLESS_HP_GUID)
     {
@@ -220,6 +225,7 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
 		pEncoderParams->encodeConfig->encodeCodecConfig.hevcConfig.idrPeriod = pEncoderParams->encodeConfig->gopLength;
 		pEncoderParams->encodeConfig->encodeCodecConfig.hevcConfig.repeatSPSPPS = 1;
 	}
+	//pEncoderParams->encodeConfig->encodeCodecConfig.h264Config.enableTemporalSVC = 1;
 
     if (!m_hEncoder)
     {
@@ -288,11 +294,14 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
         m_nvenc.nvEncGetEncodePresetConfig(m_hEncoder, pEncoderParams->encodeGUID, NV_ENC_PRESET_DEFAULT_GUID, &presetConfig);
         memcpy(&m_encodeConfig, &presetConfig.presetCfg, sizeof(NV_ENC_CONFIG));
         m_encodeConfig.version = NV_ENC_CONFIG_VER;
-        m_encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CONSTQP;
+        m_encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
         m_encodeConfig.rcParams.constQP = { 28, 31, 25 };
     }
     m_initializeParams.encodeConfig = &m_encodeConfig;
-
+	/*m_initializeParams.encodeConfig->rcParams.averageBitRate = 4000;
+	m_initializeParams.encodeConfig->rcParams.maxBitRate = 100000;*/
+	using namespace chen;
+	NORMAL_EX_LOG("m_initializeParams.encodeConfig->rcParams.averageBitRate = %u, m_initializeParams.encodeConfig->rcParams.maxbitrate = %u", m_initializeParams.encodeConfig->rcParams.averageBitRate, m_initializeParams.encodeConfig->rcParams.maxBitRate);
     NVENC_API_CALL(m_nvenc.nvEncInitializeEncoder(m_hEncoder, &m_initializeParams));
 
     m_bEncoderInitialized = true;
@@ -301,7 +310,7 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
     m_nMaxEncodeWidth = m_initializeParams.maxEncodeWidth;
     m_nMaxEncodeHeight = m_initializeParams.maxEncodeHeight;
 
-	m_nEncoderBuffer = 2;// m_encodeConfig.frameIntervalP + m_encodeConfig.rcParams.lookaheadDepth + m_nExtraOutputDelay;
+	m_nEncoderBuffer =  m_encodeConfig.frameIntervalP + m_encodeConfig.rcParams.lookaheadDepth + m_nExtraOutputDelay;
     m_nOutputDelay = m_nEncoderBuffer - 1;
     m_vMappedInputBuffers.resize(m_nEncoderBuffer, nullptr);
 
@@ -449,6 +458,8 @@ void NvEncoder::GetSequenceParams(std::vector<uint8_t> &seqParams)
 
 void NvEncoder::SetROI(int pos_x, int pos_y, int region_width, int region_height, int delta_qp)
 {
+	using namespace chen;
+	NORMAL_EX_LOG("------------");
     int mb_size = 16;
     if (m_initializeParams.encodeGUID == NV_ENC_CODEC_H264_GUID) {
         mb_size = 16;

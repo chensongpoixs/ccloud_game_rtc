@@ -391,7 +391,7 @@ namespace chen {
 			break;
 			case 2:
 			{
-				OutButton = Event ==EventType::MOUSE_DOWN  ?    WM_RBUTTONDOWN : WM_RBUTTONUP; // EMouseButtons::Right;
+				OutButton = Event ==EventType::MOUSE_DOWN  ? WM_RBUTTONDOWN: WM_RBUTTONUP ; // EMouseButtons::Right;
 			}
 			break;
 			case 3:

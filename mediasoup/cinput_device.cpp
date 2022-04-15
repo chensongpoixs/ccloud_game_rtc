@@ -12,10 +12,14 @@ purpose:		input_device
 #include "cinput_device_event.h"
 #include "rtc_base/logging.h"
 #include "clog.h"
+#if defined(_MSC_VER)
 
+#include <Windows.h>
+
+#endif // WIN
 namespace chen {
-	int32_t  g_width = 0;
-	int32_t  g_height = 0;
+	int32_t  g_width = 150;
+	int32_t  g_height = 150;
 	using FKeyCodeType = uint8;
 	using FCharacterType = TCHAR;
 	using FRepeatType = uint8;
@@ -27,18 +31,32 @@ namespace chen {
 	using FControllerButtonIndex = uint8;
 	using FControllerAnalog = double;
 	using FControllerAxis = uint8;
+
+
+	//static long long timeA = systemtime();
+	//std::chrono::milliseconds
+	//cout << timeA << endl;
+
+
 	////PostMessage
 #define MESSAGE(g_wnd, message_id, param1, param2) MSG msg;  \
 														  msg.hwnd = g_wnd;			\
 												          msg.message = message_id;	\
 														  msg.wParam = param1;		\
 														  msg.lParam = param2;		\
-														  msg.time = ::time(NULL);	\
+			std::chrono::steady_clock::time_point cur_time_ms = std::chrono::steady_clock::now();     \
+											long long ms = static_cast<long long >(cur_time_ms.time_since_epoch().count() / 1000000); \
+												 msg.time = static_cast<DWORD>(ms);	\
 														  msg.pt.x = g_width; msg.pt.y = g_height; \
-														  ::TranslateMessage(&msg); \
-														 ::DispatchMessage(&msg);
+														::TranslateMessage(&msg);         \
+													long long ret_dispatch =	 ::DispatchMessage(&msg); \
+													NORMAL_EX_LOG("move cur_ms = %u, [ret_dispatch = %s]", ms, std::to_string(ret_dispatch).c_str());
+
+
+//#define MESSAGE(g_wnd, message_id, param1, param2) PostMessage(g_wnd, message_id, param1, param2);
 	//使用全局变量操作的哈 
 #define SET_POINT() POINT pt; pt.x = g_width; pt.y = g_height;
+
 #if defined(_MSC_VER)
 #define WINDOW_MAIN()		HWND mwin = FindMainWindow()
 #define WINDOW_CHILD()	HWND childwin = MainChildPoint(mwin, pt)
@@ -91,7 +109,8 @@ namespace chen {
 #endif //#if defined(_MSC_VER)
 #define REGISTER_INPUT_DEVICE(type, handler_ptr) if (false == m_input_device.insert(std::make_pair(type, handler_ptr)).second){	 ERROR_EX_LOG("[type = %s][handler_ptr = %s]", #type, #handler_ptr);	return false;}
 	
-	
+	static HWND g_main_mouse_down_up = NULL;
+	static HWND g_child_mouse_down_up = NULL;
 ///	cinput_device   g_input_device_mgr;
 	cinput_device::cinput_device() 
 		:  m_input_device()
@@ -99,6 +118,7 @@ namespace chen {
 	cinput_device::~cinput_device() {}
 
  
+	//static bool g_move_init = false;
 	bool cinput_device::init()
 	{
 		REGISTER_INPUT_DEVICE(RequestQualityControl, &cinput_device::OnKeyChar);
@@ -154,7 +174,19 @@ namespace chen {
 			}
 
 		} */
-		return (this->*(iter->second))(Data, Size);
+		//NORMAL_EX_LOG("move type =%d", MsgType);
+		std::chrono::steady_clock::time_point cur_time_ms;
+		std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
+		std::chrono::steady_clock::duration dur;
+		std::chrono::microseconds microseconds;
+		uint32_t elapse = 0;
+		 (this->*(iter->second))(Data, Size);
+		 cur_time_ms = std::chrono::steady_clock::now();
+		 dur = cur_time_ms - pre_time;
+		 microseconds = std::chrono::duration_cast<std::chrono::microseconds>(dur);
+		 elapse = static_cast<uint32_t>(microseconds.count());
+		 NORMAL_EX_LOG("mouse microseconds = %lu", microseconds);
+		 return true;
 		//return true;
 	}
 
@@ -366,20 +398,29 @@ namespace chen {
 
 		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
 		//ProcessEvent(MouseDownEvent);
-		NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
+		/*
+		g_width = PosX;
+		g_height = PosY;
+		*/
+		
+		PosX = g_width;
+		PosY = g_height;
+		NORMAL_EX_LOG("g_width = %d, g_height = %d, active_type = %d, PosX = %d, PoxY = %d", g_width, g_height, active_type, PosX, PosY );
+		//g_move_init = true;
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
-
+		g_main_mouse_down_up = mwin;
 		SET_POINT();
-		WINDOW_CHILD();
+		//WINDOW_CHILD();
 		//WINDOW_BNTTON_DOWN(vec);
 		/*if (mwin)
 		{
 		::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
 		}*/
-		if (mwin)
+
+		if (g_main_mouse_down_up)
 		{
-			MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(g_main_mouse_down_up, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -411,16 +452,28 @@ namespace chen {
 		MouseDownEvent.SetMouseClick(Button, PosX, PosY);
 		uint32  active_type;
 		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
-		NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
+		
+		g_width = PosX;
+		g_height = PosY;
+		/*
+		PosX = g_width;
+		PosY = g_height;*/
+		NORMAL_EX_LOG("g_width = %d, g_height = %d, active_type = %d, PosX = %d, PoxY = %d", g_width, g_height,  active_type, PosX, PosY );
 		//ProcessEvent(MouseDownEvent);
+		//g_move_init = false;
 		#if defined(_MSC_VER)
-		WINDOW_MAIN();
+		/*WINDOW_MAIN();
 		SET_POINT();
-		WINDOW_CHILD();
+		WINDOW_CHILD();*/
 		//WINDOW_BNTTON_UP(vec);
-		if (mwin)
+		
+		if (g_main_mouse_down_up)
 		{
-			MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			{
+				MESSAGE(g_main_mouse_down_up, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
+			}//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			
+			
 		}
 		/*if (mwin)
 		{
@@ -454,18 +507,26 @@ namespace chen {
 		_UnquantizeAndDenormalize(PosX, PosY);
 		_UnquantizeAndDenormalize(DeltaX, DeltaY);
 		//RTC_LOG(LS_INFO) << "mousemove <==>  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
-		NORMAL_EX_LOG("---> PosX = %d, PoxY = %d, DeltaY = %d", PosX, PosY, DeltaY);
+		NORMAL_EX_LOG("g_width = %d, g_height = %d, ---> PosX = %d, PoxY = %d, DeltaY = %d", g_width, g_height, PosX, PosY, DeltaY);
 
 		FEvent MouseMoveEvent(EventType::MOUSE_MOVE);
 		MouseMoveEvent.SetMouseDelta(PosX, PosY, DeltaX, DeltaY);
+		
 		g_width = PosX;
 		g_height = PosY;
+		/*
+		PosX = g_width;
+		PosY = g_height;*/
+		
 		#if defined(_MSC_VER)
-		WINDOW_MAIN();
+		//WINDOW_MAIN();
 		//WINDOW_BNTTON_UP(vec);
-		if (mwin)
+		
+		if (g_main_mouse_down_up)
 		{
-			MESSAGE(mwin, WM_MOUSEMOVE, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
+			
+			MESSAGE(g_main_mouse_down_up, WM_MOUSEMOVE, MAKEWPARAM(DeltaX, DeltaY), MAKEWPARAM(PosX, PosY));
+			
 		}
 		else
 		{
@@ -497,8 +558,15 @@ namespace chen {
 		uint32 active_type;
 
 		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
+		g_width = PosX;
+		g_height = PosY;
+		/*
+		PosX = g_width;
+		PosY = g_height;*/
 		//ProcessEvent(MouseDownEvent);
-		NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
+		NORMAL_EX_LOG("g_width = %d, g_height = %d, ---> PosX = %d, PoxY = %d", g_width, g_height, PosX, PosY);
+
+		//NORMAL_EX_LOG("active_type = %d, PosX = %d, PoxY = %d", active_type, PosX, PosY );
 #if defined(_MSC_VER)
 		WINDOW_MAIN();
 
@@ -544,8 +612,13 @@ namespace chen {
 		FEvent MouseWheelEvent(EventType::MOUSE_WHEEL);
 		MouseWheelEvent.SetMouseWheel(Delta, PosX, PosY);
 		//ProcessEvent(MouseWheelEvent);
+		/*g_width = PosX;
+		g_height = PosY;*/
+		PosX = g_width;
+		PosY = g_height;
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
+		NORMAL_EX_LOG(" PosX = %d, PoxY = %d", PosX, PosY);
 		if (mwin)
 		{
 			//::PostMessage(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));

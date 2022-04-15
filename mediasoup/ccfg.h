@@ -25,6 +25,10 @@ namespace chen {
 		ECI_OsgWebrtcFrame,
 		ECI_DesktopCapture,
 		ECI_WebSocketTimers, //断线从新连接的次数
+		ECI_RtcAvgRate, // 
+		ECI_RtcMaxRate,
+		ECI_RtcFrames,
+		ECI_RtcVideoGop,
 	//	ECI_Time_Zone,
 	//	ECI_Time_Adjust,
 	//	ECI_Log_DB_Host,
