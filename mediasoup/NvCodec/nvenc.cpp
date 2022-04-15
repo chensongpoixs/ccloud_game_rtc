@@ -302,7 +302,9 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture, uint8_t* ou
 {
 	using namespace chen;
 	//ERROR_EX_LOG("");
-	if (nvenc_data == nullptr) {
+	if (nvenc_data == nullptr) 
+	{
+		ERROR_EX_LOG("nvenc_data == nullptr");
 		return -1;
 	}
 
@@ -310,7 +312,9 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture, uint8_t* ou
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
 
-	if (enc->nvenc == nullptr) {
+	if (enc->nvenc == nullptr)
+	{
+		ERROR_EX_LOG("evenc ");
 		return -1;
 	}
 
@@ -318,7 +322,16 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture, uint8_t* ou
 	const NvEncInputFrame* input_frame = enc->nvenc->GetNextInputFrame();
 	ID3D11Texture2D *encoder_texture = reinterpret_cast<ID3D11Texture2D*>(input_frame->inputPtr);
 	enc->d3d11_context->CopyResource(encoder_texture, texture);
-	enc->nvenc->EncodeFrame(packet);
+	try
+	{
+		enc->nvenc->EncodeFrame(packet);
+	}
+	catch (...)
+	{
+		ERROR_EX_LOG("nvenc encode frame failed !!! packet ");
+		return -2;
+	}
+	
 
 	int frame_size = 0;
 	for (std::vector<uint8_t> &packet : packet) {

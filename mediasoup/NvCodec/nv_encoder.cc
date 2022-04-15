@@ -494,16 +494,23 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 		memset(&info, 0, sizeof(SFrameBSInfo));
 		std::vector<uint8_t> frame_packet;
 
-		EncodeFrame((int)i, input_frame, frame_packet);
+		if (!EncodeFrame((int)i, input_frame, frame_packet))
+		{
+			ERROR_EX_LOG("encode frame failed !!!");
+			return false;
+		}
 
-		if (frame_packet.size() == 0) {
+		if (frame_packet.size() == 0) 
+		{
 			return WEBRTC_VIDEO_CODEC_OK;
 		}
 		else {
-			if (frame_packet[4] == 0x67) {
+			if (frame_packet[4] == 0x67) 
+			{
 				info.eFrameType = videoFrameTypeIDR;
 			}
-			else if (frame_packet[4] == 0x61) {
+			else if (frame_packet[4] == 0x61) 
+			{
 				info.eFrameType = videoFrameTypeP;
 			}
 			else {
@@ -604,7 +611,9 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 {
 	frame_packet.clear();
 
-	if (nv_encoders_.empty() || !nv_encoders_[index]) {
+	if (nv_encoders_.empty() || !nv_encoders_[index])
+	{
+		ERROR_EX_LOG("nv encoder empty !!!");
 		return false;
 	}
 
@@ -627,7 +636,8 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 	ID3D11Texture2D* texture = nvenc_info.get_texture(nv_encoders_[index]);
 	ID3D11DeviceContext* context = nvenc_info.get_context(nv_encoders_[index]);
 
-	if (texture && context) {
+	if (texture && context) 
+	{
 		D3D11_MAPPED_SUBRESOURCE dsec = {0};
 		HRESULT hr = context->Map(texture, D3D11CalcSubresource(0, 0, 0), D3D11_MAP_WRITE, 0, &dsec);
 		if (SUCCEEDED(hr)) {
@@ -661,11 +671,22 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 			std::shared_ptr<uint8_t> out_buffer(new uint8_t[max_buffer_size]);
 
 			int frame_size = nvenc_info.encode_texture(nv_encoders_[index], texture, out_buffer.get(), max_buffer_size);
-			if (frame_size > 0) {
+			if (frame_size > 0) 
+			{
 				frame_packet.resize(frame_size);
 				::memcpy(&frame_packet[0], out_buffer.get(), frame_size);
-			}		
+			}
+			else
+			{
+				ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
+				return false;
+			}
 		}
+	}
+	else
+	{
+		ERROR_EX_LOG("context failed !!!");
+		return false;
 	}
 
 	return true;
