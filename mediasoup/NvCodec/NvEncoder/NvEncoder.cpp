@@ -209,10 +209,10 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
 	{
 		if (m_eBufferFormat == NV_ENC_BUFFER_FORMAT_YUV444 || m_eBufferFormat == NV_ENC_BUFFER_FORMAT_YUV444_10BIT)
 		{
-			pEncoderParams->encodeConfig->encodeCodecConfig.h264Config.chromaFormatIDC = 3;
+		//	pEncoderParams->encodeConfig->encodeCodecConfig.h264Config.chromaFormatIDC = 3;
 		}
-		pEncoderParams->encodeConfig->encodeCodecConfig.h264Config.idrPeriod = pEncoderParams->encodeConfig->gopLength;
-		pEncoderParams->encodeConfig->encodeCodecConfig.h264Config.repeatSPSPPS = 1;
+		//pEncoderParams->encodeConfig->encodeCodecConfig.h264Config.idrPeriod = pEncoderParams->encodeConfig->gopLength;
+		//pEncoderParams->encodeConfig->encodeCodecConfig.h264Config.repeatSPSPPS = 1;
 	}
 	else if (pEncoderParams->encodeGUID == NV_ENC_CODEC_HEVC_GUID)
 	{
