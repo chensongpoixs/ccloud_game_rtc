@@ -49,8 +49,8 @@ namespace chen {
 												 msg.time = static_cast<DWORD>(ms);	\
 														  msg.pt.x = g_width; msg.pt.y = g_height; \
 														::TranslateMessage(&msg);         \
-													long long ret_dispatch =	 ::DispatchMessage(&msg); \
-													NORMAL_EX_LOG("move cur_ms = %u, [ret_dispatch = %s]", ms, std::to_string(ret_dispatch).c_str());
+													long long ret_dispatch =	 ::DispatchMessage(&msg); 
+													//NORMAL_EX_LOG("move cur_ms = %u, [ret_dispatch = %s]", ms, std::to_string(ret_dispatch).c_str());
 
 
 //#define MESSAGE(g_wnd, message_id, param1, param2) PostMessage(g_wnd, message_id, param1, param2);
@@ -185,7 +185,10 @@ namespace chen {
 		 dur = cur_time_ms - pre_time;
 		 microseconds = std::chrono::duration_cast<std::chrono::microseconds>(dur);
 		 elapse = static_cast<uint32_t>(microseconds.count());
-		 NORMAL_EX_LOG("mouse microseconds = %lu", microseconds);
+		 if (elapse > 900)
+		 {
+			 WARNING_EX_LOG("input_device  microseconds = %lu", microseconds);
+		 }
 		 return true;
 		//return true;
 	}
@@ -201,7 +204,7 @@ namespace chen {
 	*/
 	bool cinput_device::OnKeyChar(const uint8*& Data,   uint32 size)
 	{
-
+		NORMAL_LOG("KeyChar");
 		//WINDOW_MAIN();
 		//SET_POINT(vec);
 		//WINDOW_CHILD();
@@ -242,16 +245,26 @@ namespace chen {
 		{
 			::PostMessageW(mwin, WM_KEYDOWN, KeyCode, Repeat != 0);
 		}*/
+		
+		
 		SET_POINT();
 		WINDOW_CHILD();
 		if (childwin)
 		{
 			//PostMessageW
-			MESSAGE(childwin, WM_KEYDOWN, KeyCode, 1);
+	        /*
+			这个 KeyDown与 KeyUP 是有讲究哈 ^_^
+			发送1次按键结果出现2次按键的情况
+发送一次WM_KEYDOWN及一次WM_KEYUP结果出现了2次按键，原因是最后一个参数lParam不规范导致，此参数0到15位为该键在键盘上的重复次数，经常设为1，即按键1次；16至23位为键盘的扫描码，通过API函数MapVirtualKey可以得到；24位为扩展键，即某些右ALT和CTRL；29一般为0；30位-[原状态]已按下为1否则0（KEYUP要设为1）；31位-[状态切换]（KEYDOWN设为0，KEYUP要设为1）。
+资料显示第30位对于keydown在和shift等结合的时候通常要设置为1，未经验证。
+
+
+			*/
+			MESSAGE(childwin, WM_KEYDOWN, KeyCode, 0);
 		}
 		else if (mwin)
 		{
-			MESSAGE(mwin, WM_KEYDOWN, KeyCode, 1);
+			MESSAGE(mwin, WM_KEYDOWN, KeyCode, 0);
 		}
 		else
 		{
@@ -294,6 +307,8 @@ namespace chen {
 		NORMAL_LOG("OnKeyUp==KeyCode = %u", KeyCode);
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
+		
+		
 		SET_POINT();
 		WINDOW_CHILD();
 		if (childwin)
@@ -334,10 +349,56 @@ namespace chen {
 	*	keypress：紧接着keydown事件触发（只有按下字符键时触发）
 	*	keyup：释放键盘键
 	*/
-	bool cinput_device::OnKeyPress(const uint8*& Data,   uint32 size)
+	bool cinput_device::OnKeyPress(const uint8*& Data,   uint32 Size)
 	{
-		// TODO@chensong 2022-01-20  KeyPress -->>>>> net 
-		return false;
+		// TODO@chensong 2022-01-20  KeyPress -->>>>> net
+
+		GET(FCharacterType, Character);
+		checkf(Size == 0, TEXT("%d"), Size);
+		//UE_LOG(PixelStreamerInput, Verbose, TEXT("key up: %d"), KeyCode);
+		// log key up -> KeyCode
+		FEvent KeyUpEvent(EventType::KEY_PRESS);
+		KeyUpEvent.SetKeyUp(Character);
+		NORMAL_LOG("OnKeyPress==KeyCode = %u", Character);
+#if defined(_MSC_VER)
+		WINDOW_MAIN();
+
+
+		
+		SET_POINT();
+		WINDOW_CHILD();
+		if (childwin)
+		{
+			MESSAGE(childwin, WM_CHAR, Character, 1);
+		}
+		else if (mwin)
+		{
+			//MESSAGE(mwin, WM_PR, Character, 0);
+			MESSAGE(mwin, WM_CHAR, Character, 1);
+		}
+		else
+		{
+			WARNING_EX_LOG("not find main window failed !!!");
+			return false;
+		}
+#endif //#if defined(_MSC_VER)
+		//ProcessEvent(KeyUpEvent);
+		//WINDOW_MAIN();
+		//SET_POINT(vec);
+		//WINDOW_CHILD();
+		//if (childwin)
+		//{
+		//	::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
+		//}
+		//else if (mwin)
+		//{
+		//	::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+		//}
+		//else
+		//{
+		//	// log -> error 
+		//	return false;
+		//}
 		return true;
 	}
 
