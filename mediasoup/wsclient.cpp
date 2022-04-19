@@ -476,6 +476,8 @@ class _RealWebSocket : public wsclient::WebSocket
 wsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, const std::string& origin) {
     char host[128];
     int port;
+	using namespace chen;
+	NORMAL_EX_LOG("url = %s", url.c_str());
     char path[128];
     if (url.size() >= 128) {
       fprintf(stderr, "ERROR: url size limit exceeded: %s\n", url.c_str());

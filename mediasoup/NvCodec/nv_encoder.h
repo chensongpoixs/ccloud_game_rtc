@@ -91,6 +91,7 @@ private:
 	uint8_t tl0sync_limit_;
 
 	std::shared_ptr<uint8_t> image_buffer_;
+	unsigned int m_key_frame_count;
 };
 
 }  // namespace webrtc

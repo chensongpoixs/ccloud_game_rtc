@@ -49,7 +49,7 @@ namespace chen
 		
 		m_status.store(CWEBSOCKET_CONNECTING);
 
-
+		NORMAL_EX_LOG("ws_url = %s", ws_url.c_str());
 		m_ws = wsclient::WebSocket::from_url(ws_url );
 		//WebSocketCallback callback(m_ws);
 

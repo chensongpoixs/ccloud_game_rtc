@@ -510,8 +510,44 @@ void NvEncoder::DoEncode(NV_ENC_INPUT_PTR inputBuffer, std::vector<std::vector<u
     picParams.qpDeltaMap = m_qpDeltaMap.get();
     picParams.qpDeltaMapSize = m_qpDeltaMapSize;
 
-	if (m_forceIDR) {
-		picParams.pictureType = NV_ENC_PIC_TYPE_IDR;
+	if (m_forceIDR) 
+	{
+		//picParams.pictureType = NV_ENC_PIC_TYPE_IDR;
+		//picParams.encodePicFlags = NV_ENC_PIC_FLAG_OUTPUT_SPSPPS;//
+		/*
+		检索序列参数
+配置编码会话后，客户端可以随时通过调用NvEncGetSequenceParams获取序列参数信息（SPS） . 分配和最终取消分配用于保存序列参数信息（SPS）大小的缓冲区是客户端的责任。
+默认情况下，SPS/PPS 数据将附加到每个 IDR 帧。但是，客户端也可以请求编码器按需生成 SPS/PPS 数据。要完成此操作，请设置 NV_ENC_PIC_PARAMS::encodePicFlags = NV_ENC_PIC_FLAG_OUTPUT_SPSPPS。 为当前输入生成的输出比特流将包括 SPS/PPS。
+客户端可以在编码器初始化后（NvEncInitializeEncoder) 并且会话处于活动状态的任何时候调用 NvEncGetSequenceParams 。
+编码视频流
+一旦配置了编码会话并分配了输入/输出缓冲区，客户端就可以开始流式传输输入数据以进行编码。客户端需要将有效输入缓冲区的句柄和有效位流（输出）缓冲区传递给 NVIDIA 视频编码器接口，以对输入图片进行编码。
+为编码准备输入缓冲区
+有两种方法可以将输入缓冲区分配和传递给视频编码器。
+通过 NVIDIA 视频编码器接口分配的输入缓冲区
+如果客户端通过NvEncCreateInputBuffer方式分配了输入缓冲区 ，客户端需要在使用缓冲区作为输入进行编码之前填充有效的输入数据。为此，客户端应调用NvEncLockInputBuffer获取指向输入缓冲区的 CPU 指针。一旦客户端填充了输入数据，它应该调用 NvEncUnlockInputBuffer. 输入缓冲区只有在解锁后才应传递给编码器。任何输入缓冲区都应在销毁/重新分配它们之前调用解锁 NvEncUnlockInputBuffer 。
+外部分配的输入缓冲区
+要将外部分配的缓冲区传递给编码器，请执行以下步骤：
+填充具有外部分配缓冲区的属性的NV_ENC_REGISTER_RESOURCE 。
+调用NvEncRegisterResource，将上述填充好的NV_ENC_REGISTER_RESOURCE属性注册。
+NvEncRegisterResource返回一个已注册的资源句柄NV_ENC_REGISTER_RESOURCE::registeredResource 。
+使用上述的句柄调用NvEncMapInputResource。
+NV_ENC_MAP_INPUT_RESOURCE::mappedResource映射的句柄将会生效。
+用户应当使用这个映射的句柄(NV_ENC_MAP_INPUT_RESOURCE::mappedResource) 作为输入缓冲句柄参数(NV_ENC_PIC_PARAMS)。
+客户端使用完资源后NvEncUnmapInputResource必须被调用。
+在销毁注册的资源之前，客户端还必须调用NvEncUnregisterResource，传入NvEncRegisterResource返回的句柄。
+映射的资源句柄 (NV_ENC_MAP_INPUT_RESOURCE::mappedResource) 不应在 NVIDIA 视频编码器接口处于映射状态时用于任何其他目的。这种用法不受支持，可能会导致未定义的行为。
+配置每帧编码参数
+客户端应该使用要应用于当前输入图片的参数填充NV_ENC_PIC_PARAMS。客户端可以在每帧的基础上执行以下操作。
+强制将当前帧编码为帧内 (I) 帧
+要将当前帧强制为帧内 (I) 帧，请设置NV_ENC_PIC_PARAMS::encodePicFlags = NV_ENC_PIC_FLAG_FORCEINTRA
+强制将当前帧用作参考帧
+要强制将当前帧用作参考帧，请设置NV_ENC_PIC_PARAMS_H264/NV_ENC_PIC_PARAMS_HEVC::refPicFlag = 1
+强制将当前帧用作 IDR 帧
+要强制将当前帧编码为 IDR 帧，请设置NV_ENC_PIC_PARAMS::encodePicFlags = NV_ENC_PIC_FLAG_FORCEIDR
+请求生成序列参数
+要将 SPS/PPS 与当前编码的帧一起包含，请设置 NV_ENC_PIC_PARAMS::encodePicFlags = NV_ENC_PIC_FLAG_OUTPU
+		*/
+		picParams.encodePicFlags = NV_ENC_PIC_FLAG_FORCEIDR;
 		m_forceIDR = false;
 	}
 

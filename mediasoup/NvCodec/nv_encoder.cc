@@ -87,13 +87,12 @@ VideoFrameType ConvertToVideoFrameType(EVideoFrameType type) {
 // exclude the start codes.
 
 
-
-
 static void RtpFragmentize(EncodedImage* encoded_image,
 	const VideoFrameBuffer& frame_buffer,
 	std::vector<uint8_t>& frame_packet,
 	RTPFragmentationHeader* frag_header)
 {
+	
 	size_t required_capacity = 0;
 	encoded_image->set_size(0);
 
@@ -199,7 +198,8 @@ NvEncoder::NvEncoder(const cricket::VideoCodec& codec)
       has_reported_init_(false),
       has_reported_error_(false),
       num_temporal_layers_(1),
-      tl0sync_limit_(0) 
+      tl0sync_limit_(0)
+	, m_key_frame_count(0)
 {
 	//RTC_CHECK(/*absl::EqualsIgnoreCase(codec.name, cricket::kH264CodecName)*/ codec.name == cricket::kH264CodecName);
 	std::string packetization_mode_string;
@@ -464,7 +464,10 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 			}
 		}
 	}
-	
+	if (send_key_frame)
+	{
+		m_key_frame_count = 0;
+	}
 	RTC_DCHECK_EQ(configurations_[0].width, frame_buffer->width());
 	RTC_DCHECK_EQ(configurations_[0].height, frame_buffer->height());
 
@@ -482,7 +485,9 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 		}
 
 		if (send_key_frame) {			
-			if (!nv_encoders_.empty() && nv_encoders_[i]) {
+			if (!nv_encoders_.empty() && nv_encoders_[i]) 
+			{
+				
 				nvenc_info.request_idr(nv_encoders_[i]);
 			}
 
@@ -493,7 +498,7 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 		SFrameBSInfo info;
 		memset(&info, 0, sizeof(SFrameBSInfo));
 		std::vector<uint8_t> frame_packet;
-
+		++m_key_frame_count;
 		if (!EncodeFrame((int)i, input_frame, frame_packet))
 		{
 			ERROR_EX_LOG("encode frame failed !!!");
@@ -507,10 +512,13 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 		else {
 			if (frame_packet[4] == 0x67) 
 			{
+				NORMAL_EX_LOG(" I frame  = %u", m_key_frame_count);
+				m_key_frame_count = 0;
 				info.eFrameType = videoFrameTypeIDR;
 			}
 			else if (frame_packet[4] == 0x61) 
 			{
+				//NORMAL_EX_LOG(" P frame ");
 				info.eFrameType = videoFrameTypeP;
 			}
 			else {

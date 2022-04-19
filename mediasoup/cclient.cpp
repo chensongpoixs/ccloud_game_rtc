@@ -200,7 +200,7 @@ namespace chen {
 		//std::string origin = "http://" + mediasoupIp + ":" + std::to_string(port);
 		std::list<std::string> msgs;
 		time_t cur_time = ::time(NULL);
-		 
+		NORMAL_EX_LOG("ws_url = %s", ws_url.c_str());
 		m_room_name = roomName;
 		m_client_name = clientName;
 		std::chrono::steady_clock::time_point cur_time_ms;

@@ -509,7 +509,7 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 int nvenc_request_idr(void *nvenc_data)
 {
 	using namespace chen;
-	//ERROR_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	if (nvenc_data == nullptr)
 	{
 		return 0;
@@ -519,8 +519,14 @@ int nvenc_request_idr(void *nvenc_data)
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
 
-	if (enc->nvenc != nullptr) {
+	if (enc->nvenc != nullptr) 
+	{
+		NORMAL_EX_LOG("request Keyframe");
 		enc->nvenc->ForceIDR();
+	}
+	else
+	{
+		WARNING_EX_LOG("not request Keyframe");
 	}
 
 	return 0;
