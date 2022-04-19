@@ -127,6 +127,11 @@ namespace chen {
 			return false;
 		}
 		SYSTEM_LOG("config init ok !!!");
+		// set log level
+		LOG::set_level( static_cast<ELogLevelType>(g_cfg.get_uint32(ECI_LogLevel)));
+
+		SYSTEM_LOG("set level = %u", g_cfg.get_uint32(ECI_LogLevel));
+		
 		if (!s_input_device.init())
 		{
 			ERROR_EX_LOG("init input_device mouble !!!  ");

@@ -97,7 +97,7 @@ namespace chen {
 	casync_log::casync_log()
 		: m_host("127.0.0.1")
 		, m_port(80)  
-		, m_level_log(ELogLevel_System)
+		, m_level_log(ELogLevel_Num)
 		, m_storage_type(ELogStorageScreenFilePost)
 		, m_stoped(false)
 		, m_date_time(0)
@@ -154,7 +154,7 @@ namespace chen {
 	void casync_log::append_var(ELogLevelType level, const char * format, va_list ap)
 	{
 		
-		if (level < ELogLevel_None || level > ELogLevel_Num)
+		if (level < ELogLevel_None || level > ELogLevel_Num  || level >= m_level_log)
 		{
 			return;
 		}
