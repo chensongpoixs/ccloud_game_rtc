@@ -194,6 +194,7 @@ namespace chen {
 
 		cmediasoup::mediasoup_status_update_cb		m_mediasoup_status_callback;
 		uint32							m_websocket_timer;
+		bool							m_send_produce_video_msg;
 	};
 #define  s_client chen::csingleton<chen::cclient>::get_instance()
 }

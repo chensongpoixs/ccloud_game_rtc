@@ -80,7 +80,8 @@ namespace chen {
 		, m_produce_consumer(true)
 		, m_ui_type(EUI_None)
 		, m_mediasoup_status_callback(nullptr)
-		, m_websocket_timer(0){}
+		, m_websocket_timer(0)
+		, m_send_produce_video_msg(false){}
 	cclient::~cclient(){}
 
 	static void show_work_dir()
@@ -793,7 +794,7 @@ namespace chen {
 			{"rtpParameters", rtp},
 			{"appData", nlohmann::json::object()}
 		};
-		
+		NORMAL_EX_LOG("data = %s", data.dump().c_str());
 		 
 		if (!_send_request_mediasoup(MEDIASOUP_REQUEST_METHOD_PRODUCE, data))
 		{
@@ -858,7 +859,11 @@ namespace chen {
 		m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_width = width;
 
 		++m_osg_frame;*/
-
+		if (!m_send_produce_video_msg)
+		{
+			m_send_produce_video_msg = true;
+			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
+		}
 		return m_send_transport->webrtc_video(rgba, width, height);
 		 
 		return true;
@@ -888,7 +893,11 @@ namespace chen {
 			m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_width = width;
 
 			++m_osg_frame;*/
-
+		if (!m_send_produce_video_msg)
+		{
+			m_send_produce_video_msg = true;
+			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
+		}
 		return m_send_transport->webrtc_texture(texture, width, height);
 	}
 	bool cclient::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, int32_t width, int32_t height)
@@ -916,6 +925,11 @@ namespace chen {
 
 			++m_osg_frame;*/
 		NORMAL_EX_LOG("");
+		if (!m_send_produce_video_msg)
+		{
+			m_send_produce_video_msg = true;
+			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
+		}
 		return m_send_transport->webrtc_video(y_ptr, uv_ptr, width, height);
 
 		return true;
@@ -933,7 +947,11 @@ namespace chen {
 			return false;
 		}
 
-		 
+		if (!m_send_produce_video_msg)
+		{
+			m_send_produce_video_msg = true;
+			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
+		}
 		return m_send_transport->webrtc_video(frame);
 	}
 	bool cclient::webrtc_run()
@@ -1061,7 +1079,7 @@ namespace chen {
 		m_recv_transport->webrtc_create_all_wait_consumer();
 		m_produce_video = ::time(NULL) +8;
 		m_webrtc_connect = true;
-		_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
+		//_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
  		return true;
 	}
 
@@ -1277,9 +1295,15 @@ namespace chen {
 	}
 	void cclient::_mediasoup_status_callback(uint32 status, uint32 error)
 	{
+		NORMAL_EX_LOG("status = %u, error = %u", status, error);
 		if (m_mediasoup_status_callback)
 		{
+
 			m_mediasoup_status_callback(status, error);
+		}
+		else
+		{
+			WARNING_EX_LOG("not find mediasoup status callback !!!");
 		}
 	}
 	bool cclient::_default_replay(const nlohmann::json & reply)
