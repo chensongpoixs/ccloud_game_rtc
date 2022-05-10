@@ -863,6 +863,63 @@ namespace chen {
 		 
 		return true;
 	}
+	bool cclient::webrtc_texture(void * texture, int32_t width, int32_t height)
+	{
+		NORMAL_EX_LOG("");
+		if (!m_webrtc_connect)
+		{
+			//WARNING_EX_LOG("not connect webrtc video wait !!!");
+			return false;
+		}
+		if (!m_send_transport)
+		{
+			//WARNING_EX_LOG("m_send_transport == nullptr !!!");
+			return false;
+		}
+
+		if (!texture || width <= 0 || height <= 0)
+		{//
+			//WARNING_EX_LOG(" osg copy param ? !!!");
+			return false;
+		}
+
+		/*	memcpy(m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_rgba_ptr, rgba, (width * height * 4));
+			m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_height = height;
+			m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_width = width;
+
+			++m_osg_frame;*/
+
+		return m_send_transport->webrtc_texture(texture, width, height);
+	}
+	bool cclient::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, int32_t width, int32_t height)
+	{
+		if (!m_webrtc_connect)
+		{
+			WARNING_EX_LOG("not connect webrtc video wait !!!");
+			return false;
+		}
+		if (!m_send_transport)
+		{
+			WARNING_EX_LOG("m_send_transport == nullptr !!!");
+			return false;
+		}
+
+		if (!y_ptr || width <= 0 || height <= 0)
+		{//
+			WARNING_EX_LOG(" osg copy param ? !!!");
+			return false;
+		}
+
+		/*	memcpy(m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_rgba_ptr, rgba, (width * height * 4));
+			m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_height = height;
+			m_frame_rgba_vec[m_osg_frame % m_frame_rgba_vec.size()].m_width = width;
+
+			++m_osg_frame;*/
+		NORMAL_EX_LOG("");
+		return m_send_transport->webrtc_video(y_ptr, uv_ptr, width, height);
+
+		return true;
+	}
 	bool cclient::webrtc_video(const webrtc::VideoFrame& frame)
 	{
 		if (!m_webrtc_connect)

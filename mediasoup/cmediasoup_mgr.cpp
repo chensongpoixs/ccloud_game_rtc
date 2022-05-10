@@ -54,6 +54,37 @@ namespace cmediasoup
 		}
 		s_client.webrtc_video(rgba_ptr, width, height);
 	}
+	void cmediasoup_mgr::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, int width, int height)
+	{
+		if (!m_init)
+		{
+
+			//WARNING_EX_LOG("mediasoup_mgr  not init !!!");
+			return;
+		}
+		if (m_webrtc_pause)
+		{
+			return;
+		}
+		NORMAL_EX_LOG("");
+		s_client.webrtc_video(y_ptr, uv_ptr, width, height);
+	}
+	void cmediasoup_mgr::webrtc_texture(void * texture, int width, int height)
+	{
+		if (!m_init)
+		{
+
+			//WARNING_EX_LOG("mediasoup_mgr  not init !!!");
+			return;
+		}
+		if (m_webrtc_pause)
+		{
+			return;
+		}
+		NORMAL_EX_LOG("");
+		//webrtc::VideoFrame frame;
+		s_client.webrtc_texture(texture, width, height);
+	}
 	void cmediasoup_mgr::webrtc_pause()
 	{
 		m_webrtc_pause = true;

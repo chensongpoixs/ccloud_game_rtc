@@ -41,6 +41,7 @@
     <ClInclude Include="cproducer.h" />
     <ClInclude Include="cprotocol.h" />
     <ClInclude Include="crecv_transport.h" />
+    <ClInclude Include="crtc_mgr.h" />
     <ClInclude Include="csend_transport.h" />
     <ClInclude Include="csession_description.h" />
     <ClInclude Include="csingleton.h" />
@@ -95,6 +96,7 @@
     <ClCompile Include="cosd_util.cpp" />
     <ClCompile Include="cproducer.cpp" />
     <ClCompile Include="crecv_transport.cpp" />
+    <ClCompile Include="crtc_mgr.cpp" />
     <ClCompile Include="csend_transport.cpp" />
     <ClCompile Include="csession_description.cpp" />
     <ClCompile Include="ctime_api.cpp" />
@@ -197,6 +199,7 @@
     <IncludePath>$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;C:\Program Files\CUDA\cuda_cudart\cudart\include;.\NvCodec;$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(C_INCLUDE)\webrtc\lib\x64\release;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>rtc</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

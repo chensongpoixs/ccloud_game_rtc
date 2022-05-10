@@ -65,6 +65,27 @@ namespace chen {
 		WARNING_EX_LOG("send transport capturer = nullptr");
 		return  false;
 	}
+	bool csend_transport::webrtc_texture(void * texture, int32_t width, int32_t height)
+	{
+		if (m_capturer_ptr)
+		{
+			NORMAL_EX_LOG("");
+			s_input_device.set_point(width, height);
+			return m_capturer_ptr->OnFrameTexture(texture, width, height);
+		}
+		WARNING_EX_LOG("send transport capturer = nullptr");
+		return  false;
+	}
+	bool csend_transport::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, int32_t width, int32_t height)
+	{
+		if (m_capturer_ptr)
+		{
+			s_input_device.set_point(width, height);
+			return m_capturer_ptr->OnFrame(y_ptr, uv_ptr, width, height);
+		}
+		WARNING_EX_LOG("send transport capturer = nullptr");
+		return  false;
+	}
 	bool csend_transport::webrtc_video(const webrtc::VideoFrame& frame)
 	{
 		if (m_capturer_ptr)

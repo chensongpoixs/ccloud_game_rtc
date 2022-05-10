@@ -24,7 +24,7 @@ struct encoder_info
 	void* (*create)(void);
 	void  (*destroy)(void **encoder_data);
 	bool  (*init)(void *encoder_data, void *encoder_config);
-	int   (*encode_texture)(void *nvenc_data, ID3D11Texture2D *texture, uint8_t* out_buf, uint32_t max_buf_size);
+	int   (*encode_texture)(void *nvenc_data, ID3D11Texture2D *texture, int *value, uint8_t* out_buf, uint32_t max_buf_size);
 	int   (*encode_handle)(void *nvenc_data, HANDLE handle, int lock_key, int unlock_key, uint8_t* out_buf, uint32_t max_buf_size);
 	int   (*set_bitrate)(void *nvenc_data, uint32_t bitrate_bps);
 	int   (*set_framerate)(void *nvenc_data, uint32_t framerate);

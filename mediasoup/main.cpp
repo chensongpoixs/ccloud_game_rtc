@@ -21,7 +21,7 @@ void signalHandler(int signum)
 
 
 
-int testmain(int argc, char *argv[])
+int  testmain(int argc, char *argv[])
 {
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
@@ -35,7 +35,7 @@ int testmain(int argc, char *argv[])
 		, const char* roomName, const char* clientName
 	
 	*/
-	g_mediasoup_mgr.startup("127.0.0.1", 8888, "chensong", "chensong");
+	g_mediasoup_mgr.startup("127.0.0.1", 8888, argv[1], argv[1]);
 	while (!stoped)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));

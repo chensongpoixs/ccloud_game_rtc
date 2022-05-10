@@ -288,7 +288,7 @@ int32_t NvEncoder::InitEncode(const VideoCodec* inst,
 
 		encoder_config nvenc_config;
 		nvenc_config.codec = "h264";
-		nvenc_config.format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		nvenc_config.format = DXGI_FORMAT_B8G8R8A8_UNORM;//  DXGI_FORMAT_B8G8R8A8_UNORM;
 		nvenc_config.width = configurations_[i].width;
 		nvenc_config.height = configurations_[i].height;
 		nvenc_config.framerate = (uint32_t)configurations_[i].max_frame_rate;
@@ -435,6 +435,7 @@ int32_t NvEncoder::SetRateAllocation(const VideoBitrateAllocation & bitrate, uin
 int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 						  const std::vector<VideoFrameType>* frame_types)
 {
+	NORMAL_EX_LOG("");
 	if (nv_encoders_.empty()) {
 		ReportError();
 		return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
@@ -618,7 +619,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 							std::vector<uint8_t>& frame_packet) 
 {
 	frame_packet.clear();
-
+	NORMAL_EX_LOG("");
 	if (nv_encoders_.empty() || !nv_encoders_[index])
 	{
 		ERROR_EX_LOG("nv encoder empty !!!");
@@ -643,42 +644,52 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 	int height = input_frame.height();
 	ID3D11Texture2D* texture = nvenc_info.get_texture(nv_encoders_[index]);
 	ID3D11DeviceContext* context = nvenc_info.get_context(nv_encoders_[index]);
-
-	if (texture && context) 
+	 if (texture && context && input_frame.video_frame_buffer()->ToI420()->get_texture())
 	{
-		D3D11_MAPPED_SUBRESOURCE dsec = {0};
-		HRESULT hr = context->Map(texture, D3D11CalcSubresource(0, 0, 0), D3D11_MAP_WRITE, 0, &dsec);
-		if (SUCCEEDED(hr)) {
-#if 1
-			//for (int y = 0; y < height; y++) 
-			//{
-			//	memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
-			//		input_frame.video_frame_buffer()->ToI420()->DataY()  + y * width * 4, width * 4);
-			//	/*memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
-			//			image_buffer_.get() + y * width * 4, width * 4);*/
-			//}//FOURCC_ARGB//NV_ENC_BUFFER_FORMAT_ABGR
-			libyuv::ABGRToARGB(input_frame.video_frame_buffer()->ToI420()->DataY(), width * 4, (uint8_t*)dsec.pData, dsec.RowPitch, width, height);
-			//memcpy(dsec.pData, input_frame.video_frame_buffer()->ToI420()->DataY(), width * height * 4);
-			/*::fwrite(image_buffer_.get(), 1, width * height * 4, out_file_ptr);
-			::fflush(out_file_ptr);*/
-#else
-			// nv12
-			uint8_t* y_plane_ = image_buffer_.get();
-			for (int i = 0; i < height; i++) {
-				memcpy((uint8_t*)dsec.pData + dsec.RowPitch * i, y_plane_ + width * i, width);
-			}
-			uint8_t* uv_plane_ = image_buffer_.get() + width * height;
-			for (int i = 0; i < height / 2; i++) {
-				memcpy((uint8_t*)dsec.pData + dsec.RowPitch * (height + i), uv_plane_ + width * i, width);
-			}
-#endif
 
-			context->Unmap(texture, D3D11CalcSubresource(0, 0, 0));
 
+////		D3D11_MAPPED_SUBRESOURCE dsec = {0};
+////		HRESULT hr = context->Map(texture, D3D11CalcSubresource(0, 0, 0), D3D11_MAP_WRITE, 0, &dsec);
+////		if (SUCCEEDED(hr)) {
+////#if 1
+////			for (int y = 0; y < height; y++) 
+////			{
+////				memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
+////					input_frame.video_frame_buffer()->ToI420()->DataY()  + y * width * 4, width * 4);
+////				/*memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
+////						image_buffer_.get() + y * width * 4, width * 4);*/
+////			}//FOURCC_ARGB//NV_ENC_BUFFER_FORMAT_ABGR//BGRAToARGB //NV_ENC_BUFFER_FORMAT_ABGR
+////			
+////			libyuv::ARGBCopy(input_frame.video_frame_buffer()->ToI420()->DataY(), width * 4, (uint8_t*)dsec.pData, dsec.RowPitch, width, height);
+////			memcpy(dsec.pData, input_frame.video_frame_buffer()->ToI420()->DataY(), width * height * 4);
+////			/*::fwrite(image_buffer_.get(), 1, width * height * 4, out_file_ptr);
+////			::fflush(out_file_ptr);*/
+////#else
+////			 nv12
+////			libyuv::NV12ToARGB(input_frame.video_frame_buffer()->ToI420()->DataY(), input_frame.video_frame_buffer()->ToI420()->StrideY()
+////				,input_frame.video_frame_buffer()->ToI420()->DataU(), input_frame.video_frame_buffer()->ToI420()->StrideU()*2, 
+////				(uint8_t*)dsec.pData, dsec.RowPitch, width, height );
+////			memcpy(dsec.pData, input_frame.video_frame_buffer()->ToI420()->DataY(), width * height * 1.5);
+////
+////
+////			/*uint8_t* y_plane_ = image_buffer_.get();
+////			for (int i = 0; i < height; i++) {
+////				memcpy((uint8_t*)dsec.pData + dsec.RowPitch * i, y_plane_ + width * i, width);
+////			}
+////			uint8_t* uv_plane_ = image_buffer_.get() + width * height;
+////			for (int i = 0; i < height / 2; i++) {
+////				memcpy((uint8_t*)dsec.pData + dsec.RowPitch * (height + i), uv_plane_ + width * i, width);
+////			}*/
+////#endif
+////
+////			context->Unmap(texture, D3D11CalcSubresource(0, 0, 0));
+
+		
 			int max_buffer_size = height * width * 4;
 			std::shared_ptr<uint8_t> out_buffer(new uint8_t[max_buffer_size]);
 
-			int frame_size = nvenc_info.encode_texture(nv_encoders_[index], texture, out_buffer.get(), max_buffer_size);
+			//int frame_size = nvenc_info.encode_texture(nv_encoders_[index], texture, out_buffer.get(), max_buffer_size);
+			int frame_size = nvenc_info.encode_handle((void*)nv_encoders_[index], (HANDLE)input_frame.video_frame_buffer()->ToI420()->get_texture(), -1, -1, out_buffer.get(), max_buffer_size); ;
 			if (frame_size > 0) 
 			{
 				frame_packet.resize(frame_size);
@@ -689,7 +700,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 				ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
 				return false;
 			}
-		}
+		//}
 	}
 	else
 	{

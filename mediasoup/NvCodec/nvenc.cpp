@@ -298,7 +298,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	return true;
 }
 
-int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture, uint8_t* out_buf, uint32_t out_buf_size)
+int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready, uint8_t* out_buf, uint32_t out_buf_size)
 {
 	using namespace chen;
 	//ERROR_EX_LOG("");
@@ -321,7 +321,9 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture, uint8_t* ou
 	std::vector<std::vector<uint8_t>> packet;
 	const NvEncInputFrame* input_frame = enc->nvenc->GetNextInputFrame();
 	ID3D11Texture2D *encoder_texture = reinterpret_cast<ID3D11Texture2D*>(input_frame->inputPtr);
+	//*ready = 1;
 	enc->d3d11_context->CopyResource(encoder_texture, texture);
+	//*ready = 0;
 	try
 	{
 		enc->nvenc->EncodeFrame(packet);
@@ -351,64 +353,73 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 	uint8_t* out_buf, uint32_t out_buf_size)
 {
 	using namespace chen;
-	//ERROR_EX_LOG("");
-	if (nvenc_data == nullptr || handle == nullptr) {
+	NORMAL_EX_LOG("");
+	struct video_data {
+		int ready;
+		void * handler;
+	};
+	video_data * video_data_ptr = (video_data*)handle;
+	NORMAL_EX_LOG("");
+	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
+	if (nvenc_data == nullptr || handle == nullptr || video_data_ptr->handler == nullptr) {
 		return 0;
 	}
-
-	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
+	
 	ID3D11Texture2D* input_texture = enc->input_texture;
 	IDXGIKeyedMutex* keyed_mutex = enc->keyed_mutex;
 	int frame_size = 0;
-
-	if (enc->input_handle != handle) {		
+	NORMAL_EX_LOG("[enc->input_handle = %p][handle = %p]", enc->input_handle, video_data_ptr->handler);
+	if (enc->input_handle != video_data_ptr->handler) {
 		if (enc->input_texture) {
 			enc->input_texture->Release();
 			enc->input_texture = nullptr;
 		}
-
+		NORMAL_EX_LOG("");
 		if (enc->keyed_mutex) {
 			enc->keyed_mutex->Release();
 			enc->keyed_mutex = nullptr;
 		}
-
-		HRESULT hr = enc->d3d11_device->OpenSharedResource((HANDLE)(uintptr_t)handle, __uuidof(ID3D11Texture2D),
+		NORMAL_EX_LOG("");
+		HRESULT hr = enc->d3d11_device->OpenSharedResource((HANDLE)(uintptr_t)video_data_ptr->handler, __uuidof(ID3D11Texture2D),
 			reinterpret_cast<void **>(&enc->input_texture));
 		if (FAILED(hr)) {
 			return -1;
 		}
-
+		NORMAL_EX_LOG("");
 		input_texture = enc->input_texture;
-		
-		if (lock_key >= 0 && unlock_key >= 0) {
+		NORMAL_EX_LOG("");
+		/*if (lock_key >= 0 && unlock_key >= 0) {
 			hr = input_texture->QueryInterface(_uuidof(IDXGIKeyedMutex), reinterpret_cast<void**>(&enc->keyed_mutex));
+			NORMAL_EX_LOG("");
 			if (FAILED(hr)) {
 				enc->input_texture->Release();
 				enc->input_texture = nullptr;
 				return -1;
 			}
-
+			NORMAL_EX_LOG("");
 			keyed_mutex = enc->keyed_mutex;
-		}
-
-		enc->input_handle = handle;
+		}*/
+		NORMAL_EX_LOG("");
+		enc->input_handle = video_data_ptr->handler;
 	}
-
+	NORMAL_EX_LOG("");
 	if (input_texture != nullptr) {
-		if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
+		/*if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
 			HRESULT hr = keyed_mutex->AcquireSync(lock_key, 5);
 			if (hr != S_OK) {
 				return -1;
 			}
-		}
-
-		frame_size = nvenc_encode_texture(enc, input_texture, out_buf, out_buf_size);
-
-		if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
+		}*/
+		NORMAL_EX_LOG("");
+		video_data_ptr->ready = 1;
+		frame_size = nvenc_encode_texture(enc, input_texture, &video_data_ptr->ready, out_buf, out_buf_size);
+		video_data_ptr->ready = 0;
+		NORMAL_EX_LOG("");
+		/*if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
 			keyed_mutex->ReleaseSync(unlock_key);
-		}		
+		}*/		
 	}
-
+	NORMAL_EX_LOG("");
 	return frame_size;
 }
 
