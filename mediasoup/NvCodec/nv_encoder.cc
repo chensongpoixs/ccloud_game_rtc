@@ -689,7 +689,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 			std::shared_ptr<uint8_t> out_buffer(new uint8_t[max_buffer_size]);
 
 			//int frame_size = nvenc_info.encode_texture(nv_encoders_[index], texture, out_buffer.get(), max_buffer_size);
-			int frame_size = nvenc_info.encode_handle((void*)nv_encoders_[index], (HANDLE)input_frame.video_frame_buffer()->ToI420()->get_texture(), -1, -1, out_buffer.get(), max_buffer_size); ;
+			int frame_size = nvenc_info.encode_handle((void*)nv_encoders_[index], (HANDLE)input_frame.video_frame_buffer()->ToI420()->get_texture(), 0, 0, out_buffer.get(), max_buffer_size); ;
 			if (frame_size > 0) 
 			{
 				frame_packet.resize(frame_size);
