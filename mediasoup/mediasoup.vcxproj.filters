@@ -45,15 +45,6 @@
     <ClInclude Include="sdp\RemoteSdp.hpp" />
     <ClInclude Include="sdp\Utils.hpp" />
     <ClInclude Include="cdesktop_capture.h" />
-    <ClInclude Include="NvCodec\encoder_info.h">
-      <Filter>NvCodec</Filter>
-    </ClInclude>
-    <ClInclude Include="NvCodec\nv_encoder.h">
-      <Filter>NvCodec</Filter>
-    </ClInclude>
-    <ClInclude Include="NvCodec\nvenc.h">
-      <Filter>NvCodec</Filter>
-    </ClInclude>
     <ClInclude Include="NvCodec\Utils\Logger.h">
       <Filter>NvCodec\Utils</Filter>
     </ClInclude>
@@ -63,23 +54,21 @@
     <ClInclude Include="NvCodec\Utils\NvEncoderCLIOptions.h">
       <Filter>NvCodec\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="NvCodec\NvEncoder\nvEncodeAPI.h">
-      <Filter>NvCodec\NvEncoder</Filter>
-    </ClInclude>
     <ClInclude Include="NvCodec\NvEncoder\NvEncoder.h">
       <Filter>NvCodec\NvEncoder</Filter>
     </ClInclude>
     <ClInclude Include="NvCodec\NvEncoder\NvEncoderCuda.h">
       <Filter>NvCodec\NvEncoder</Filter>
     </ClInclude>
-    <ClInclude Include="NvCodec\NvEncoder\NvEncoderD3D9.h">
-      <Filter>NvCodec\NvEncoder</Filter>
-    </ClInclude>
-    <ClInclude Include="NvCodec\NvEncoder\NvEncoderD3D11.h">
-      <Filter>NvCodec\NvEncoder</Filter>
-    </ClInclude>
-    <ClInclude Include="external_video_encoder_factory.h" />
     <ClInclude Include="crtc_mgr.h" />
+    <ClInclude Include="NvCodec\nvcodec_h264_encoder.h">
+      <Filter>NvCodec</Filter>
+    </ClInclude>
+    <ClInclude Include="NvCodec\nvcodec_h264_encoder_cuda.h">
+      <Filter>NvCodec</Filter>
+    </ClInclude>
+    <ClInclude Include="hw_video_encoder_factory.h" />
+    <ClInclude Include="external_video_encoder_factory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />
@@ -121,26 +110,21 @@
     <ClCompile Include="sdp\Utils.cpp" />
     <ClCompile Include="cdesktop_capture.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="NvCodec\nv_encoder.cc">
-      <Filter>NvCodec</Filter>
-    </ClCompile>
-    <ClCompile Include="NvCodec\nvenc.cpp">
-      <Filter>NvCodec</Filter>
-    </ClCompile>
     <ClCompile Include="NvCodec\NvEncoder\NvEncoder.cpp">
       <Filter>NvCodec\NvEncoder</Filter>
     </ClCompile>
     <ClCompile Include="NvCodec\NvEncoder\NvEncoderCuda.cpp">
       <Filter>NvCodec\NvEncoder</Filter>
     </ClCompile>
-    <ClCompile Include="NvCodec\NvEncoder\NvEncoderD3D9.cpp">
-      <Filter>NvCodec\NvEncoder</Filter>
-    </ClCompile>
-    <ClCompile Include="NvCodec\NvEncoder\NvEncoderD3D11.cpp">
-      <Filter>NvCodec\NvEncoder</Filter>
-    </ClCompile>
-    <ClCompile Include="external_video_encoder_factory.cc" />
     <ClCompile Include="crtc_mgr.cpp" />
+    <ClCompile Include="NvCodec\nvcodec_h264_encoder.cpp">
+      <Filter>NvCodec</Filter>
+    </ClCompile>
+    <ClCompile Include="NvCodec\nvcodec_h264_encoder_cuda.cpp">
+      <Filter>NvCodec</Filter>
+    </ClCompile>
+    <ClCompile Include="hw_video_encoder_factory.cpp" />
+    <ClCompile Include="external_video_encoder_factory.cc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="client.cfg" />

@@ -20,6 +20,7 @@
 #include "third_party/libyuv/include/libyuv/scale.h"
 #include "third_party/libyuv/include/libyuv.h"
 #include "../ccfg.h"
+#include "../clog.h"
 namespace webrtc {
 
 namespace {
