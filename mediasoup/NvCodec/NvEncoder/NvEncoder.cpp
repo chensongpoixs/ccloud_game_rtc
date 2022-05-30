@@ -9,6 +9,7 @@
 *
 */
 #include "../../clog.h"
+#include "../../ccfg.h"
 #ifndef WIN32
 //#include <dlfcn.h>
 #endif
@@ -16,6 +17,9 @@
 
 #ifndef _WIN32
 #include <cstring>
+
+
+
 
 
 
@@ -310,8 +314,9 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
     m_nMaxEncodeWidth = m_initializeParams.maxEncodeWidth;
     m_nMaxEncodeHeight = m_initializeParams.maxEncodeHeight;
 
-	m_nEncoderBuffer =  m_encodeConfig.frameIntervalP + m_encodeConfig.rcParams.lookaheadDepth + m_nExtraOutputDelay;
-    m_nOutputDelay = m_nEncoderBuffer - 1;
+	m_nEncoderBuffer = m_encodeConfig.frameIntervalP + chen::g_cfg.get_uint32(ECI_EncoderArraySize); /*m_encodeConfig.rcParams.lookaheadDepth + m_nExtraOutputDelay*/;
+	NORMAL_EX_LOG("[m_nEncoderBuffer = %u][m_encodeConfig.rcParams.lookaheadDepth = %u,  m_nExtraOutputDelay = %u]", m_nEncoderBuffer, m_encodeConfig.rcParams.lookaheadDepth , m_nExtraOutputDelay);
+	m_nOutputDelay = m_nEncoderBuffer - 1;
     m_vMappedInputBuffers.resize(m_nEncoderBuffer, nullptr);
 
     m_vpCompletionEvent.resize(m_nEncoderBuffer, nullptr);

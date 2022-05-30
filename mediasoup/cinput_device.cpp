@@ -39,21 +39,21 @@ namespace chen {
 
 
 	////PostMessage
-#define MESSAGE(g_wnd, message_id, param1, param2) MSG msg;  \
-														  msg.hwnd = g_wnd;			\
-												          msg.message = message_id;	\
-														  msg.wParam = param1;		\
-														  msg.lParam = param2;		\
-			std::chrono::steady_clock::time_point cur_time_ms = std::chrono::steady_clock::now();     \
-											long long ms = static_cast<long long >(cur_time_ms.time_since_epoch().count() / 1000000); \
-												 msg.time = static_cast<DWORD>(ms);	\
-														  msg.pt.x = g_width; msg.pt.y = g_height; \
-														::TranslateMessage(&msg);         \
-													long long ret_dispatch =	 ::DispatchMessage(&msg); 
-													//NORMAL_EX_LOG("move cur_ms = %u, [ret_dispatch = %s]", ms, std::to_string(ret_dispatch).c_str());
+//#define MESSAGE(g_wnd, message_id, param1, param2) MSG msg;  \
+//														  msg.hwnd = g_wnd;			\
+//												          msg.message = message_id;	\
+//														  msg.wParam = param1;		\
+//														  msg.lParam = param2;		\
+//			std::chrono::steady_clock::time_point cur_time_ms = std::chrono::steady_clock::now();     \
+//											long long ms = static_cast<long long >(cur_time_ms.time_since_epoch().count() / 1000000); \
+//												 msg.time = static_cast<DWORD>(ms);	\
+//														  msg.pt.x = g_width; msg.pt.y = g_height; \
+//														::TranslateMessage(&msg);         \
+//													long long ret_dispatch =	 ::DispatchMessage(&msg); 
+//													//NORMAL_EX_LOG("move cur_ms = %u, [ret_dispatch = %s]", ms, std::to_string(ret_dispatch).c_str());
+//
 
-
-//#define MESSAGE(g_wnd, message_id, param1, param2) PostMessage(g_wnd, message_id, param1, param2);
+#define MESSAGE(g_wnd, message_id, param1, param2) PostMessage(g_wnd, message_id, param1, param2);
 	//使用全局变量操作的哈 
 #define SET_POINT() POINT pt; pt.x = g_width; pt.y = g_height;
 

@@ -40,7 +40,12 @@ void VideoCaptureSource::VideoOnFrame(const webrtc::VideoFrame& frame)
 {
 	OnFrame(frame);
 }
-void VideoCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
+void VideoCaptureSource::OnFrame(const webrtc::VideoFrame& frame) 
+{
+	broadcaster_.OnFrame(frame);
+	return;
+
+
 	int cropped_width = 0;
 	int cropped_height = 0;
 	int out_width = 0;
@@ -53,7 +58,7 @@ void VideoCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
 		//RTC_LOG(LS_INFO) << "video adapter input failed !!!";
 		return;
 	}
-
+	
 	std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 	if (out_height != frame.height() || out_width != frame.width()) {
 		// Video adapter has requested a down-scale. Allocate a new buffer and

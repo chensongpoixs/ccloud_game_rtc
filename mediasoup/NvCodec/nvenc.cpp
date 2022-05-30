@@ -388,7 +388,7 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 		NORMAL_EX_LOG("");
 		input_texture = enc->input_texture;
 		NORMAL_EX_LOG("");
-		/*if (lock_key >= 0 && unlock_key >= 0)
+		if (lock_key >= 0 && unlock_key >= 0)
 		{
 			hr = input_texture->QueryInterface( _uuidof(IDXGIKeyedMutex), reinterpret_cast<void**>(&enc->keyed_mutex));
 			NORMAL_EX_LOG("hr = %u", hr);
@@ -400,26 +400,28 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 			}
 			NORMAL_EX_LOG("");
 			keyed_mutex = enc->keyed_mutex;
-		}*/
+		}
 		NORMAL_EX_LOG("");
 		enc->input_handle = video_data_ptr->handler;
 	}
 	NORMAL_EX_LOG("");
 	if (input_texture != nullptr) {
-		/*if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
-			HRESULT hr = keyed_mutex->AcquireSync(lock_key, 5);
-			if (hr != S_OK) {
+		if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
+			HRESULT hr = keyed_mutex->AcquireSync(lock_key, 3);
+			if (hr != S_OK) 
+			{
+				NORMAL_EX_LOG("AcquireSync time out !!!");
 				return -1;
 			}
-		}*/
+		}
 		NORMAL_EX_LOG("");
 		//video_data_ptr->ready = 1;
 		frame_size = nvenc_encode_texture(enc, input_texture, &video_data_ptr->ready, out_buf, out_buf_size);
 		//video_data_ptr->ready = 0;
 		NORMAL_EX_LOG("");
-		/*if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
+		if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
 			keyed_mutex->ReleaseSync(unlock_key);
-		}*/
+		}
 	}
 	NORMAL_EX_LOG("");
 	return frame_size;

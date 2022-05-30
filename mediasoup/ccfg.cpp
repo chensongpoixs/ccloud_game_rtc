@@ -41,6 +41,7 @@ namespace chen {
 		set_uint32(ECI_RtcMaxRate, "rtc_max_rate", 100000);
 		set_uint32(ECI_RtcFrames, "rtc_frame", 50);
 		set_uint32(ECI_RtcVideoGop, "rtc_video_gop", 60);
+		set_uint32(ECI_EncoderArraySize, "encoder_array_size", 3);
 
 		set_uint32(ECI_LogLevel, "log_level", ELogLevel_Info);
 #if _DEBUG
