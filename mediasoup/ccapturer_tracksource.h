@@ -127,7 +127,7 @@ namespace chen {
 			{
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
-			else if (i420_buffer_->width() * i420_buffer_->height() < width * height) 
+			else if ((i420_buffer_->width() * i420_buffer_->height()) <(width * height))
 			{
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}

@@ -53,7 +53,11 @@ namespace chen {
 //													//NORMAL_EX_LOG("move cur_ms = %u, [ret_dispatch = %s]", ms, std::to_string(ret_dispatch).c_str());
 //
 
-#define MESSAGE(g_wnd, message_id, param1, param2) PostMessage(g_wnd, message_id, param1, param2);
+#define MESSAGE(g_wnd, message_id, param1, param2)  PostMessage(g_wnd, message_id, param1, param2);
+
+	//BringWindowToTop(g_wnd);	\
+	//	SetForegroundWindow(g_wnd); \
+	// SetWindowLong(g_wnd, GWL_STYLE, GetWindowLong(g_wnd, GWL_STYLE) | WS_EX_TRANSPARENT | WS_EX_LAYERED);
 	//使用全局变量操作的哈 
 #define SET_POINT() POINT pt; pt.x = g_width; pt.y = g_height;
 
@@ -180,6 +184,39 @@ namespace chen {
 		std::chrono::steady_clock::duration dur;
 		std::chrono::microseconds microseconds;
 		uint32_t elapse = 0;
+		//备往：尽管GetFocus返回NULL，但可能另一线程的队列与拥有输入焦点的窗口相关。
+		//便用GetForeyroundWindow函数来获得用户目前工作的窗口。
+		//可以使用AttachThreadlnPut函数把线程的消息队列与另一线程的窗口关联起来。
+		
+
+		//HWND wnd = GetFocus();
+
+
+
+
+
+		
+		   //说明：SetForegroundWindow在debug模式一直成功，非debug模式会有失败的情况，解决方法是利用AttachThreadInput
+        //AttachThreadInput这个函数可以使两个线程的输入队列共享。 
+        //如果我们把当前的焦点的输入队列跟我们要显示的窗口的输入队列共享，
+        //我们就可以让我们的窗口SetForegroundWindow 成功，然后成功 获得焦点，显示在前台
+		/*
+		HWND hForgroundWnd = GetForegroundWindow(); \
+						DWORD dwForeID = ::GetWindowThreadProcessId(hForgroundWnd, NULL); \
+	DWORD dwCurID = ::GetCurrentThreadId();		\
+	::AttachThreadInput(dwCurID, dwForeID, TRUE);	\
+	::ShowWindow(g_wnd, SW_SHOWNORMAL);		\
+	::SetForegroundWindow(g_wnd);	\
+	::AttachThreadInput(dwCurID, dwForeID, FALSE);	\
+		*/
+       /*
+	   SetWindowPos(handle, -1, 0, 0, 0, 0, 0x001 | 0x002 | 0x040);    //将这个窗口永远置于最上面
+    //---------------------------在需要激活窗体的地方添加如下代码-----------------------//
+    PostMessage(handle, WM_LBUTTONDOWN, 0, 0);
+    PostMessage(handle, WM_LBUTTONUP, 0, 0);
+	   */
+		//BringWindowToTop();
+
 		 (this->*(iter->second))(Data, Size);
 		 cur_time_ms = std::chrono::steady_clock::now();
 		 dur = cur_time_ms - pre_time;
@@ -479,9 +516,9 @@ namespace chen {
 		::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
 		}*/
 
-		if (g_main_mouse_down_up)
+		if (mwin)
 		{
-			MESSAGE(g_main_mouse_down_up, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -523,15 +560,15 @@ namespace chen {
 		//ProcessEvent(MouseDownEvent);
 		//g_move_init = false;
 		#if defined(_MSC_VER)
-		/*WINDOW_MAIN();
-		SET_POINT();
+		WINDOW_MAIN();
+		/*SET_POINT();
 		WINDOW_CHILD();*/
 		//WINDOW_BNTTON_UP(vec);
 		
-		if (g_main_mouse_down_up)
+		if (mwin)
 		{
 			{
-				MESSAGE(g_main_mouse_down_up, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
+				MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
 			}//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 			
 			
@@ -580,13 +617,13 @@ namespace chen {
 		PosY = g_height;*/
 		
 		#if defined(_MSC_VER)
-		//WINDOW_MAIN();
+		WINDOW_MAIN();
 		//WINDOW_BNTTON_UP(vec);
 		
-		if (g_main_mouse_down_up)
+		if (mwin)
 		{
 			
-			MESSAGE(g_main_mouse_down_up, WM_MOUSEMOVE, MAKEWPARAM(DeltaX, DeltaY), MAKEWPARAM(PosX, PosY));
+			MESSAGE(mwin, WM_MOUSEMOVE, MAKEWPARAM(DeltaX, DeltaY), MAKEWPARAM(PosX, PosY));
 			
 		}
 		else
