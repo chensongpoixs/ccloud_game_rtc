@@ -295,7 +295,7 @@ int32_t NvEncoder::InitEncode(const VideoCodec* inst,
 		//TODO@chensong 2022-03-18 设置GOP 的大小 哈 ^_^ 不知道为什么 webrtc中设置gop key_frame_interval 字段是有效的、
 		//根据程序
 		using namespace chen;
-		nvenc_config.gop = g_cfg.get_uint32(ECI_RtcVideoGop);// configurations_[i].key_frame_interval;
+		nvenc_config.gop = g_cfg.get_uint32(ECI_EncoderVideoGop);// configurations_[i].key_frame_interval;
 		nvenc_config.bitrate = 100000;
 		if (!nvenc_info.init(nv_encoders_[i], &nvenc_config)) {
 			Release();
@@ -435,7 +435,11 @@ int32_t NvEncoder::SetRateAllocation(const VideoBitrateAllocation & bitrate, uin
 int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 						  const std::vector<VideoFrameType>* frame_types)
 {
-	NORMAL_EX_LOG("");
+	std::chrono::steady_clock::time_point cur_time_ms;
+	std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
+	std::chrono::steady_clock::duration dur;
+	std::chrono::microseconds microseconds;
+	uint32_t elapse = 0;
 	if (nv_encoders_.empty()) {
 		ReportError();
 		return WEBRTC_VIDEO_CODEC_UNINITIALIZED;
@@ -511,6 +515,7 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 			return WEBRTC_VIDEO_CODEC_OK;
 		}
 		else {
+			NORMAL_EX_LOG("frame size = %lu", frame_packet.size());
 			if (frame_packet[4] == 0x67) 
 			{
 				NORMAL_EX_LOG(" I frame  = %u", m_key_frame_count);
@@ -519,11 +524,12 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 			}
 			else if (frame_packet[4] == 0x61) 
 			{
-				//NORMAL_EX_LOG(" P frame ");
+				NORMAL_EX_LOG(" P frame ");
 				info.eFrameType = videoFrameTypeP;
 			}
 			else {
-				return WEBRTC_VIDEO_CODEC_OK;
+				NORMAL_EX_LOG(" B frame ");
+				info.eFrameType = videoFrameTypeP;
 			}
 		}
 
@@ -573,7 +579,14 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 			encoded_image_callback_->OnEncodedImage(encoded_images_[i], &codec_specific, &frag_header);
 		}
 	}
-
+	cur_time_ms = std::chrono::steady_clock::now();
+	dur = cur_time_ms - pre_time;
+	microseconds = std::chrono::duration_cast<std::chrono::microseconds>(dur);
+	elapse = static_cast<uint32_t>(microseconds.count());
+	if (elapse > 900)
+	{
+		NORMAL_EX_LOG("encoder video  frame  microseconds = %lu", microseconds);
+	}
 	return WEBRTC_VIDEO_CODEC_OK;
 }
 
@@ -700,6 +713,12 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 				ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
 				return false;
 			}
+			/*static FILE *out_file_ptr = fopen("chensong_20220603.h264", "wb+");
+			if (out_file_ptr)
+			{
+				::fwrite(&frame_packet[0], 1, frame_size, out_file_ptr);
+				::fflush(out_file_ptr);
+			}*/
 		//}
 	}
 	else

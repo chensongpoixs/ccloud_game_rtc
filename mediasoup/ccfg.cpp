@@ -40,10 +40,14 @@ namespace chen {
 		set_uint32(ECI_RtcAvgRate, "rtc_avg_rate", 8000);
 		set_uint32(ECI_RtcMaxRate, "rtc_max_rate", 100000);
 		set_uint32(ECI_RtcFrames, "rtc_frame", 50);
-		set_uint32(ECI_RtcVideoGop, "rtc_video_gop", 60);
+		
 		set_uint32(ECI_EncoderArraySize, "encoder_array_size", 3);
 
 		set_uint32(ECI_LogLevel, "log_level", ELogLevel_Info);
+
+		set_uint32(ECI_EncoderPreset, "nvcoder_preset", 3);
+		set_uint32(ECI_EncoderPFrameCount, "nvcoder_pframe_count", 10);
+		set_uint32(ECI_EncoderVideoGop, "nvcoder_video_gop", 180);
 #if _DEBUG
 		set_uint32(ECI_LogLevel, "log_level", ELogLevel_Num);
 #endif // _DEBUG

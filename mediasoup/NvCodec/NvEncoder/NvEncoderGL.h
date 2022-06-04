@@ -1,5 +1,5 @@
 /*
-* Copyright 2017-2018 NVIDIA Corporation.  All rights reserved.
+* Copyright 2017-2021 NVIDIA Corporation.  All rights reserved.
 *
 * Please refer to the NVIDIA end user license agreement (EULA) associated
 * with this source code for terms and conditions that govern your use of
@@ -31,13 +31,17 @@ private:
     *  @brief This function is used to allocate input buffers for encoding.
     *  This function is an override of virtual function NvEncoder::AllocateInputBuffers().
     *  This function creates OpenGL textures which are used to hold input data.
-    *  To obtain handle to input buffers, the application must call NvEncoder::GetNextInputFrame()
+    *  To obtain handle to input buffers, the application must call NvEncoder::GetNextInputFrame().
+    *  An OpenGL context must be current to the thread/process when calling
+    *  this method.
     */
     virtual void AllocateInputBuffers(int32_t numInputBuffers) override;
 
     /**
     *  @brief This function is used to release the input buffers allocated for encoding.
     *  This function is an override of virtual function NvEncoder::ReleaseInputBuffers().
+    *  An OpenGL context must be current to the thread/process when calling
+    *  this method.
     */
     virtual void ReleaseInputBuffers() override;
 private:

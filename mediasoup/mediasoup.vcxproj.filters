@@ -80,6 +80,9 @@
     </ClInclude>
     <ClInclude Include="external_video_encoder_factory.h" />
     <ClInclude Include="crtc_mgr.h" />
+    <ClInclude Include="NvCodec\Utils\AppEncUtils.h">
+      <Filter>NvCodec\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />

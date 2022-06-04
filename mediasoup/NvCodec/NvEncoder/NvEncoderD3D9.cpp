@@ -1,5 +1,5 @@
 /*
-* Copyright 2017-2018 NVIDIA Corporation.  All rights reserved.
+* Copyright 2017-2021 NVIDIA Corporation.  All rights reserved.
 *
 * Please refer to the NVIDIA end user license agreement (EULA) associated
 * with this source code for terms and conditions that govern your use of
@@ -10,9 +10,9 @@
 */
 
 
-//#ifndef WIN32
-//#include <dlfcn.h>
-//#endif
+#ifndef WIN32
+#include <dlfcn.h>
+#endif
 #include "NvEncoder/NvEncoderD3D9.h"
 #include <D3D9Types.h>
 #include <utility>
@@ -100,7 +100,7 @@ void NvEncoderD3D9::AllocateInputBuffers(int32_t numInputBuffers)
             }
             inputFrames.push_back(pD3D9Surface);
         }
-        RegisterResources(inputFrames, NV_ENC_INPUT_RESOURCE_TYPE_DIRECTX, GetMaxEncodeWidth(), GetMaxEncodeHeight(), 0, GetPixelFormat(), count == 1 ? true : false);
+        RegisterInputResources(inputFrames, NV_ENC_INPUT_RESOURCE_TYPE_DIRECTX, GetMaxEncodeWidth(), GetMaxEncodeHeight(), 0, GetPixelFormat(), count == 1 ? true : false);
     }
 }
 
@@ -116,7 +116,7 @@ void NvEncoderD3D9::ReleaseD3D9Resources()
         return;
     }
 
-    UnregisterResources();
+    UnregisterInputResources();
 
     for (uint32_t i = 0; i < m_vInputFrames.size(); ++i)
     {

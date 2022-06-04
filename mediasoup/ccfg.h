@@ -28,9 +28,11 @@ namespace chen {
 		ECI_RtcAvgRate, // 
 		ECI_RtcMaxRate,
 		ECI_RtcFrames,
-		ECI_RtcVideoGop,
+		ECI_EncoderVideoGop,
 		ECI_LogLevel,
 		ECI_EncoderArraySize,
+		ECI_EncoderPreset,
+		ECI_EncoderPFrameCount,
 	//	ECI_Time_Zone,
 	//	ECI_Time_Adjust,
 	//	ECI_Log_DB_Host,

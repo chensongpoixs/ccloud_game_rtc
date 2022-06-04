@@ -1,5 +1,5 @@
 /*
-* Copyright 2017-2018 NVIDIA Corporation.  All rights reserved.
+* Copyright 2017-2021 NVIDIA Corporation.  All rights reserved.
 *
 * Please refer to the NVIDIA end user license agreement (EULA) associated
 * with this source code for terms and conditions that govern your use of
@@ -10,7 +10,7 @@
 */
 
 #pragma once
-#include "../../clog.h"
+
 #include <vector>
 #include "nvEncodeAPI.h"
 #include <stdint.h>
@@ -19,6 +19,10 @@
 #include <iostream>
 #include <sstream>
 #include <string.h>
+#include "../../clog.h"
+
+
+using namespace chen;
 
 /**
 * @brief Exception class for error reporting from NvEncodeAPI calls.
@@ -45,16 +49,14 @@ inline NVENCException NVENCException::makeNVENCException(const std::string& erro
 {
     std::ostringstream errorLog;
     errorLog << functionName << " : " << errorStr << " at " << fileName << ":" << lineNo << std::endl;
+	ERROR_EX_LOG("[%s][%s][%d][errorStr = %s]", fileName, functionName, lineNo, errorStr.c_str());
     NVENCException exception(errorLog.str(), errorCode);
     return exception;
 }
 
-
-
-
 #define NVENC_THROW_ERROR( errorStr, errorCode )                                                         \
     do                                                                                                   \
-    {  using namespace chen;  ERROR_EX_LOG("errorStr = %s, errorCode = %u", errorStr,  errorCode);       \
+    {                                                                                                    \
         throw NVENCException::makeNVENCException(errorStr, errorCode, __FUNCTION__, __FILE__, __LINE__); \
     } while (0)
 
@@ -64,7 +66,7 @@ inline NVENCException NVENCException::makeNVENCException(const std::string& erro
     {                                                                                                              \
         NVENCSTATUS errorCode = nvencAPI;                                                                          \
         if( errorCode != NV_ENC_SUCCESS)                                                                           \
-        {       using namespace chen;  ERROR_EX_LOG("nvencAPI = %s, errorCode = %u", #nvencAPI,  errorCode);       \
+        {                                                                                                          \
             std::ostringstream errorLog;                                                                           \
             errorLog << #nvencAPI << " returned error " << errorCode;                                              \
             throw NVENCException::makeNVENCException(errorLog.str(), errorCode, __FUNCTION__, __FILE__, __LINE__); \
@@ -93,7 +95,7 @@ public:
     *  Application must call this function to initialize the encoder, before
     *  starting to encode any frames.
     */
-    void CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncodeParams);
+    virtual void CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncodeParams);
 
     /**
     *  @brief  This function is used to destroy the encoder session.
@@ -101,7 +103,7 @@ public:
     *  clean up any allocated resources. The application must call EndEncode()
     *  function to get any queued encoded frames before calling DestroyEncoder().
     */
-    void DestroyEncoder();
+    virtual void DestroyEncoder();
 
     /**
     *  @brief  This function is used to reconfigure an existing encoder session.
@@ -126,7 +128,7 @@ public:
     *  data, which has been copied to an input buffer obtained from the
     *  GetNextInputFrame() function.
     */
-    void EncodeFrame(std::vector<std::vector<uint8_t>> &vPacket, NV_ENC_PIC_PARAMS *pPicParams = nullptr);
+    virtual void EncodeFrame(std::vector<std::vector<uint8_t>> &vPacket, NV_ENC_PIC_PARAMS *pPicParams = nullptr);
 
     /**
     *  @brief  This function to flush the encoder queue.
@@ -135,7 +137,7 @@ public:
     *  from the encoder. The application must call this function before destroying
     *  an encoder session.
     */
-    void EndEncode(std::vector<std::vector<uint8_t>> &vPacket);
+    virtual void EndEncode(std::vector<std::vector<uint8_t>> &vPacket);
 
     /**
     *  @brief  This function is used to query hardware encoder capabilities.
@@ -179,7 +181,7 @@ public:
     *  directly or override them with application-specific settings before
     *  using them in CreateEncoder() function.
     */
-    void CreateDefaultEncoderParams(NV_ENC_INITIALIZE_PARAMS* pIntializeParams, GUID codecGuid, GUID presetGuid);
+    void CreateDefaultEncoderParams(NV_ENC_INITIALIZE_PARAMS* pIntializeParams, GUID codecGuid, GUID presetGuid, NV_ENC_TUNING_INFO tuningInfo = NV_ENC_TUNING_INFO_UNDEFINED);
 
     /**
     *  @brief  This function is used to get the current initialization parameters,
@@ -213,16 +215,6 @@ public:
     *  application calls Reconfigure() function.
     */
     void GetSequenceParams(std::vector<uint8_t> &seqParams);
-
-	/**
-	*  @brief request idr
-	*/
-	void ForceIDR() { m_forceIDR = true; }
-
-    /**
-    *  @brief set region of interest
-    */
-    void SetROI(int pos_x, int pos_y, int region_width, int region_height, int delta_qp);
 
     /**
     *  @brief  NvEncoder class virtual destructor.
@@ -262,6 +254,16 @@ public:
     */
     static uint32_t GetWidthInBytes(const NV_ENC_BUFFER_FORMAT bufferFormat, const uint32_t width);
 
+    /**
+    *  @brief This function returns the number of allocated buffers.
+    */
+    uint32_t GetEncoderBufferCount() const { return m_nEncoderBuffer; }
+
+
+	/**
+	*  @brief request idr
+	*/
+	void ForceIDR() { m_forceIDR = true; }
 protected:
 
     /**
@@ -269,7 +271,7 @@ protected:
     *  NvEncoder class constructor cannot be called directly by the application.
     */
     NvEncoder(NV_ENC_DEVICE_TYPE eDeviceType, void *pDevice, uint32_t nWidth, uint32_t nHeight,
-        NV_ENC_BUFFER_FORMAT eBufferFormat, uint32_t m_nOutputDelay, bool bMotionEstimationOnly);
+        NV_ENC_BUFFER_FORMAT eBufferFormat, uint32_t nOutputDelay, bool bMotionEstimationOnly, bool bOutputInVideoMemory = false, bool bDX12Encode = false);
 
     /**
     *  @brief This function is used to check if hardware encoder is properly initialized.
@@ -281,14 +283,22 @@ protected:
     *  This is non public function and is called by derived class for allocating
     *  and registering input buffers.
     */
-    void RegisterResources(std::vector<void*> inputframes, NV_ENC_INPUT_RESOURCE_TYPE eResourceType,
+    void RegisterInputResources(std::vector<void*> inputframes, NV_ENC_INPUT_RESOURCE_TYPE eResourceType,
         int width, int height, int pitch, NV_ENC_BUFFER_FORMAT bufferFormat, bool bReferenceFrame = false);
 
     /**
     *  @brief This function is used to unregister resources which had been previously registered for encoding
-    *         using RegisterResources() function.
+    *         using RegisterInputResources() function.
     */
-    void UnregisterResources();
+    void UnregisterInputResources();
+
+    /**
+    *  @brief This function is used to register CUDA, D3D or OpenGL input or output buffers with NvEncodeAPI.
+    */
+    NV_ENC_REGISTERED_PTR RegisterResource(void *pBuffer, NV_ENC_INPUT_RESOURCE_TYPE eResourceType,
+        int width, int height, int pitch, NV_ENC_BUFFER_FORMAT bufferFormat, NV_ENC_BUFFER_USAGE bufferUsage = NV_ENC_INPUT_IMAGE,
+        NV_ENC_FENCE_POINT_D3D12* pInputFencePoint = NULL, NV_ENC_FENCE_POINT_D3D12* pOutputFencePoint = NULL);
+
     /**
     *  @brief This function returns maximum width used to open the encoder session.
     *  All encode input buffers are allocated using maximum dimensions.
@@ -302,16 +312,43 @@ protected:
     uint32_t GetMaxEncodeHeight() const { return m_nMaxEncodeHeight; }
 
     /**
+    *  @brief This function returns the completion event.
+    */
+    void* GetCompletionEvent(uint32_t eventIdx) { return (m_vpCompletionEvent.size() == m_nEncoderBuffer) ? m_vpCompletionEvent[eventIdx] : nullptr; }
+
+    /**
     *  @brief This function returns the current pixel format.
     */
     NV_ENC_BUFFER_FORMAT GetPixelFormat() const { return m_eBufferFormat; }
 
-private:
     /**
-    *  @brief This is a private function which is used to wait for completion of encode command.
+    *  @brief This function is used to submit the encode commands to the  
+    *         NVENC hardware.
+    */
+    NVENCSTATUS DoEncode(NV_ENC_INPUT_PTR inputBuffer, NV_ENC_OUTPUT_PTR outputBuffer, NV_ENC_PIC_PARAMS *pPicParams);
+
+    /**
+    *  @brief This function is used to submit the encode commands to the 
+    *         NVENC hardware for ME only mode.
+    */
+    NVENCSTATUS DoMotionEstimation(NV_ENC_INPUT_PTR inputBuffer, NV_ENC_INPUT_PTR inputBufferForReference, NV_ENC_OUTPUT_PTR outputBuffer);
+
+    /**
+    *  @brief This function is used to map the input buffers to NvEncodeAPI.
+    */
+    void MapResources(uint32_t bfrIdx);
+
+    /**
+    *  @brief This function is used to wait for completion of encode command.
     */
     void WaitForCompletionEvent(int iEvent);
 
+    /**
+    *  @brief This function is used to send EOS to HW encoder.
+    */
+    void SendEOS();
+
+private:
     /**
     *  @brief This is a private function which is used to check if there is any
               buffering done by encoder.
@@ -324,18 +361,6 @@ private:
     *  @brief This is a private function which is used to load the encode api shared library.
     */
     void LoadNvEncApi();
-
-    /**
-    *  @brief This is a private function which is used to submit the encode
-    *         commands to the NVENC hardware.
-    */
-    void DoEncode(NV_ENC_INPUT_PTR inputBuffer, std::vector<std::vector<uint8_t>> &vPacket, NV_ENC_PIC_PARAMS *pPicParams);
-
-    /**
-    *  @brief This is a private function which is used to submit the encode
-    *         commands to the NVENC hardware for ME only mode.
-    */
-    void DoMotionEstimation(NV_ENC_INPUT_PTR inputBuffer, NV_ENC_INPUT_PTR referenceFrame, std::vector<uint8_t> &mvData);
 
     /**
     *  @brief This is a private function which is used to get the output packets
@@ -374,6 +399,11 @@ private:
     */
     void DestroyHWEncoder();
 
+    /**
+    *  @brief This function is used to flush the encoder queue.
+    */
+    void FlushEncoder();
+
 private:
     /**
     *  @brief This is a pure virtual function which is used to allocate input buffers.
@@ -389,12 +419,23 @@ private:
 
 protected:
     bool m_bMotionEstimationOnly = false;
+    bool m_bOutputInVideoMemory = false;
+    bool m_bIsDX12Encode = false;
     void *m_hEncoder = nullptr;
     NV_ENCODE_API_FUNCTION_LIST m_nvenc;
     std::vector<NvEncInputFrame> m_vInputFrames;
     std::vector<NV_ENC_REGISTERED_PTR> m_vRegisteredResources;
     std::vector<NvEncInputFrame> m_vReferenceFrames;
     std::vector<NV_ENC_REGISTERED_PTR> m_vRegisteredResourcesForReference;
+    std::vector<NV_ENC_INPUT_PTR> m_vMappedInputBuffers;
+    std::vector<NV_ENC_INPUT_PTR> m_vMappedRefBuffers;
+    std::vector<void *> m_vpCompletionEvent;
+
+    int32_t m_iToSend = 0;
+    int32_t m_iGot = 0;
+    int32_t m_nEncoderBuffer = 0;
+    int32_t m_nOutputDelay = 0;
+
 private:
     uint32_t m_nWidth;
     uint32_t m_nHeight;
@@ -404,21 +445,10 @@ private:
     NV_ENC_INITIALIZE_PARAMS m_initializeParams = {};
     NV_ENC_CONFIG m_encodeConfig = {};
     bool m_bEncoderInitialized = false;
-    uint32_t m_nExtraOutputDelay = 3;
-    std::vector<NV_ENC_INPUT_PTR> m_vMappedInputBuffers;
-    std::vector<NV_ENC_INPUT_PTR> m_vMappedRefBuffers;
+    uint32_t m_nExtraOutputDelay = 3; // To ensure encode and graphics can work in parallel, m_nExtraOutputDelay should be set to at least 1
     std::vector<NV_ENC_OUTPUT_PTR> m_vBitstreamOutputBuffer;
     std::vector<NV_ENC_OUTPUT_PTR> m_vMVDataOutputBuffer;
-    std::vector<void *> m_vpCompletionEvent;
     uint32_t m_nMaxEncodeWidth = 0;
     uint32_t m_nMaxEncodeHeight = 0;
-    void* m_hModule = nullptr;
-    int32_t m_iToSend = 0;
-    int32_t m_iGot = 0;
-    int32_t m_nEncoderBuffer = 0;
-    int32_t m_nOutputDelay = 0;
-	bool m_forceIDR = false;
-
-    std::unique_ptr<int8_t> m_qpDeltaMap;
-    uint32_t m_qpDeltaMapSize = 0;
+	bool m_forceIDR;
 };

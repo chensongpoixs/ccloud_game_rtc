@@ -10,9 +10,30 @@
 #include <dxgi1_2.h>
 #include "../clog.h"
 #include "../ccfg.h"
-
+//#include "Utils/AppEncUtils.h"
+//#include "Utils/AppEncUtils.h"
 namespace chen {
+	static const std::unordered_map<uint32, GUID> g_encoder_preset = {
+	{1, NV_ENC_PRESET_P1_GUID},
+	{2, NV_ENC_PRESET_P2_GUID},
+	{3, NV_ENC_PRESET_P3_GUID},
+	{4, NV_ENC_PRESET_P4_GUID},
+	{5, NV_ENC_PRESET_P5_GUID},
+	{6, NV_ENC_PRESET_P6_GUID},
+	{7, NV_ENC_PRESET_P7_GUID}
+	};
 
+
+
+	GUID get_encoder_preset_guid(uint32 level)
+	{
+		std::unordered_map<uint32, GUID>::const_iterator iter = g_encoder_preset.find(level);
+		if (iter != g_encoder_preset.end())
+		{
+			return iter->second;
+		}
+		return NV_ENC_PRESET_P3_GUID;
+	}
 struct nvenc_data
 {
 	ID3D11Device*        d3d11_device  = nullptr;
@@ -47,7 +68,7 @@ static bool is_supported(void)
 		hModule = LoadLibrary(TEXT("nvEncodeAPI.dll"));
 #endif
 	}
-
+	
 	if (hModule == NULL) 
 	{
 		//printf("[nvenc] Error: NVENC library file is not found. Please ensure NV driver is installed. \n");
@@ -224,7 +245,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	HRESULT hr = enc->d3d11_device->CreateTexture2D(&desc, nullptr, &enc->copy_texture);
 	if (FAILED(hr)) {
-		printf("[nvenc] Error: Failed to create texture. \n");
+		//printf("[nvenc] Error: Failed to create texture. \n");
 		ERROR_EX_LOG("[nvenc] Error: Failed to create texture.");
 		return false;
 	}
@@ -249,7 +270,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 		eBufferFormat = NV_ENC_BUFFER_FORMAT_ARGB; // error 
 	}
 	else {
-		printf("[nvenc] Error: Unsupported dxgi format. \n");
+		//printf("[nvenc] Error: Unsupported dxgi format. \n");
 		ERROR_EX_LOG("[nvenc] Error: Unsupported dxgi format. ");
 		return false;
 	}
@@ -262,7 +283,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 		codecId = NV_ENC_CODEC_HEVC_GUID;
 	}
 	else {
-		printf("[nvenc] Error: Unsupported codec. \n");
+		//printf("[nvenc] Error: Unsupported codec. \n");
 		ERROR_EX_LOG("[nvenc] Error: Unsupported codec.");
 		return false;
 	}
@@ -272,29 +293,32 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
 	NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
 	initializeParams.encodeConfig = &encodeConfig;	
-	enc->nvenc->CreateDefaultEncoderParams(&initializeParams, codecId, NV_ENC_PRESET_LOW_LATENCY_DEFAULT_GUID);
-
+	enc->nvenc->CreateDefaultEncoderParams(&initializeParams, codecId, get_encoder_preset_guid(g_cfg.get_int32(ECI_EncoderPreset)), NV_ENC_TUNING_INFO_HIGH_QUALITY);
+	// chensong@20220506 -- .\AppEncD3D11.exe -i C:\Work\video\test3.rgb -s 1920x1080 -gpu 1  -codec h264  -preset p4 -fps 60 -bf 10    -o p4.h264
+	initializeParams.encodeConfig->rcParams.enableLookahead = 1;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.idrPeriod = g_cfg.get_uint32(ECI_EncoderVideoGop);// 180;
 	initializeParams.maxEncodeWidth = enc->width;
 	initializeParams.maxEncodeHeight = enc->height;
 	initializeParams.frameRateNum = 60;
-	initializeParams.encodeConfig->gopLength = g_cfg.get_uint32(ECI_RtcVideoGop);
+	//initializeParams.encodeConfig->gopLength = NVENC_INFINITE_GOPLENGTH;// g_cfg.get_uint32(ECI_RtcVideoGop);
 	initializeParams.encodeConfig->rcParams.averageBitRate = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000 ;
 	initializeParams.encodeConfig->rcParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;
-	//initializeParams.encodeConfig->rcParams.vbvBufferSize = enc->bitrate; // / (initializeParams.frameRateNum / initializeParams.frameRateDen);
-	//initializeParams.encodeConfig->rcParams.vbvInitialDelay = initializeParams.encodeConfig->rcParams.vbvInitialDelay;
-	initializeParams.encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
-	//initializeParams.encodeConfig->rcParams.qpMapMode = NV_ENC_QP_MAP_DELTA;
-	initializeParams.encodeConfig->rcParams.disableBadapt = 1;
-	initializeParams.encodeConfig->rcParams.vbvBufferSize = initializeParams.encodeConfig->rcParams.averageBitRate * 60 / 1;
-	initializeParams.encodeConfig->rcParams.vbvInitialDelay = initializeParams.encodeConfig->rcParams.vbvBufferSize;
-	initializeParams.encodeConfig->frameIntervalP = 1;
-	initializeParams.encodeConfig->rcParams.enableAQ = 1;
-	initializeParams.encodeConfig->encodeCodecConfig.h264Config.idrPeriod = NVENC_INFINITE_GOPLENGTH;
+	////initializeParams.encodeConfig->rcParams.vbvBufferSize = enc->bitrate; // / (initializeParams.frameRateNum / initializeParams.frameRateDen);
+	////initializeParams.encodeConfig->rcParams.vbvInitialDelay = initializeParams.encodeConfig->rcParams.vbvInitialDelay;
+	initializeParams.encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// NV_ENC_PARAMS_RC_VBR_HQ;// NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
+	//NV_ENC_PARAMS_RC_VBR
+	////initializeParams.encodeConfig->rcParams.qpMapMode = NV_ENC_QP_MAP_DELTA;
+	//initializeParams.encodeConfig->rcParams.disableBadapt = 1;
+	//initializeParams.encodeConfig->rcParams.vbvBufferSize = initializeParams.encodeConfig->rcParams.averageBitRate * 60 / 1;
+	//initializeParams.encodeConfig->rcParams.vbvInitialDelay = initializeParams.encodeConfig->rcParams.vbvBufferSize;
+	initializeParams.encodeConfig->frameIntervalP = g_cfg.get_uint32(ECI_EncoderPFrameCount) ;// 10;
+	//initializeParams.encodeConfig->rcParams.enableAQ = 1;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.idrPeriod = g_cfg.get_uint32(ECI_EncoderVideoGop);// 180; // NVENC_INFINITE_GOPLENGTH;
 	initializeParams.encodeConfig->encodeCodecConfig.h264Config.repeatSPSPPS = 1;
-	initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceMode = 0;
-	initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceModeData = 0;
+	//initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceMode = 0;
+	//initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceModeData = 0;
 	enc->nvenc->CreateEncoder(&initializeParams);
-
+	NORMAL_EX_LOG("------------->encoder create ok !!!");
 	return true;
 }
 
@@ -353,13 +377,13 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 	uint8_t* out_buf, uint32_t out_buf_size)
 {
 	using namespace chen;
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	struct video_data {
 		int ready;
 		void * handler;
 	};
 	video_data * video_data_ptr = (video_data*)handle;
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 	if (nvenc_data == nullptr || handle == nullptr || video_data_ptr->handler == nullptr) {
 		return 0;
@@ -368,43 +392,43 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 	ID3D11Texture2D* input_texture = enc->input_texture;
 	IDXGIKeyedMutex* keyed_mutex = enc->keyed_mutex;
 	int frame_size = 0;
-	NORMAL_EX_LOG("[enc->input_handle = %p][handle = %p]", enc->input_handle, video_data_ptr->handler);
+	//NORMAL_EX_LOG("[enc->input_handle = %p][handle = %p]", enc->input_handle, video_data_ptr->handler);
 	if (enc->input_handle != video_data_ptr->handler) {
 		if (enc->input_texture) {
 			enc->input_texture->Release();
 			enc->input_texture = nullptr;
 		}
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		if (enc->keyed_mutex) {
 			enc->keyed_mutex->Release();
 			enc->keyed_mutex = nullptr;
 		}
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		HRESULT hr = enc->d3d11_device->OpenSharedResource((HANDLE)(uintptr_t)video_data_ptr->handler, __uuidof(ID3D11Texture2D),
 			reinterpret_cast<void **>(&enc->input_texture));
 		if (FAILED(hr)) {
 			return -1;
 		}
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		input_texture = enc->input_texture;
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		if (lock_key >= 0 && unlock_key >= 0)
 		{
 			hr = input_texture->QueryInterface( _uuidof(IDXGIKeyedMutex), reinterpret_cast<void**>(&enc->keyed_mutex));
-			NORMAL_EX_LOG("hr = %u", hr);
+			//NORMAL_EX_LOG("hr = %u", hr);
 			if (FAILED(hr))
 			{
 				enc->input_texture->Release();
 				enc->input_texture = nullptr;
 				return -1;
 			}
-			NORMAL_EX_LOG("");
+			//NORMAL_EX_LOG("");
 			keyed_mutex = enc->keyed_mutex;
 		}
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		enc->input_handle = video_data_ptr->handler;
 	}
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	if (input_texture != nullptr) {
 		if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
 			HRESULT hr = keyed_mutex->AcquireSync(lock_key, 3);
@@ -414,16 +438,16 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 				return -1;
 			}
 		}
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		//video_data_ptr->ready = 1;
 		frame_size = nvenc_encode_texture(enc, input_texture, &video_data_ptr->ready, out_buf, out_buf_size);
 		//video_data_ptr->ready = 0;
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
 			keyed_mutex->ReleaseSync(unlock_key);
 		}
 	}
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	return frame_size;
 }
 
@@ -433,6 +457,8 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 		return 0;
 	}
 	using namespace chen;
+	NORMAL_EX_LOG("----------->");
+	return 0;
 	if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcAvgRate))
 	{
 		WARNING_EX_LOG("[bitrate_bps = %u ]too big [defalut bitrate = %u]", bitrate_bps/ 1000, g_cfg.get_uint32(ECI_RtcAvgRate));
@@ -446,7 +472,7 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 	{
 		NV_ENC_RECONFIGURE_PARAMS reconfigureParams;
 		NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
-		encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
+		encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// NV_ENC_PARAMS_RC_VBR_HQ; // NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
 		reconfigureParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
 		reconfigureParams.forceIDR = true;
 		//reconfigureParams.reInitEncodeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
@@ -454,7 +480,7 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 		{
 			reconfigureParams.reInitEncodeParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
 			reconfigureParams.reInitEncodeParams.encodeGUID = NV_ENC_CODEC_H264_GUID;
-			//reconfigureParams.reInitEncodeParams.presetGUID = NV_ENC_PR;
+			reconfigureParams.reInitEncodeParams.presetGUID = get_encoder_preset_guid(g_cfg.get_int32(ECI_EncoderPreset));// NV_ENC_PRESET_P4_GUID;
 			reconfigureParams.reInitEncodeParams.frameRateNum = 60 /*CurrentConfig.MaxFramerate*/;
 			reconfigureParams.reInitEncodeParams.frameRateDen = 1;
 			reconfigureParams.reInitEncodeParams.enablePTD = 1;
@@ -462,7 +488,7 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 			reconfigureParams.reInitEncodeParams.enableSubFrameWrite = 0;
 			reconfigureParams.reInitEncodeParams.maxEncodeWidth = 4096;
 			reconfigureParams.reInitEncodeParams.maxEncodeHeight = 4096;
-			//reconfigureParams.reInitEncodeParams.darHeight = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
+			reconfigureParams.reInitEncodeParams.darHeight = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
 
 		}
 		reconfigureParams.reInitEncodeParams.encodeConfig = &encodeConfig;
@@ -481,6 +507,8 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 		return 0;
 	}
 	using namespace chen;
+	NORMAL_EX_LOG("----------->");
+	return 0;
 	if (framerate < g_cfg.get_uint32(ECI_RtcFrames))
 	{
 		WARNING_EX_LOG("framerate = %u", framerate);
@@ -492,7 +520,7 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 	if (enc->nvenc != nullptr) {
 		NV_ENC_RECONFIGURE_PARAMS reconfigureParams;
 		NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
-		encodeConfig.gopLength = g_cfg.get_uint32(ECI_RtcVideoGop);
+		encodeConfig.gopLength = g_cfg.get_uint32(ECI_EncoderVideoGop);
 		reconfigureParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
 		reconfigureParams.forceIDR = true;
 		
@@ -500,7 +528,7 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 		{
 			reconfigureParams.reInitEncodeParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
 			reconfigureParams.reInitEncodeParams.encodeGUID = NV_ENC_CODEC_H264_GUID;
-			//reconfigureParams.reInitEncodeParams.presetGUID = NV_ENC_PR;
+			reconfigureParams.reInitEncodeParams.presetGUID = get_encoder_preset_guid(g_cfg.get_int32(ECI_EncoderPreset));// NV_ENC_PRESET_P4_GUID;
 			reconfigureParams.reInitEncodeParams.frameRateNum = 60 /*CurrentConfig.MaxFramerate*/;
 			reconfigureParams.reInitEncodeParams.frameRateDen = 1;
 			reconfigureParams.reInitEncodeParams.enablePTD = 1;
@@ -508,7 +536,7 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 			reconfigureParams.reInitEncodeParams.enableSubFrameWrite = 0;
 			reconfigureParams.reInitEncodeParams.maxEncodeWidth = 4096;
 			reconfigureParams.reInitEncodeParams.maxEncodeHeight = 4096;
-			//reconfigureParams.reInitEncodeParams.darHeight = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
+			reconfigureParams.reInitEncodeParams.darHeight = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
 		
 		}
 
@@ -583,7 +611,7 @@ int nvenc_set_region_of_interest(void* nvenc_data, int x, int y, int width, int 
 	std::lock_guard<std::mutex> locker(enc->mutex);
 
 	if (enc->nvenc != nullptr){ 
-		enc->nvenc->SetROI(x, y, width, height, delta_qp);
+		//enc->nvenc->SetROI(x, y, width, height, delta_qp);
 	}
 
 	return 0;
