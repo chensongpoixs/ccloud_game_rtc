@@ -898,7 +898,7 @@ int NvEncoder::GetFrameSize() const
 
 void NvEncoder::GetInitializeParams(NV_ENC_INITIALIZE_PARAMS *pInitializeParams)
 {
-    if (!pInitializeParams || !pInitializeParams->encodeConfig)
+   if (!pInitializeParams || !pInitializeParams->encodeConfig)
     {
         NVENC_THROW_ERROR("Both pInitializeParams and pInitializeParams->encodeConfig can't be NULL", NV_ENC_ERR_INVALID_PTR);
     }

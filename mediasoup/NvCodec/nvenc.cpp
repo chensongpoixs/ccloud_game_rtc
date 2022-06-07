@@ -23,6 +23,12 @@ namespace chen {
 	{7, NV_ENC_PRESET_P7_GUID}
 	};
 
+	static const std::unordered_map<uint32, NV_ENC_TUNING_INFO> g_enc_tuning_info = {
+		{1, NV_ENC_TUNING_INFO_HIGH_QUALITY},
+	{2, NV_ENC_TUNING_INFO_LOW_LATENCY },
+	{3, NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY},
+	{4, NV_ENC_TUNING_INFO_LOSSLESS}
+	};
 
 
 	GUID get_encoder_preset_guid(uint32 level)
@@ -33,6 +39,16 @@ namespace chen {
 			return iter->second;
 		}
 		return NV_ENC_PRESET_P3_GUID;
+	}
+
+	NV_ENC_TUNING_INFO get_enc_tuning(uint32 level)
+	{
+		std::unordered_map<uint32, NV_ENC_TUNING_INFO>::const_iterator iter = g_enc_tuning_info.find(level);
+		if (iter != g_enc_tuning_info.end())
+		{
+			return iter->second;
+		}
+		return NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
 	}
 struct nvenc_data
 {
@@ -293,30 +309,20 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
 	NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
 	initializeParams.encodeConfig = &encodeConfig;	
-	enc->nvenc->CreateDefaultEncoderParams(&initializeParams, codecId, get_encoder_preset_guid(g_cfg.get_int32(ECI_EncoderPreset)), NV_ENC_TUNING_INFO_HIGH_QUALITY);
+	enc->nvenc->CreateDefaultEncoderParams(&initializeParams, codecId, get_encoder_preset_guid(g_cfg.get_int32(ECI_EncoderPreset)),   get_enc_tuning(g_cfg.get_uint32(ECI_EncoderLowLatency)));
 	// chensong@20220506 -- .\AppEncD3D11.exe -i C:\Work\video\test3.rgb -s 1920x1080 -gpu 1  -codec h264  -preset p4 -fps 60 -bf 10    -o p4.h264
-	initializeParams.encodeConfig->rcParams.enableLookahead = 1;
-	initializeParams.encodeConfig->encodeCodecConfig.h264Config.idrPeriod = g_cfg.get_uint32(ECI_EncoderVideoGop);// 180;
+	
 	initializeParams.maxEncodeWidth = enc->width;
 	initializeParams.maxEncodeHeight = enc->height;
+	initializeParams.encodeGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
 	initializeParams.frameRateNum = 60;
-	//initializeParams.encodeConfig->gopLength = NVENC_INFINITE_GOPLENGTH;// g_cfg.get_uint32(ECI_RtcVideoGop);
+	initializeParams.encodeConfig->gopLength =  g_cfg.get_uint32(ECI_EncoderVideoGop);//NVENC_INFINITE_GOPLENGTH;//
 	initializeParams.encodeConfig->rcParams.averageBitRate = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000 ;
 	initializeParams.encodeConfig->rcParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;
-	////initializeParams.encodeConfig->rcParams.vbvBufferSize = enc->bitrate; // / (initializeParams.frameRateNum / initializeParams.frameRateDen);
-	////initializeParams.encodeConfig->rcParams.vbvInitialDelay = initializeParams.encodeConfig->rcParams.vbvInitialDelay;
 	initializeParams.encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// NV_ENC_PARAMS_RC_VBR_HQ;// NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
-	//NV_ENC_PARAMS_RC_VBR
-	////initializeParams.encodeConfig->rcParams.qpMapMode = NV_ENC_QP_MAP_DELTA;
-	//initializeParams.encodeConfig->rcParams.disableBadapt = 1;
-	//initializeParams.encodeConfig->rcParams.vbvBufferSize = initializeParams.encodeConfig->rcParams.averageBitRate * 60 / 1;
-	//initializeParams.encodeConfig->rcParams.vbvInitialDelay = initializeParams.encodeConfig->rcParams.vbvBufferSize;
-	initializeParams.encodeConfig->frameIntervalP = g_cfg.get_uint32(ECI_EncoderPFrameCount) ;// 10;
-	//initializeParams.encodeConfig->rcParams.enableAQ = 1;
-	initializeParams.encodeConfig->encodeCodecConfig.h264Config.idrPeriod = g_cfg.get_uint32(ECI_EncoderVideoGop);// 180; // NVENC_INFINITE_GOPLENGTH;
-	initializeParams.encodeConfig->encodeCodecConfig.h264Config.repeatSPSPPS = 1;
-	//initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceMode = 0;
-	//initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceModeData = 0;
+	
+	initializeParams.encodeConfig->rcParams.qpMapMode = NV_ENC_QP_MAP_DELTA;
+	
 	enc->nvenc->CreateEncoder(&initializeParams);
 	NORMAL_EX_LOG("------------->encoder create ok !!!");
 	return true;
@@ -470,27 +476,12 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 
 	if (enc->nvenc != nullptr)
 	{
-		NV_ENC_RECONFIGURE_PARAMS reconfigureParams;
-		NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
-		encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// NV_ENC_PARAMS_RC_VBR_HQ; // NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
+		NV_ENC_RECONFIGURE_PARAMS reconfigureParams = {0};
 		reconfigureParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
-		reconfigureParams.forceIDR = true;
-		//reconfigureParams.reInitEncodeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
-				//reconfigureParams.reInitEncodeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
-		{
-			reconfigureParams.reInitEncodeParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
-			reconfigureParams.reInitEncodeParams.encodeGUID = NV_ENC_CODEC_H264_GUID;
-			reconfigureParams.reInitEncodeParams.presetGUID = get_encoder_preset_guid(g_cfg.get_int32(ECI_EncoderPreset));// NV_ENC_PRESET_P4_GUID;
-			reconfigureParams.reInitEncodeParams.frameRateNum = 60 /*CurrentConfig.MaxFramerate*/;
-			reconfigureParams.reInitEncodeParams.frameRateDen = 1;
-			reconfigureParams.reInitEncodeParams.enablePTD = 1;
-			reconfigureParams.reInitEncodeParams.reportSliceOffsets = 0;
-			reconfigureParams.reInitEncodeParams.enableSubFrameWrite = 0;
-			reconfigureParams.reInitEncodeParams.maxEncodeWidth = 4096;
-			reconfigureParams.reInitEncodeParams.maxEncodeHeight = 4096;
-			reconfigureParams.reInitEncodeParams.darHeight = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
+		reconfigureParams.forceIDR = 1;
+		reconfigureParams.resetEncoder = 1;
 
-		}
+		NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
 		reconfigureParams.reInitEncodeParams.encodeConfig = &encodeConfig;
 		enc->nvenc->GetInitializeParams(&reconfigureParams.reInitEncodeParams);
 		reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.averageBitRate = bitrate_bps; // bitrate_bps;
@@ -519,27 +510,12 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 
 	if (enc->nvenc != nullptr) {
 		NV_ENC_RECONFIGURE_PARAMS reconfigureParams;
-		NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
-		encodeConfig.gopLength = g_cfg.get_uint32(ECI_EncoderVideoGop);
+		 
 		reconfigureParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
-		reconfigureParams.forceIDR = true;
-		
-		//reconfigureParams.reInitEncodeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
-		{
-			reconfigureParams.reInitEncodeParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
-			reconfigureParams.reInitEncodeParams.encodeGUID = NV_ENC_CODEC_H264_GUID;
-			reconfigureParams.reInitEncodeParams.presetGUID = get_encoder_preset_guid(g_cfg.get_int32(ECI_EncoderPreset));// NV_ENC_PRESET_P4_GUID;
-			reconfigureParams.reInitEncodeParams.frameRateNum = 60 /*CurrentConfig.MaxFramerate*/;
-			reconfigureParams.reInitEncodeParams.frameRateDen = 1;
-			reconfigureParams.reInitEncodeParams.enablePTD = 1;
-			reconfigureParams.reInitEncodeParams.reportSliceOffsets = 0;
-			reconfigureParams.reInitEncodeParams.enableSubFrameWrite = 0;
-			reconfigureParams.reInitEncodeParams.maxEncodeWidth = 4096;
-			reconfigureParams.reInitEncodeParams.maxEncodeHeight = 4096;
-			reconfigureParams.reInitEncodeParams.darHeight = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
-		
-		}
-
+		reconfigureParams.resetEncoder = 1;
+		reconfigureParams.forceIDR = 1;
+		 
+		NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
 		reconfigureParams.reInitEncodeParams.encodeConfig = &encodeConfig;
 		enc->nvenc->GetInitializeParams(&reconfigureParams.reInitEncodeParams);
 		reconfigureParams.reInitEncodeParams.frameRateNum = framerate;

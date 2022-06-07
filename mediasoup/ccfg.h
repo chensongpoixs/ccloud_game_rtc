@@ -33,6 +33,7 @@ namespace chen {
 		ECI_EncoderArraySize,
 		ECI_EncoderPreset,
 		ECI_EncoderPFrameCount,
+		ECI_EncoderLowLatency,
 	//	ECI_Time_Zone,
 	//	ECI_Time_Adjust,
 	//	ECI_Log_DB_Host,

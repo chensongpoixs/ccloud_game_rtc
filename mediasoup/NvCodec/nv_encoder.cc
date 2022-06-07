@@ -569,7 +569,7 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 			codec_specific.codecSpecific.H264.packetization_mode = packetization_mode_;
 			codec_specific.codecSpecific.H264.temporal_idx = kNoTemporalIdx;
 			codec_specific.codecSpecific.H264.idr_frame = info.eFrameType == videoFrameTypeIDR;
-			codec_specific.codecSpecific.H264.base_layer_sync = false;
+			codec_specific.codecSpecific.H264.base_layer_sync = true;
 
 			// if (info.eFrameType == videoFrameTypeIDR &&
 			//    encoded_images_[i]._frameType == kVideoFrameKey) {
