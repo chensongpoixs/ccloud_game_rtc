@@ -38,7 +38,7 @@ namespace chen {
 		{
 			return iter->second;
 		}
-		return NV_ENC_PRESET_P3_GUID;
+		return NV_ENC_PRESET_P4_GUID;
 	}
 
 	NV_ENC_TUNING_INFO get_enc_tuning(uint32 level)
@@ -312,16 +312,63 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	enc->nvenc->CreateDefaultEncoderParams(&initializeParams, codecId, get_encoder_preset_guid(g_cfg.get_int32(ECI_EncoderPreset)),   get_enc_tuning(g_cfg.get_uint32(ECI_EncoderLowLatency)));
 	// chensong@20220506 -- .\AppEncD3D11.exe -i C:\Work\video\test3.rgb -s 1920x1080 -gpu 1  -codec h264  -preset p4 -fps 60 -bf 10    -o p4.h264
 	
-	initializeParams.maxEncodeWidth = enc->width;
-	initializeParams.maxEncodeHeight = enc->height;
-	initializeParams.encodeGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
-	initializeParams.frameRateNum = 60;
-	initializeParams.encodeConfig->gopLength =  g_cfg.get_uint32(ECI_EncoderVideoGop);//NVENC_INFINITE_GOPLENGTH;//
-	initializeParams.encodeConfig->rcParams.averageBitRate = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000 ;
-	initializeParams.encodeConfig->rcParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;
-	initializeParams.encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// NV_ENC_PARAMS_RC_VBR_HQ;// NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
+	initializeParams.encodeWidth = enc->width;
+	initializeParams.encodeHeight = enc->height;
+	initializeParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
+	initializeParams.encodeGUID = NV_ENC_CODEC_H264_GUID;
+	initializeParams.presetGUID = NV_ENC_PRESET_P4_GUID;
+	 
+	initializeParams.frameRateDen = 1;
+	initializeParams.enablePTD = 1;
+	initializeParams.reportSliceOffsets = 0;
+	initializeParams.enableSubFrameWrite = 0;
 	
-	initializeParams.encodeConfig->rcParams.qpMapMode = NV_ENC_QP_MAP_DELTA;
+	initializeParams.tuningInfo = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
+	initializeParams.frameRateNum = 60;
+
+
+	///////////////
+	// H.264 specific settings
+	///
+	
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.enableIntraRefresh = 1;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.intraRefreshPeriod = 180;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.intraRefreshCnt = 180;
+	//initializeParams.encodeConfig->encodeCodecConfig.h264Config.idrPeriod = 
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.repeatSPSPPS = 1;
+	/*
+	* Slice mode - set the slice mode to "entire frame as a single slice" because WebRTC implementation doesn't work well with slicing. The default slicing mode
+	* produces (rarely, but especially under packet loss) grey full screen or just top half of it.
+	*/
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceMode = 0;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceModeData = 0;
+	// `outputPictureTimingSEI` is used in CBR mode to fill video frame with data to match the requested bitrate.
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.outputPictureTimingSEI = 1;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.enableFillerDataInsertion = 1;
+	//initializeParams.encodeConfig->gopLength =  g_cfg.get_uint32(ECI_EncoderVideoGop);//NVENC_INFINITE_GOPLENGTH;//
+	//initializeParams.encodeConfig->rcParams.averageBitRate = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000 ;
+	//initializeParams.encodeConfig->rcParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;
+	//initializeParams.encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// NV_ENC_PARAMS_RC_VBR_HQ;// NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
+	//initializeParams.encodeConfig->rcParams.qpMapMode = NV_ENC_QP_MAP_DELTA;
+	NV_ENC_RC_PARAMS& RateControlParams = initializeParams.encodeConfig->rcParams;
+#define DEFAULT_BITRATE (1000000u)
+	uint32_t const MinQP = static_cast<uint32_t>(1);
+	uint32_t const MaxQP = static_cast<uint32_t>(51);
+	RateControlParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;
+	RateControlParams.averageBitRate = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;// DEFAULT_BITRATE;
+	RateControlParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;// DEFAULT_BITRATE; // Not used for CBR
+	RateControlParams.multiPass = NV_ENC_TWO_PASS_FULL_RESOLUTION;
+	RateControlParams.minQP = { MinQP, MinQP, MinQP };
+	RateControlParams.maxQP = { MaxQP, MaxQP, MaxQP };
+	RateControlParams.enableMinQP = 1;
+	RateControlParams.enableMaxQP = 1;
+
+	// If we have QP ranges turned on use the last encoded QP to guide the max QP for an i-frame, so the i-frame doesn't look too blocky
+	// Note: this does nothing if we have i-frames turned off.
+	/*if (RateControlParams.enableMaxQP && LastEncodedQP > 0 && CVarKeyframeQPUseLastQP.GetValueOnAnyThread())
+	{
+		RateControlParams.maxQP.qpIntra = LastEncodedQP;
+	}*/
 	
 	enc->nvenc->CreateEncoder(&initializeParams);
 	NORMAL_EX_LOG("------------->encoder create ok !!!");
@@ -331,29 +378,32 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready, uint8_t* out_buf, uint32_t out_buf_size)
 {
 	using namespace chen;
-	//ERROR_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	if (nvenc_data == nullptr) 
 	{
 		ERROR_EX_LOG("nvenc_data == nullptr");
 		return -1;
 	}
-
+	//NORMAL_EX_LOG("");
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;	
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
-
+	//NORMAL_EX_LOG("");
 	if (enc->nvenc == nullptr)
 	{
 		ERROR_EX_LOG("evenc ");
 		return -1;
 	}
-
+	//NORMAL_EX_LOG("");
 	std::vector<std::vector<uint8_t>> packet;
 	const NvEncInputFrame* input_frame = enc->nvenc->GetNextInputFrame();
+	//NORMAL_EX_LOG("");
 	ID3D11Texture2D *encoder_texture = reinterpret_cast<ID3D11Texture2D*>(input_frame->inputPtr);
 	//*ready = 1;
+	NORMAL_EX_LOG("");
 	enc->d3d11_context->CopyResource(encoder_texture, texture);
 	//*ready = 0;
+	//NORMAL_EX_LOG("");
 	try
 	{
 		enc->nvenc->EncodeFrame(packet);
@@ -463,8 +513,8 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 		return 0;
 	}
 	using namespace chen;
-	NORMAL_EX_LOG("----------->");
-	return 0;
+	//NORMAL_EX_LOG("----------->");
+	//return 0;
 	if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcAvgRate))
 	{
 		WARNING_EX_LOG("[bitrate_bps = %u ]too big [defalut bitrate = %u]", bitrate_bps/ 1000, g_cfg.get_uint32(ECI_RtcAvgRate));
@@ -498,12 +548,13 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 		return 0;
 	}
 	using namespace chen;
-	NORMAL_EX_LOG("----------->");
-	return 0;
+	
 	if (framerate < g_cfg.get_uint32(ECI_RtcFrames))
 	{
 		WARNING_EX_LOG("framerate = %u", framerate);
 	}
+	//NORMAL_EX_LOG("----------->");
+	return 0;
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
 	std::lock_guard<std::mutex> locker(enc->mutex);

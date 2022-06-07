@@ -10,6 +10,7 @@
 */
 
 #include "NvEncoder/NvEncoder.h"
+#define DEFAULT_BITRATE (1000000u)
 
 #ifndef _WIN32
 #include <cstring>
@@ -104,7 +105,7 @@ void NvEncoder::CreateDefaultEncoderParams(NV_ENC_INITIALIZE_PARAMS* pIntializeP
     pIntializeParams->encodeHeight = m_nHeight;
     pIntializeParams->darWidth = m_nWidth;
     pIntializeParams->darHeight = m_nHeight;
-    pIntializeParams->frameRateNum = 30;
+    pIntializeParams->frameRateNum = 60;
     pIntializeParams->frameRateDen = 1;
     pIntializeParams->enablePTD = 1;
     pIntializeParams->reportSliceOffsets = 0;
@@ -243,7 +244,7 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
         else
         {
             m_encodeConfig.version = NV_ENC_CONFIG_VER;
-            m_encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CONSTQP;
+            m_encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;
             m_encodeConfig.rcParams.constQP = { 28, 31, 25 };
         }
     }
@@ -392,7 +393,65 @@ void NvEncoder::EncodeFrame(std::vector<std::vector<uint8_t>> &vPacket, NV_ENC_P
     {
         NVENC_THROW_ERROR("Encoder device not found", NV_ENC_ERR_NO_ENCODE_DEVICE);
     }
+	static  bool NeedsReconfigure = false;
+	if (NeedsReconfigure)
+	{
+		m_initializeParams.encodeWidth = m_initializeParams.darWidth = m_nWidth;
+		m_initializeParams.encodeHeight = m_initializeParams.darHeight = m_nHeight;
+		// configure encoder frame
+		NV_ENC_RC_PARAMS& RateControlParams = m_initializeParams.encodeConfig->rcParams;
 
+
+
+
+		RateControlParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// ConvertRateControlModeNVENC(CurrentConfig.RateControlMode);
+		RateControlParams.averageBitRate = DEFAULT_BITRATE;
+		RateControlParams.maxBitRate = DEFAULT_BITRATE; // Not used for CBR
+		RateControlParams.multiPass = NV_ENC_TWO_PASS_FULL_RESOLUTION;// ConvertMultipassModeNVENC(CurrentConfig.MultipassMode);
+		RateControlParams.minQP = { 1, 1, 1 };
+		RateControlParams.maxQP = { 51, 51, 51 };
+		RateControlParams.enableMinQP = 1;
+		RateControlParams.enableMaxQP = 1;
+
+		// If we have QP ranges turned on use the last encoded QP to guide the max QP for an i-frame, so the i-frame doesn't look too blocky
+		// Note: this does nothing if we have i-frames turned off.
+		/*if (RateControlParams.enableMaxQP && LastEncodedQP > 0 && CVarKeyframeQPUseLastQP.GetValueOnAnyThread())
+		{
+			RateControlParams.maxQP.qpIntra = LastEncodedQP;
+		}
+*/
+		m_initializeParams.encodeConfig->profileGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
+
+		NV_ENC_CONFIG_H264& H264Config = m_initializeParams.encodeConfig->encodeCodecConfig.h264Config;
+		H264Config.enableFillerDataInsertion = 1;
+
+		// `outputPictureTimingSEI` is used in CBR mode to fill video frame with data to match the requested bitrate.
+		H264Config.outputPictureTimingSEI = 1;
+		// helper macro to define and clear NVENC structures
+//  also sets the struct version number
+#define NVENCStruct(OfType, VarName) \
+	OfType	VarName = {0};	\
+	VarName.version = OfType ## _VER
+
+		
+		NVENCStruct(NV_ENC_RECONFIGURE_PARAMS, ReconfigureParams);
+		memcpy(&ReconfigureParams.reInitEncodeParams, &m_initializeParams, sizeof(m_initializeParams));
+		NORMAL_EX_LOG("reInitEncodeParams --- configure  !!!");
+		auto const result = m_nvenc.nvEncReconfigureEncoder(m_hEncoder, &ReconfigureParams);
+		if (result != NV_ENC_SUCCESS)
+		{
+			WARNING_EX_LOG("nvEncReconfigureEncoder failed !!! result = %u", result);
+		}
+		else
+		{
+			NORMAL_EX_LOG("nvEncReconfigureEncoder ok !!!");
+			NeedsReconfigure = true;
+		}
+			//UE_LOG(LogEncoderNVENC, Error, TEXT("Failed to update NVENC encoder configuration (%s)"), *NVENC.GetErrorString(NVEncoder, result));
+
+		
+	}
+	 
     int bfrIdx = m_iToSend % m_nEncoderBuffer;
 
     MapResources(bfrIdx);
@@ -466,7 +525,7 @@ NVENCSTATUS NvEncoder::DoEncode(NV_ENC_INPUT_PTR inputBuffer, NV_ENC_OUTPUT_PTR 
     }
 	if (m_forceIDR)
 	{
-		picParams.encodePicFlags = NV_ENC_PIC_FLAG_FORCEIDR; // 立即刷新帧IDR
+		picParams.encodePicFlags |= NV_ENC_PIC_FLAG_FORCEIDR; // 立即刷新帧IDR
 		m_forceIDR = false;
 	}
     picParams.version = NV_ENC_PIC_PARAMS_VER;
