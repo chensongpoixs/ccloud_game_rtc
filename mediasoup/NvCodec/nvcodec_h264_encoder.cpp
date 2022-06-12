@@ -12,6 +12,7 @@
 #include "third_party/openh264/src/codec/api/svc/codec_ver.h"
 
 #include "../clog.h"
+#include "../ccfg.h"
 //#include "rtc/native_buffer.h"
 
 const int kLowH264QpThreshold = 34;
@@ -537,18 +538,17 @@ int32_t NvCodecH264Encoder::InitNvEnc() {
 
     //initialize_params_.enablePTD = 1;
     initialize_params_.frameRateDen = 1;
-    initialize_params_.frameRateNum = framerate_;
+    initialize_params_.frameRateNum = 60;
     initialize_params_.maxEncodeWidth = width_;
     initialize_params_.maxEncodeHeight = height_;
 
     //encode_config.profileGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
     encode_config.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
-    encode_config.rcParams.averageBitRate = target_bitrate_bps_;
-    //encode_config.rcParams.maxBitRate = max_bitrate_bps_;
+	encode_config.rcParams.averageBitRate = chen:: g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;;
+    encode_config.rcParams.maxBitRate = chen::g_cfg.get_uint32(ECI_RtcMaxRate) * 1000; 
 
     encode_config.rcParams.disableBadapt = 1;
-    encode_config.rcParams.vbvBufferSize =
-        encode_config.rcParams.averageBitRate *
+    encode_config.rcParams.vbvBufferSize = encode_config.rcParams.averageBitRate *
         initialize_params_.frameRateDen / initialize_params_.frameRateNum;
     encode_config.rcParams.vbvInitialDelay =
         encode_config.rcParams.vbvBufferSize;
