@@ -55,6 +55,10 @@ namespace chen {
 
 #define MESSAGE(g_wnd, message_id, param1, param2)  PostMessage(g_wnd, message_id, param1, param2);
 
+#define CliENTTOSCREENPOINT(hwnd, xx, yy) POINT CursorPoint; \
+	CursorPoint.x = xx; \
+	CursorPoint.y = yy; \
+	ClientToScreen(hwnd, &CursorPoint);
 	//BringWindowToTop(g_wnd);	\
 	//	SetForegroundWindow(g_wnd); \
 	// SetWindowLong(g_wnd, GWL_STYLE, GetWindowLong(g_wnd, GWL_STYLE) | WS_EX_TRANSPARENT | WS_EX_LAYERED);
@@ -518,7 +522,8 @@ namespace chen {
 
 		if (mwin)
 		{
-			MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			CliENTTOSCREENPOINT(mwin, PosX, PosY);
+			MESSAGE(mwin, active_type, MAKEWPARAM(0,0), MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -568,7 +573,8 @@ namespace chen {
 		if (mwin)
 		{
 			{
-				MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
+				CliENTTOSCREENPOINT(mwin, PosX, PosY);
+				MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKELPARAM(CursorPoint.x, CursorPoint.y));
 			}//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 			
 			
@@ -606,12 +612,13 @@ namespace chen {
 		_UnquantizeAndDenormalize(DeltaX, DeltaY);
 		//RTC_LOG(LS_INFO) << "mousemove <==>  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
 		NORMAL_EX_LOG("g_width = %d, g_height = %d, ---> PosX = %d, PoxY = %d, DeltaY = %d", g_width, g_height, PosX, PosY, DeltaY);
-
+		
 		FEvent MouseMoveEvent(EventType::MOUSE_MOVE);
 		MouseMoveEvent.SetMouseDelta(PosX, PosY, DeltaX, DeltaY);
 		
 		g_width = PosX;
 		g_height = PosY;
+
 		/*
 		PosX = g_width;
 		PosY = g_height;*/
@@ -623,8 +630,82 @@ namespace chen {
 		if (mwin)
 		{
 			
-			MESSAGE(mwin, WM_MOUSEMOVE, MAKEWPARAM(DeltaX, DeltaY), MAKEWPARAM(PosX, PosY));
+			POINT CursorPoint;
+			CursorPoint.x = PosX;
+			CursorPoint.y = PosY;
+			::ClientToScreen(mwin, &CursorPoint);
+			//::SetFocus(mwin);
+			//INPUT input[4];
+			//hwndConsole = GetConsoleWindow();
+			//hwndTX = FindWindow(TEXT("TXGuiFoundation"), TEXT("N3verL4nd"));
+			/*if (hwndTX != NULL)
+			{
+				for (int i = 0; i < 10; i++)
+				{
+					SendMessage(hwndTX, WM_CHAR, 'A', 0);
+				}*/
+
+				//SetForegroundWindow(hwndTX);
+				//memset(input, 0, sizeof(input));
+				/*input[0].type = input[1].type = input[2].type = input[3].type = INPUT_KEYBOARD;
+				input[0].ki.wVk = input[2].ki.wVk = VK_MENU;
+				input[1].ki.wVk = input[3].ki.wVk = 0x53;
+				input[2].ki.dwFlags = input[3].ki.dwFlags = KEYEVENTF_KEYUP;*/
+				//SendInput(4, input, sizeof(INPUT));
+				//SetForegroundWindow(hwndConsole);
+			/*{
+				INPUT Input = { 0 };
+				Input.type = INPUT_MOUSE;
+				Input.mi.dx = CursorPoint.x;
+				Input.mi.dy = CursorPoint.y;
+				Input.mi.mouseData = 0;
+				Input.mi.dwFlags = MOUSEEVENTF_MOVE;
+				Input.mi.time = 0;
+				Input.mi.dwExtraInfo = 0;
+				SendInput(1, &Input, sizeof(INPUT));
+			}*/
+			// TODO@chensong 20220612 完全为了兼容Win的input设备
+			INPUT input;
+			input.type = INPUT_MOUSE;
+			static int x = 0;
+			static int y = 0;
+			int xx = CursorPoint.x * 65536.0f;
+			int yy = CursorPoint.y * 65536.0f;
+			input.mi.dx = xx - x;
+			input.mi.dy = yy - y;
+			x = xx;
+			y = yy;
+			input.mi.mouseData = 0;
+			input.mi.dwFlags = /*MOUSEEVENTF_ABSOLUTE |*/ MOUSEEVENTF_MOVE;   //MOUSEEVENTF_ABSOLUTE 代表决对位置  MOUSEEVENTF_MOVE代表移动事件
+			input.mi.time = 0;
+			input.mi.dwExtraInfo = 0;
+			SendInput(1, &input, sizeof(INPUT));
+
+			//::SetCursorPos(CursorPoint.x, CursorPoint.y);
+		//	MESSAGE(mwin, WM_INPUT/*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY), MAKELPARAM(CursorPoint.x, CursorPoint.y));
+			MESSAGE(mwin, WM_MOUSEMOVE/*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY) , MAKELPARAM(CursorPoint.x, CursorPoint.y ));
 			
+
+			
+
+			//RAWINPUT raw = { 0 };
+			//char c = 'W';
+			////header
+			//raw.header.dwSize = sizeof(raw);
+			//raw.header.dwType = RIM_TYPEKEYBOARD;
+			//raw.header.wParam = 0; //(wParam & 0xff =0 => 0)
+			//raw.header.hDevice = hDevice;
+
+			//data
+			//raw.data.keyboard.Reserved = 0;
+			//raw.data.keyboard.Flags = RI_KEY_MAKE;      //Key down
+			//raw.data.keyboard.MakeCode = static_cast<WORD>(MapVirtualKeyEx(c, MAPVK_VK_TO_VSC, GetKeyboardLayout(0)));
+			//raw.data.keyboard.Message = WM_KEYDOWN;
+			//raw.data.keyboard.VKey = VkKeyScanEx(c, GetKeyboardLayout(0));
+			//raw.data.keyboard.ExtraInformation = 0;         //???
+
+			//Send the message
+			//SendMessage(mwin, WM_INPUT, 0, (LPARAM)raw/*Raw input handle*/);
 		}
 		else
 		{
@@ -677,11 +758,13 @@ namespace chen {
 		}*/
 		if (childwin)
 		{
-			MESSAGE(childwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
+			CliENTTOSCREENPOINT(childwin, PosX, PosY);
+			MESSAGE(childwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
 		}
 		else if (mwin)
 		{
-			MESSAGE(mwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			CliENTTOSCREENPOINT(mwin, PosX, PosY);
+			MESSAGE(mwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -719,8 +802,9 @@ namespace chen {
 		NORMAL_EX_LOG(" PosX = %d, PoxY = %d", PosX, PosY);
 		if (mwin)
 		{
+			CliENTTOSCREENPOINT(mwin, PosX, PosY);
 			//::PostMessage(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
-			MESSAGE(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
+			MESSAGE(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(CursorPoint.x, CursorPoint.y));
 		}
 		else
 		{
