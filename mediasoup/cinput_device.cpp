@@ -15,7 +15,23 @@ purpose:		input_device
 #if defined(_MSC_VER)
 
 #include <Windows.h>
-
+#include <WinUser.h>
+#include <UserEnv.h>
+//void CallMessage(HWND hwnd, int nMsgId, int wParam, int lParam)
+//
+//{
+//
+//	WNDPROC fWndProc = (WNDPROC)GetWindowLong(hwnd, GWL_WNDPROC); //获取窗口wndproc
+//
+//	if (fWndProc != NULL)
+//
+//	{
+//
+//		fWndProc(hwnd, nMsgId, wParam, lParam);
+//
+//	}
+//
+//}
 #endif // WIN
 namespace chen {
 	int32_t  g_width = 150;
@@ -593,6 +609,8 @@ namespace chen {
 		return true;
 	}
 
+
+
 	/** 
 	*鼠标移动
 	*/
@@ -665,12 +683,16 @@ namespace chen {
 				SendInput(1, &Input, sizeof(INPUT));
 			}*/
 			// TODO@chensong 20220612 完全为了兼容Win的input设备
+			//mouse_event();
+			//
+			//GetDesktopWindow()->GetActiveWindow() 
+				//GetForegroundWindow();
 			INPUT input;
 			input.type = INPUT_MOUSE;
 			static int x = 0;
 			static int y = 0;
-			int xx = CursorPoint.x * 65536.0f;
-			int yy = CursorPoint.y * 65536.0f;
+			int xx = CursorPoint.x ;
+			int yy = CursorPoint.y ;
 			input.mi.dx = xx - x;
 			input.mi.dy = yy - y;
 			x = xx;
