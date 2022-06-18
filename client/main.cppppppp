@@ -1,0 +1,21 @@
+#include <stdio.h> 
+#include <string> 
+#include "api/jsep.h" 
+#include "rtc_base/logging.h"
+ 
+int main(int argc, char const *argv[]) 
+{ 
+webrtc::SdpParseError error; 
+auto ptr = webrtc::CreateSessionDescription("offer", "sdp", &error);
+ if (!ptr) 
+ { 
+     RTC_LOG(INFO) << "desktop capture !!!";
+
+ printf("webrtc::CreateSessionDescription return null, error str:%s\n", error.description.c_str());
+ } 
+ else
+ { 
+ printf("CreateSessionDescription success!\n");
+ } 
+ return 0; 
+ }
