@@ -26,6 +26,7 @@
 #elif defined(__GNUC__) ||defined(__APPLE__)
 #include <unistd.h>
 #include <dirent.h>
+#include <sys/stat.h>
 #else
 // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -99,6 +100,7 @@ namespace chen {
 	 
 	casync_log::casync_log()
 		: m_host("127.0.0.1")
+        , m_server_name("")
 		, m_port(80)  
 		, m_level_log(ELogLevel_Num)
 		, m_storage_type(ELogStorageScreenFilePost)
@@ -112,11 +114,11 @@ namespace chen {
 	{
 		
 	}
-	bool casync_log::init(ELogStorageType storagetype, const   std::string  & host, uint32 port)
+	bool casync_log::init(ELogStorageType storagetype, const   std::string  & host, uint32 port, const std::string & server_name)
 	{ 
 		//NORMAL_EX_LOG("host = %s, port = %d, show_screen = %d", host.c_str(), port, show_screen);
 
-
+        m_server_name = server_name;
 #ifdef _MSC_VER
 		if (::_access(m_path.c_str(), 0) == -1)
 		{
@@ -126,7 +128,7 @@ namespace chen {
 #elif defined(__GNUC__) ||defined(__APPLE__)
 		if (::access(m_path.c_str(), 0) == -1)
 		{
-			//mkdir(m_path.c_str(), 0777);
+			::mkdir(m_path.c_str(), 0777);
 		}
 #else
 		// 其他不支持的编译器需要自己实现这个方法
@@ -136,7 +138,7 @@ namespace chen {
 		if (storagetype & ELogStorageFile)
 		{
 			char log_name[1024] = {0};
-			gen_log_file_name(log_name, m_path + "/", "mediasoup_native", ".log", ELogName_AutoDate, m_date_time);
+			gen_log_file_name(log_name, m_path + "/", m_server_name.c_str(), ".log", ELogName_AutoDate, m_date_time);
 			m_fd.open(log_name, std::ios::out | std::ios::trunc);
 			if (!m_fd.is_open())
 			{
@@ -344,7 +346,7 @@ namespace chen {
 			}
 
 			char log_name[1024] = {0};
-			gen_log_file_name(log_name, m_path + "/", "decoder", ".log", ELogName_AutoDate, m_date_time);
+			gen_log_file_name(log_name, m_path + "/", m_server_name.c_str(), ".log", ELogName_AutoDate, m_date_time);
 			m_fd.open(log_name, std::ios::out | std::ios::trunc);
 			if (!m_fd.is_open())
 			{

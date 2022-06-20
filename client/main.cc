@@ -112,7 +112,7 @@
 //	wchar_t* cmd_line,
 //	int cmd_show)
 
-int main(int argc, char *argv[])
+int desktop_test_main(int argc, char *argv[])
 {
 	//HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 //	open_windows(instance, prev_instance, cmd_line, cmd_show);
@@ -155,6 +155,54 @@ int main(int argc, char *argv[])
   
   RTC_LOG(WARNING) << "Demo exit";
   return 0;
+}
+
+
+
+#include <iostream>
+#include <csignal> // sigsuspend()
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include "cmediasoup_mgr.h"
+
+
+
+
+cmediasoup::cmediasoup_mgr g_mediasoup_mgr;
+
+
+bool stoped = false;
+
+void signalHandler(int signum)
+{
+    stoped = true;
+
+}
+
+
+
+int  main(int argc, char *argv[])
+{
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
+
+
+    g_mediasoup_mgr.init();
+
+    //g_mediasoup_mgr.set_mediasoup_status_callback(&mediasoup_callback);
+    /*
+    const char* mediasoupIp, uint16_t port
+        , const char* roomName, const char* clientName
+
+    */
+    g_mediasoup_mgr.startup("192.168.1.83", 8888, "chensong", "chensong");
+    while (!stoped)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    g_mediasoup_mgr.destroy();
+    return 0;
 }
 
 

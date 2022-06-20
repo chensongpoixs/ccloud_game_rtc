@@ -114,14 +114,14 @@ namespace chen {
 	bool cclient::init()
 	{
 		printf("Log init ...\n");
-		if (!LOG::init(ELogStorageScreenFile))
+		if (!LOG::init(ELogStorageScreenFile, "rtc"))
 		{
 			std::cerr << " log init failed !!!";
 			return false;
 		}
 		show_work_dir();
 		SYSTEM_LOG("Log init ...\n");
-		static const   char* config_file = "client.cfg";
+		static const   char* config_file = "cloud_client.cfg";
 		bool init = g_cfg.init(config_file);
 		if (!init)
 		{
@@ -194,8 +194,13 @@ namespace chen {
 	{
 		if (m_desktop_capture_ptr)
 		{
+            NORMAL_EX_LOG("desktop_capture_ptr start ---->");
 			m_desktop_capture_ptr->StartCapture();
 		}
+        else
+        {
+            WARNING_EX_LOG("desktop_capture_ptr === nullptr !!!");
+        }
 		// mediasoup_ip, mediasoup_port ;
 		// room_name , client_id;
 		//  Reconnect_waittime, 

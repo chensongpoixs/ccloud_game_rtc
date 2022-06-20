@@ -59,7 +59,9 @@ void VideoCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
 		// Video adapter has requested a down-scale. Allocate a new buffer and
 		// return scaled version.
 		// For simplicity, only scale here without cropping.
-		/*
+#ifdef _MSC_VER
+
+        /*
 		
 		 GPU d%
 			
@@ -117,6 +119,30 @@ void VideoCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
 		{
 			WARNING_EX_LOG("broadcasster_frame ms = %u", ms.count());
 		}
+
+#elif defined(__GNUC__) ||defined(__APPLE__)
+        rtc::scoped_refptr<webrtc::I420Buffer> scaled_buffer =
+                webrtc::I420Buffer::Create(out_width, out_height);
+        scaled_buffer->ScaleFrom(*frame.video_frame_buffer()->ToI420());
+        webrtc::VideoFrame::Builder new_frame_builder =
+                webrtc::VideoFrame::Builder()
+                        .set_video_frame_buffer(scaled_buffer)
+                        .set_timestamp_rtp(0)
+                        .set_timestamp_ms(rtc::TimeMillis())
+                        .set_rotation(webrtc::kVideoRotation_0)
+                        .set_timestamp_us(frame.timestamp_us())
+                        .set_id(frame.id());
+//        if (frame.has_update_rect()) {
+//            webrtc::VideoFrame::UpdateRect new_rect =
+//                    frame.update_rect().ScaleWithFrame(frame.width(), frame.height(), 0,
+//                                                       0, frame.width(), frame.height(),
+//                                                       out_width, out_height);
+//            new_frame_builder.set_update_rect(new_rect);
+//        }
+        broadcaster_.OnFrame(new_frame_builder.build());
+#else
+ ERROR_EX_LOG("broadcaster failed !!!");
+#endif
 	} else {
 		// No adaptations needed, just return the frame as is.
 		

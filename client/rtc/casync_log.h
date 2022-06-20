@@ -46,7 +46,7 @@ namespace chen
 	public:
 		explicit casync_log();
 		~casync_log();
-		bool init(ELogStorageType storage_type , const   std::string  & host, uint32 port);
+		bool init(ELogStorageType storage_type , const   std::string  & host, uint32 port, const std::string & server_name);
 		void destroy();
 	public:
 		void append_var(ELogLevelType level, const char* format, va_list ap);
@@ -63,6 +63,7 @@ namespace chen
 		void			_handler_check_log_file();
 	private: 
 		std::string				m_host;
+        std::string             m_server_name;
 		uint32					m_port;
 		int32					m_level_log;
 		ELogStorageType			m_storage_type;

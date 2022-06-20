@@ -29,7 +29,7 @@ namespace chen {
 		explicit clog(ELogLevelType level, const char* func, int line);
 		~clog();
 	public:
-		static bool init(ELogStorageType storage_type = ELogStorageScreenFilePost, const std::string& host = "127.0.0.1", uint32 port = 80);
+		static bool init(ELogStorageType storage_type = ELogStorageScreenFilePost, const std::string & server_name= "", const std::string& host = "127.0.0.1", uint32 port = 80 );
 		
 		static void  var_log(ELogLevelType level, const char* format, ...);
 

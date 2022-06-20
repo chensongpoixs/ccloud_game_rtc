@@ -26,9 +26,9 @@ namespace chen {
 	{
 		*this << '[' << func << ':' << line << "] ";
 	}
-	bool clog::init( ELogStorageType storage_type, const std::string& host , uint32 port   )
+	bool clog::init( ELogStorageType storage_type, const std::string & server_name , const std::string& host , uint32 port   )
 	{
-		printf("host = %s, port = %lu, storage_type = %d\n", host.c_str(), port, storage_type);
+		printf("host = %s, port = %u, storage_type = %u\n", host.c_str(), port, storage_type);
 		if (g_log_ptr)
 		{
 			printf("  casync_log != null  !!!" );
@@ -40,7 +40,7 @@ namespace chen {
 			printf(" alloc casync_log new fail ");
 			return false;
 		}
-		if (!g_log_ptr->init(storage_type, host, port ))
+		if (!g_log_ptr->init(storage_type, host, port, server_name))
 		{
 			printf( "log init error \n");
 			return false;

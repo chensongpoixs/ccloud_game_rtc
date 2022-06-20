@@ -28,6 +28,7 @@ namespace chen {
         if (!dc->Init(target_fps, capture_screen_index)) {
             RTC_LOG(LS_WARNING) << "Failed to create DesktopCapture(fps = "
                 << target_fps << ")";
+            WARNING_EX_LOG("Failed to create DesktopCapture(fps = = %u)", target_fps);
             return nullptr;
         }
         return dc.release();
@@ -39,14 +40,25 @@ namespace chen {
         /*dc_ = webrtc::DesktopCapturer::CreateWindowCapturer(
             webrtc::DesktopCaptureOptions::CreateDefault());*/
             //����
-        webrtc::DesktopCaptureOptions result;
+
         #ifdef _MSC_VER
+        webrtc::DesktopCaptureOptions result;
         result.set_allow_directx_capturer(true);
-        #endif
-        dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(result);
+         dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(result);
+
+#elif defined(__GNUC__) ||defined(__APPLE__)
+        dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(webrtc::DesktopCaptureOptions::CreateDefault());
+#else
+// 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
+
 
         if (!dc_)
+        {
+            WARNING_EX_LOG("desktop create screen capture failed !!!");
             return false;
+        }
 
         webrtc::DesktopCapturer::SourceList sources;
         dc_->GetSourceList(&sources);
@@ -101,12 +113,12 @@ namespace chen {
             i420_buffer_->width() * i420_buffer_->height() < width * height) {
             i420_buffer_ = webrtc::I420Buffer::Create(width, height);
         }
-		memcpy(i420_buffer_->MutableDataY(), frame->data(), width * height * 4);
-      /*  libyuv::ConvertToI420(frame->data(), 0, i420_buffer_->MutableDataY(),
+		//memcpy(i420_buffer_->MutableDataY(), frame->data(), width * height * 4);
+       libyuv::ConvertToI420(frame->data(), 0, i420_buffer_->MutableDataY(),
             i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
             i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
             i420_buffer_->StrideV(), 0, 0, width, height, width,
-            height, libyuv::kRotate0, libyuv::FOURCC_ARGB);*/
+            height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
 
 
         // seting ��������Ϣ
@@ -126,9 +138,12 @@ namespace chen {
             webrtc::VideoFrame(i420_buffer_, 0, 0, webrtc::kVideoRotation_0));*/
     }
 
-    void DesktopCapture::StartCapture() {
+    void DesktopCapture::StartCapture()
+    {
+        NORMAL_EX_LOG("start capture ---->");
         if (start_flag_) {
-            RTC_LOG(WARNING) << "Capture already been running...";
+//            RTC_LOG(WARNING) << "Capture already been running...";
+            WARNING_EX_LOG("Capture already been running...");
             return;
         }
 

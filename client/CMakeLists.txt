@@ -5,10 +5,13 @@ MESSAGE(STATUS "#########################")
  
 
 file(GLOB ALL_CXX_SRCS
+        ./input_device/*.h
+        ./input_device/*.c
+        ./*.h
+        ./*.c
                        ./*.cpp 
                         ./*.cc
-                       ./*.h
-                       ./*.c
+
         ./rtc/*.cc
         ./rtc/*.h
         ./rtc/*.cpp
@@ -16,6 +19,7 @@ file(GLOB ALL_CXX_SRCS
         ./sdp/*.hpp
         ./sdp/*.hpp
         ./sdp/*.cpp
+
 )
 
 add_executable(${PROJECT_NAME} ${ALL_CXX_SRCS})
