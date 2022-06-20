@@ -5,6 +5,7 @@ SET(CMAKE_BUILD_TYPE Release)
  
  
 #SET(CMAKE_VERBOSE_MAKEFILE ON) 
+# 
 set(CMAKE_CXX_FLAGS         "-std=c++11 -g -fno-rtti")  #注意调试的话,此行代码一定要添加!
  
 
@@ -25,6 +26,7 @@ INCLUDE_DIRECTORIES(
           ${WEBRTC_DIR}/include/third_party/jsoncpp/generated
           #${WEBRTC_DIR}/include/third_party/googletest/src/googletest/include
          ${WEBRTC_DIR}/gen
+        ${PROJECT_SOURCE_DIR}/client/input_device
         ${PROJECT_SOURCE_DIR}/client/rtc
         ${PROJECT_SOURCE_DIR}/client
           )

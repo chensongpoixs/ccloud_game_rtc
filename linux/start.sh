@@ -4,6 +4,11 @@
 ulimit -c unlimited
 
 
+nohup ./rtc
+
+
+
+
 #!/bin/bash
 
 #bin_names=( cpgcommmserver cpggatewayserver cpgloginserver cpgcentralserver cpgmatchserver)

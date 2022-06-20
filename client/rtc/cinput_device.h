@@ -36,7 +36,7 @@ namespace chen {
 		typedef std::map<EToStreamMsg, input_device_handler_type>			M_INPUT_DEVICE_MAP;
 	public:
 
-		 cinput_device();
+        explicit cinput_device();
 		~cinput_device();
 
 
