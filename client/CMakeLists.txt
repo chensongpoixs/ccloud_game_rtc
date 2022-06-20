@@ -23,9 +23,9 @@ file(GLOB ALL_CXX_SRCS
 )
 
 add_executable(${PROJECT_NAME} ${ALL_CXX_SRCS})
- 
+add_dependencies(${PROJECT_NAME} input_device)
 
-set(ALL_LIB   
+set(ALL_LIB   input_device
 pthread
 Xtst
         Xft

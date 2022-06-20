@@ -7,7 +7,14 @@ SET(CMAKE_BUILD_TYPE Release)
 #SET(CMAKE_VERBOSE_MAKEFILE ON) 
 # 
 set(CMAKE_CXX_FLAGS         "-std=c++11 -g -fno-rtti")  #注意调试的话,此行代码一定要添加!
- 
+
+if (WIN32 OR WIN64)
+    set(HOOK_DIR "windows")
+elseif (APPLE)
+    set(HOOK_DIR "darwin")
+else()
+    set(HOOK_DIR "x11")
+endif()
 
 add_definitions(-D WEBRTC_POSIX) 
 add_definitions(-D WEBRTC_LINUX) 
@@ -29,6 +36,8 @@ INCLUDE_DIRECTORIES(
         ${PROJECT_SOURCE_DIR}/client/input_device
         ${PROJECT_SOURCE_DIR}/client/rtc
         ${PROJECT_SOURCE_DIR}/client
+        ${PROJECT_SOURCE_DIR}/client/input_device
+        ${PROJECT_SOURCE_DIR}/client/input_device/${HOOK_DIR}
           )
 
 
@@ -43,7 +52,7 @@ LINK_DIRECTORIES(
        ${PROJECT_SOURCE_DIR}/linux/lib
        ${WEBRTC_DIR}/lib/
        )
- 
+ add_subdirectory(client/input_device)
  add_subdirectory(client)
 
 
