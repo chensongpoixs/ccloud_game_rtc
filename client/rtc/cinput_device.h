@@ -16,6 +16,7 @@ purpose:		input_device
 #include "cint_point.h"
 #include "csingleton.h"
 #include <set>
+#include <unordered_map>
 namespace chen {
 	 
 
@@ -108,7 +109,8 @@ namespace chen {
 		* 鼠标的滚轮滚动 
 		*/
 		bool OnMouseWheel(const uint8*& Data,   uint32 size);
-		 
+    private:
+        bool init_keydown();
 	private:
 		void _UnquantizeAndDenormalize(uint16& InOutX, uint16& InOutY);
 
@@ -122,7 +124,7 @@ namespace chen {
 		FIntPoint							m_int_point;
 		std::map<std::string, std::map<uint32, cmouse_info>>	m_all_consumer; 
 		std::string							m_mouse_id; //当前操作的id
-		
+		std::unordered_map<uint32, uint32>  m_keydown_map;
 	};
 	//extern cinput_device   g_input_device_mgr;
 	#define 	s_input_device chen::csingleton<chen::cinput_device>::get_instance()

@@ -30,11 +30,9 @@ pthread
 Xtst
         Xft
         xkbcommon
-        #xtst 
-        #xinerama 
-        Xinerama
-        xkbcommon
-        m 
+        xkbcommon-x11
+        m
+        xkbfile
         X11  
         rt
         X11 
@@ -51,24 +49,24 @@ Xtst
         Xdamage 
         Xfixes 
         gio-2.0 
-        gobject-2.0 
-       ## glib-2.35.0
+        gobject-2.0
        glib-2.0
         GL
         pthread
         libwebrtc.a
-        pthread
-        #libcommon.a
-        #libclib.a
-        #libprotobuf-lite.a
-        #libthrift.a
-        #libmysqlclient.so
-        #libjsoncpp.a
-        #libboost_locale.a
-        #libboost_regex.a
-        #libboost_system.a
-        #libboost_filesystem.a
-        #-lX11 -lXcomposite -lXext -lXrender -latomic -ldl -lpthread -lrt -lm -lXdamage -lXfixes -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lGL
+        X11
+        Xtst
+        -lX11-xcb
+        -lxcb
+        -lxkbfile
+        -lXt
+        -lX11
+        -lXtst
+        -lX11-xcb
+        -lxcb
+        -lxkbfile
+        -lXt
+        Xinerama
         )
 
 
