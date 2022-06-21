@@ -27,7 +27,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <sys/time.h>
-#include <uiohook.h>
+#include <cinput_device_hook.h>
 
 #include "input_helper.h"
 #include "logger.h"

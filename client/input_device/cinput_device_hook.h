@@ -1,20 +1,4 @@
-/* libUIOHook: Cross-platform keyboard and mouse hooking from userland.
- * Copyright (C) 2006-2022 Alexander Barker.  All Rights Reserved.
- * https://github.com/kwhat/libuiohook/
- *
- * libUIOHook is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * libUIOHook is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 
 #ifndef __UIOHOOK_H
 #define __UIOHOOK_H
@@ -414,7 +398,10 @@ typedef void (*dispatcher_t)(uiohook_event *const);
 extern "C" {
 #endif
 
-    // Set the logger callback functions.
+    UIOHOOK_API void load_input_device();
+
+    UIOHOOK_API void unload_input_device();
+// Set the logger callback functions.
     UIOHOOK_API void hook_set_logger_proc(logger_t logger_proc);
 
     // Send a virtual event back to the system.

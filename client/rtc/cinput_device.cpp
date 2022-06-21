@@ -7,13 +7,16 @@ purpose:		input_device
 ************************************************************************************************/
 
 #include "cinput_device.h"
-
+#include <X11/Xutil.h>
+#include <X11/keysym.h>
+#include <X11/extensions/XTest.h>
 #include "cprotocol.h"
 #include "cinput_device_event.h"
 #include "rtc_base/logging.h"
 #include "clog.h"
+#include "cinput_device_hook.h"
+#include "input_helper.h"
 #if defined(_MSC_VER)
-
 #include <Windows.h>
 #include "cwindow_util.h"
 #endif // WIN
@@ -49,7 +52,7 @@ namespace chen {
 	//std::chrono::milliseconds
 	//cout << timeA << endl;
 
-
+#if defined(_MSC_VER)
 	////PostMessage
 #define MESSAGE(g_wnd, message_id, param1, param2) MSG msg;  \
 														  msg.hwnd = g_wnd;			\
@@ -69,7 +72,7 @@ namespace chen {
 	//使用全局变量操作的哈 
 #define SET_POINT() POINT pt; pt.x = g_width; pt.y = g_height;
 
-#if defined(_MSC_VER)
+
 #define WINDOW_MAIN()		HWND mwin = FindMainWindow()
 #define WINDOW_CHILD()	HWND childwin = MainChildPoint(mwin, pt)
 #define WINDOW_BNTTON_DOWN(v)  uint32 active_type = WM_LBUTTONDOWN;					 \
@@ -121,6 +124,41 @@ namespace chen {
 #endif //#if defined(_MSC_VER)
 #define REGISTER_INPUT_DEVICE(type, handler_ptr) if (false == m_input_device.insert(std::make_pair(type, handler_ptr)).second){	 ERROR_EX_LOG("[type = %s][handler_ptr = %s]", #type, #handler_ptr);	return false;}
 
+#define REGISTER_KEYDOWN(key, value) m_keydown_map.insert(std::make_pair(key, value));
+    static bool hook_input_device_logger(unsigned int level, const char *format, ...)
+    {
+        bool status = false;
+
+        va_list args;
+        switch (level) {
+            case LOG_LEVEL_INFO:
+            {
+                va_start(args, format);
+                status = vfprintf(stdout, format, args) >= 0;
+                va_end(args);
+                break;
+            }
+
+            case LOG_LEVEL_WARN:
+            {
+                break;
+            }
+            case LOG_LEVEL_ERROR:
+            {
+                va_start(args, format);
+                status = vfprintf(stderr, format, args) >= 0;
+                va_end(args);
+                break;
+            }
+            default:
+            {//ERROR_LOG("[%s][%d]" format, FUNCTION, __LINE__, ##__VA_ARGS__)
+//                WARNING_EX_LOG(f);
+                break;
+            }
+        }
+
+        return true;
+    }
 
 ///	cinput_device   g_input_device_mgr;
 	cinput_device::cinput_device() 
@@ -132,10 +170,15 @@ namespace chen {
 	//static bool g_move_init = false;
 	bool cinput_device::init()
 	{
+        SYSTEM_LOG(" input device hook set log  ...");
+        hook_set_logger_proc(hook_input_device_logger);
+        SYSTEM_LOG(" input device load ...");
+        load_input_device();
+        SYSTEM_LOG(" input device register mouse key ...");
 		REGISTER_INPUT_DEVICE(RequestQualityControl, &cinput_device::OnKeyChar);
 		REGISTER_INPUT_DEVICE(KeyDown, &cinput_device::OnKeyDown);
 		REGISTER_INPUT_DEVICE(KeyUp, &cinput_device::OnKeyUp);
-		REGISTER_INPUT_DEVICE(KeyPress, &cinput_device::OnKeyPress);
+//		REGISTER_INPUT_DEVICE(KeyPress, &cinput_device::OnKeyPress);
 		////////////////////////////////////////////////////////////
 		REGISTER_INPUT_DEVICE(MouseEnter, &cinput_device::OnMouseEnter);
 		REGISTER_INPUT_DEVICE(MouseLeave, &cinput_device::OnMouseLeave);
@@ -144,12 +187,17 @@ namespace chen {
 		REGISTER_INPUT_DEVICE(MouseMove, &cinput_device::OnMouseMove);
 		REGISTER_INPUT_DEVICE(MouseWheel, &cinput_device::OnMouseWheel);
 		REGISTER_INPUT_DEVICE(MouseDoubleClick, &cinput_device::OnMouseDoubleClick);
+        SYSTEM_LOG("  input device init ok !!!");
 		return true;
 	}
 	void cinput_device::Destroy()
 	{
 		m_input_device.clear();
+        SYSTEM_LOG("input device register mouse destroy ok !!!");
 		m_all_consumer.clear();
+        unload_input_device();
+        SYSTEM_LOG("input device unload destroy ok !!!");
+
 	}
 	bool cinput_device::set_point(uint32 x, uint32 y)
 	{
@@ -249,7 +297,7 @@ namespace chen {
 		FEvent KeyDownEvent(EventType::KEY_DOWN);
 		KeyDownEvent.SetKeyDown(KeyCode, Repeat != 0);
 		NORMAL_LOG("OnKeyDown==KeyCode = %u, Repeat = %u", KeyCode, Repeat);
-		#if defined(_MSC_VER)
+#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		// TODO@chensong 2022-01-20  keydown -> keycode -> repeat 
 		/*if (mwin)
@@ -284,7 +332,22 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
-		#endif //#if defined(_MSC_VER)
+#elif defined(__linux__)
+        static uiohook_event event  ;
+        event.type = EVENT_KEY_PRESSED;
+        event.mask = 0X200;
+//        event.data.keyboard.keychar = CHAR_UNDEFINED;
+        unsigned char  code =  XKeysymToKeycode(helper_disp, KeyCode);
+//        unsigned char code = XKeysymToKeycode(helper_disp, XStringToKeysym(KeyCode));
+        NORMAL_EX_LOG("code = %u", code);
+        event.data.keyboard.keycode = code;
+        event.data.keyboard.keychar = KeyCode;// VC_ESCAPE;
+        event.data.keyboard.rawcode = KeyCode;
+        hook_post_event(&event);
+#else
+        // 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
 		//KeyDownEvent.GetKeyDown();
 		//ProcessEvent(KeyDownEvent);
 		//WINDOW_MAIN();
@@ -337,7 +400,23 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
-		#endif //#if defined(_MSC_VER)
+#elif defined(__linux__)
+        static uiohook_event event;
+        event.type = EVENT_KEY_RELEASED;
+        event.mask = 0X200;
+//        event.data.keyboard.keychar = CHAR_UNDEFINED;
+//        unsigned char  code =  XKeysymToKeycode(helper_disp, KeyCode);
+        unsigned char  code =  XKeysymToKeycode(helper_disp, KeyCode);
+//        unsigned char code = XKeysymToKeycode(helper_disp, XStringToKeysym(KeyCode));
+        NORMAL_EX_LOG("code = %u", code);
+        event.data.keyboard.keycode = code;
+        event.data.keyboard.keychar = KeyCode;// VC_ESCAPE;
+        event.data.keyboard.rawcode = KeyCode;
+        hook_post_event(&event);
+#else
+        // 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
 		//ProcessEvent(KeyUpEvent);
 		//WINDOW_MAIN();
 		//SET_POINT(vec);
@@ -369,7 +448,7 @@ namespace chen {
 		GET(FCharacterType, Character);
 		checkf(Size == 0, TEXT("%d"), Size);
 		//UE_LOG(PixelStreamerInput, Verbose, TEXT("key up: %d"), KeyCode);
-		// log key up -> KeyCode
+		// log key up -> KeyCode222
 		FEvent KeyUpEvent(EventType::KEY_PRESS);
 		KeyUpEvent.SetKeyUp(Character);
 		NORMAL_LOG("OnKeyPress==KeyCode = %u", Character);
@@ -394,7 +473,18 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
-#endif //#if defined(_MSC_VER)
+#elif defined(__linux__)
+        static uiohook_event event;
+        event.type = EVENT_KEY_TYPED;
+        event.mask = 0x00;
+        event.data.keyboard.keychar = Character;
+        event.data.keyboard.keycode = Character;// VC_ESCAPE;
+        event.data.keyboard.keycode = Character;
+        hook_post_event(&event);
+#else
+        // 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
 		//ProcessEvent(KeyUpEvent);
 		//WINDOW_MAIN();
 		//SET_POINT(vec);
@@ -477,8 +567,8 @@ namespace chen {
 		g_height = PosY;
 		*/
 		
-		PosX = g_width;
-		PosY = g_height;
+		 g_width = PosX ;
+		 g_height = PosY ;
 		NORMAL_EX_LOG("g_width = %d, g_height = %d, active_type = %d, PosX = %d, PoxY = %d", g_width, g_height, active_type, PosX, PosY );
 		//g_move_init = true;
 		#if defined(_MSC_VER)
@@ -502,7 +592,18 @@ namespace chen {
 			// log -> error 
 			return false;
 		}
-		#endif//#if defined(_MSC_VER)
+#elif defined(__linux__)
+        static uiohook_event event;
+        event.type = EVENT_MOUSE_PRESSED;
+        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
+        event.data.mouse.x = PosX;
+        event.data.mouse.y = PosY;
+
+        hook_post_event(&event);
+#else
+        // 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
 		return true;
 	
 	}
@@ -558,8 +659,19 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			// log -> error 
 			return false;
-		} 
-		#endif //#if defined(_MSC_VER)
+		}
+#elif defined(__linux__)
+        static uiohook_event event;
+        event.type = EVENT_MOUSE_RELEASED;
+        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
+        event.data.mouse.x = PosX;
+        event.data.mouse.y = PosY;
+
+        hook_post_event(&event);
+#else
+        // 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
 		return true;
 	}
 
@@ -608,7 +720,18 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
-		#endif // #if defined(_MSC_VER)
+#elif defined(__linux__)
+        static uiohook_event event;
+        event.type = EVENT_MOUSE_MOVED;
+        event.data.mouse.button = MOUSE_NOBUTTON; //MOUSE_BUTTON1;
+        event.data.mouse.x = PosX;
+        event.data.mouse.y = PosY;
+
+        hook_post_event(&event);
+#else
+        // 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
 		//ProcessEvent(MouseMoveEvent);
 		return true;
 	}
@@ -665,7 +788,18 @@ namespace chen {
 			// log -> error 
 			return false;
 		}
-#endif//#if defined(_MSC_VER)
+#elif defined(__linux__)
+        static uiohook_event event;
+        event.type = EVENT_MOUSE_CLICKED;
+        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
+        event.data.mouse.x = PosX;
+        event.data.mouse.y = PosY;
+
+        hook_post_event(&event);
+#else
+        // 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
 		 
 		return true;
 	}
@@ -688,8 +822,8 @@ namespace chen {
 		//ProcessEvent(MouseWheelEvent);
 		/*g_width = PosX;
 		g_height = PosY;*/
-		PosX = g_width;
-		PosY = g_height;
+		 g_width = PosX ;
+		 g_height = PosY ;
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		NORMAL_EX_LOG(" PosX = %d, PoxY = %d", PosX, PosY);
@@ -704,10 +838,139 @@ namespace chen {
 			// log error 
 			return false;
 		}
-		#endif // #if defined(_MSC_VER)
+#elif defined(__linux__)
+        static uiohook_event event;
+        event.type = EVENT_MOUSE_WHEEL;
+        event.data.wheel.x = PosX;
+        event.data.wheel.y = PosY;
+        event.data.wheel.amount = Delta;
+        event.data.wheel.rotation = Delta;
+        hook_post_event(&event);
+#else
+        // 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
 		return true;
 	}
 
+    bool cinput_device::init_keydown()
+    {
+//        m_keydown_map.insert()
+//        REGISTER_KEYDOWN(0	, NUT);
+//        REGISTER_KEYDOWN(1	, SOH);
+//        REGISTER_KEYDOWN(2	, STX);
+//        REGISTER_KEYDOWN(3	, ETX);
+//        REGISTER_KEYDOWN(4	, EOT);
+//        REGISTER_KEYDOWN(5	, ENQ);
+//        REGISTER_KEYDOWN(6	, ACK);
+//        REGISTER_KEYDOWN(7	, BEL);
+//        REGISTER_KEYDOWN(8	, BS);
+//        REGISTER_KEYDOWN(9	, HT);
+//        REGISTER_KEYDOWN(10	, LF);
+//        REGISTER_KEYDOWN(11	, VT);
+//        REGISTER_KEYDOWN(12	, FF);
+//        REGISTER_KEYDOWN(13	, CR);
+//        REGISTER_KEYDOWN(14	, SO);
+//        REGISTER_KEYDOWN(15	, SI);
+//        REGISTER_KEYDOWN(16	, DLE);
+//        REGISTER_KEYDOWN(17	, DCI);
+//        REGISTER_KEYDOWN(18	, DC2);
+//        REGISTER_KEYDOWN(19	, DC3);
+//        REGISTER_KEYDOWN(20	, DC4);
+//        REGISTER_KEYDOWN(21	, NAK);
+//        REGISTER_KEYDOWN(22	, SYN);
+//        REGISTER_KEYDOWN(23	, TB);
+//        REGISTER_KEYDOWN(24	, CAN);
+//        REGISTER_KEYDOWN(25	, EM);
+//        REGISTER_KEYDOWN(26	, SUB);
+//        REGISTER_KEYDOWN(27	, ESC);
+//        REGISTER_KEYDOWN(32, (space);
+//        REGISTER_KEYDOWN(	33,	!);
+//        REGISTER_KEYDOWN(	34,	");
+//        REGISTER_KEYDOWN(	35,	#);
+//        REGISTER_KEYDOWN(	36,	$);
+//        REGISTER_KEYDOWN(	37,	%);
+//        REGISTER_KEYDOWN(	38,	&);
+//        REGISTER_KEYDOWN(	39,	,);
+//        REGISTER_KEYDOWN(	40,	();
+//        REGISTER_KEYDOWN(	41,	));
+//        REGISTER_KEYDOWN(	42,	*);
+//        REGISTER_KEYDOWN(	43,	+);
+//        REGISTER_KEYDOWN(	44,	,);
+//        REGISTER_KEYDOWN(	45,	-);
+//        REGISTER_KEYDOWN(	46,	.);
+//        REGISTER_KEYDOWN(	47,	/);
+        REGISTER_KEYDOWN(	48,	VC_0);
+        REGISTER_KEYDOWN(	49,	VC_1);
+        REGISTER_KEYDOWN(	50,	VC_2);
+        REGISTER_KEYDOWN(	51,	VC_3);
+        REGISTER_KEYDOWN(	52,	VC_4);
+        REGISTER_KEYDOWN(	53,	VC_5);
+        REGISTER_KEYDOWN(	54,	VC_6);
+        REGISTER_KEYDOWN(	55,	VC_7);
+        REGISTER_KEYDOWN(	56,	VC_8);
+        REGISTER_KEYDOWN(	57,	VC_9);
+//        REGISTER_KEYDOWN(	58,	:);
+//        REGISTER_KEYDOWN(	59,	;);
+//        REGISTER_KEYDOWN(64,	@);
+//        REGISTER_KEYDOWN(65,	A);
+//        REGISTER_KEYDOWN(66,	B);
+//        REGISTER_KEYDOWN(67,	C);
+//        REGISTER_KEYDOWN(68,	D);
+//        REGISTER_KEYDOWN(69,	E);
+//        REGISTER_KEYDOWN(70,	F);
+//        REGISTER_KEYDOWN(71,	G);
+//        REGISTER_KEYDOWN(72,	H);
+//        REGISTER_KEYDOWN(73,	I);
+//        REGISTER_KEYDOWN(74,	J);
+//        REGISTER_KEYDOWN(75,	K);
+//        REGISTER_KEYDOWN(76,	L);
+//        REGISTER_KEYDOWN(77,	M);
+//        REGISTER_KEYDOWN(78,	N);
+//        REGISTER_KEYDOWN(79,	O);
+//        REGISTER_KEYDOWN(80,	P);
+//        REGISTER_KEYDOWN(81,	Q);
+//        REGISTER_KEYDOWN(82,	R);
+//        REGISTER_KEYDOWN(83,	S);
+//        REGISTER_KEYDOWN(84,	T);
+//        REGISTER_KEYDOWN(85,	U);
+//        REGISTER_KEYDOWN(86,	V);
+//        REGISTER_KEYDOWN(87,	W);
+//        REGISTER_KEYDOWN(88,	X);
+//        REGISTER_KEYDOWN(89,	Y);
+//        REGISTER_KEYDOWN(90,	Z);
+//        REGISTER_KEYDOWN(91,	[);
+//        REGISTER_KEYDOWN(96,	、);
+//        REGISTER_KEYDOWN(97,	a);
+//        REGISTER_KEYDOWN(98,	b);
+//        REGISTER_KEYDOWN(99,	c);
+//        REGISTER_KEYDOWN(100,	d);
+//        REGISTER_KEYDOWN(101,	e);
+//        REGISTER_KEYDOWN(102,	f);
+//        REGISTER_KEYDOWN(103,	g);
+//        REGISTER_KEYDOWN(104,	h);
+//        REGISTER_KEYDOWN(105,	i);
+//        REGISTER_KEYDOWN(106,	j);
+//        REGISTER_KEYDOWN(107,	k);
+//        REGISTER_KEYDOWN(108,	l);
+//        REGISTER_KEYDOWN(109,	m);
+//        REGISTER_KEYDOWN(110,	n);
+//        REGISTER_KEYDOWN(111,	o);
+//        REGISTER_KEYDOWN(112,	p);
+//        REGISTER_KEYDOWN(113,	q);
+//        REGISTER_KEYDOWN(114,	r);
+//        REGISTER_KEYDOWN(115,	s);
+//        REGISTER_KEYDOWN(116,	t);
+//        REGISTER_KEYDOWN(117,	u);
+//        REGISTER_KEYDOWN(118,	v);
+//        REGISTER_KEYDOWN(119,	w);
+//        REGISTER_KEYDOWN(120,	x);
+//        REGISTER_KEYDOWN(121,	y);
+//        REGISTER_KEYDOWN(122,	z);
+//        REGISTER_KEYDOWN(123,	{);
+
+        return true;
+    }
 	// XY positions are the ratio (0.0..1.0) along a viewport axis, quantized
 	// into an uint16 (0..65536). This allows the browser viewport and player
 	// viewport to have a different size.

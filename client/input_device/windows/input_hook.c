@@ -17,7 +17,7 @@
  */
 
 #include <inttypes.h>
-#include <uiohook.h>
+#include <cinput_device_hook.h>
 #include <windows.h>
 
 #include "input_helper.h"

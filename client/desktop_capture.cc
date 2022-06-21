@@ -3,9 +3,9 @@
 #include "modules/desktop_capture/desktop_capture_options.h"
 #include "rtc_base/logging.h"
 #include "third_party/libyuv/include/libyuv.h"
-
+#include "clog.h"
 namespace webrtc_demo {
-
+    using namespace chen;
 DesktopCapture::DesktopCapture() : dc_(nullptr), start_flag_(false) {}
 
 DesktopCapture::~DesktopCapture() {
@@ -27,6 +27,7 @@ DesktopCapture* DesktopCapture::Create(size_t target_fps,
   if (!dc->Init(target_fps, capture_screen_index)) {
     RTC_LOG(LS_WARNING) << "Failed to create DesktopCapture(fps = "
                         << target_fps << ")";
+      WARNING_EX_LOG("Failed to create DesktopCapture(fps = %u)", target_fps);
     return nullptr;
   }
   return dc.release();
@@ -45,11 +46,9 @@ bool DesktopCapture::Init(size_t target_fps, size_t capture_screen_index)
 //DesktopCapturer::CreateScreenCapturer( DesktopCaptureOptions::CreateDefault());
   if (!dc_)
   {
-    if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
+    WARNING_EX_LOG( "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
+
   return false;
   }
     
@@ -124,49 +123,25 @@ void DesktopCapture::OnCaptureResult(
 
 void DesktopCapture::StartCapture() 
 {
-  if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
   if (start_flag_) 
   {
-    if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
     RTC_LOG(WARNING) << "Capture already been running...";
     return;
   }
-if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
   start_flag_ = true;
 
   // Start new thread to capture
   capture_thread_.reset(new std::thread([this]() 
   {
-    if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
     dc_->Start(this);
-if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
     while (start_flag_) 
     {
-      if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
       dc_->CaptureFrame();
       std::this_thread::sleep_for(std::chrono::milliseconds(1000 / fps_));
     }

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <uiohook.h>
+#include <cinput_device_hook.h>
 #include <windows.h>
 
 #include "logger.h"

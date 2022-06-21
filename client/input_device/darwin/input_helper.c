@@ -23,7 +23,7 @@
 #include <dlfcn.h>
 #endif
 #include <stdbool.h>
-#include <uiohook.h>
+#include <cinput_device_hook.h>
 
 #include "input_helper.h"
 #include "logger.h"

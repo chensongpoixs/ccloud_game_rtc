@@ -141,7 +141,7 @@ function f_make
 
 
 	# make 
-	make   -j  4
+	make   -j  8
 
 #	echo $src_sd
 #	if [ ! -e $src_sd ]; then

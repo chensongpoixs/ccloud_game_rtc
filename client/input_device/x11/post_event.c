@@ -1,25 +1,9 @@
-/* libUIOHook: Cross-platform keyboard and mouse hooking from userland.
- * Copyright (C) 2006-2022 Alexander Barker.  All Rights Reserved.
- * https://github.com/kwhat/libuiohook/
- *
- * libUIOHook is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * libUIOHook is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <uiohook.h>
+#include <cinput_device_hook.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #ifdef USE_XTEST
@@ -40,7 +24,7 @@ static int post_key_event(uiohook_event * const event) {
                 __FUNCTION__, __LINE__, event->data.keyboard.keycode);
         return UIOHOOK_FAILURE;
     }
-
+    printf("keycode = %u\n", keycode);
     #ifdef USE_XTEST
     Bool is_pressed;
     #else
@@ -134,7 +118,9 @@ static int post_key_event(uiohook_event * const event) {
             __FUNCTION__, __LINE__, event->type);
         return UIOHOOK_FAILURE;
     }
-
+//    XTestFakeMotionEvent(…) // 模拟鼠标移动事件
+//    XTestFakeButtonEvent(…) // 模拟鼠标按键事件
+//    XTestFakeKeyEvent(…) // 模拟键盘按键事件
     #ifdef USE_XTEST
     if (XTestFakeKeyEvent(helper_disp, keycode, is_pressed, 0) != Success) {
         logger(LOG_LEVEL_ERROR, "%s [%u]: XTestFakeKeyEvent() failed!\n",

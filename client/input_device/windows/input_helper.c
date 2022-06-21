@@ -21,7 +21,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <uiohook.h>
+#include <cinput_device_hook.h>
 #include <windows.h>
 
 #include "logger.h"

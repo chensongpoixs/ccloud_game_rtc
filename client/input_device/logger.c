@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <uiohook.h>
+#include <cinput_device_hook.h>
 
 #include "logger.h"
 

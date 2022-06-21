@@ -20,7 +20,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <uiohook.h>
+#include <cinput_device_hook.h>
 
 #include "input_helper.h"
 #include "logger.h"

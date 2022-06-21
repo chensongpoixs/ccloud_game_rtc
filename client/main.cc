@@ -118,35 +118,15 @@ int desktop_test_main(int argc, char *argv[])
 //	open_windows(instance, prev_instance, cmd_line, cmd_show);
 	//return 0;
 	RTC_LOG(INFO) << "desktop capture !!!";
-  if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
   std::unique_ptr<webrtc_demo::DesktopCapture> capturer(webrtc_demo::DesktopCapture::Create(15,0));
- if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
   capturer->StartCapture();
- if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
   std::unique_ptr<webrtc::test::VideoRenderer> renderer(webrtc::test::VideoRenderer::Create(capturer->GetWindowTitle().c_str(), 720, 480));
-   if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
   capturer->AddOrUpdateSink(renderer.get(), rtc::VideoSinkWants());
- if (out_file_ptr)
-  {
-    fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__, __LINE__);
-    fflush(out_file_ptr);
-  }
+
   while (true)
   {
 	  std::this_thread::sleep_for(std::chrono::seconds(30));

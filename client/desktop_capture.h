@@ -11,7 +11,7 @@
 
 #include <thread>
 #include <atomic>
-static FILE *out_file_ptr = fopen("chensong.log", "wb+");
+
 namespace webrtc_demo {
 
 class DesktopCapture : public DesktopCaptureSource,

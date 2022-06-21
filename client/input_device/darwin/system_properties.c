@@ -31,7 +31,7 @@
 #endif
 
 #include <stdbool.h>
-#include <uiohook.h>
+#include <cinput_device_hook.h>
 
 #include "logger.h"
 #include "input_helper.h"
