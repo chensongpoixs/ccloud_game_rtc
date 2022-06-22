@@ -1,0 +1,12 @@
+.idea
+cmake-build-debug
+build
+linux/lib
+inject/linux/inject
+inject/linux/inject32
+inject/linux/sample-library.so
+inject/linux/sample-library32.so
+inject/linux/sample-target
+inject/linux/sample-target32
+linux/rtc
+
