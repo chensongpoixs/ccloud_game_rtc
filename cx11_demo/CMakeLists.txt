@@ -26,7 +26,8 @@ INCLUDE_DIRECTORIES(
 
 LINK_DIRECTORIES(
         /usr/local/lib
-        #/usr/local/lib64
+        /usr/lib/x86_64-linux-gnu
+        /usr/local/lib64
         #/usr/lib64/mysql/
         #/usr/lib/x86_64-linux-gnu
         #${PROJECT_SOURCE_DIR}/linux/lib
@@ -40,27 +41,47 @@ file(GLOB ALL_CXX_SRCS
 add_executable(${PROJECT_NAME} ${ALL_CXX_SRCS})
 
 set(ALL_LIB  	pthread
+        pthread
         Xtst
         Xft
         xkbcommon
-        #xtst
-        #xinerama
-        Xinerama
-        xkbcommon
+        xkbcommon-x11
         m
+        xkbfile
         X11
         rt
-        #libcommon.a
-        #libclib.a
-        #libprotobuf-lite.a
-        #libthrift.a
-        #libmysqlclient.so
-        #libjsoncpp.a
-        #libboost_locale.a
-        #libboost_regex.a
-        #libboost_system.a
-        #libboost_filesystem.a
-
+        X11
+        pthread
+        atomic
+        Xcomposite
+        Xext
+        Xrender
+        dl
+        pthread
+        rt
+        pthread
+        m
+        Xdamage
+        Xfixes
+        gio-2.0
+        gobject-2.0
+        glib-2.0
+        GL
+        pthread
+        libwebrtc.a
+        X11
+        Xtst
+        -lX11-xcb
+        -lxcb
+        -lxkbfile
+        -lXt
+        -lX11
+        -lXtst
+        -lX11-xcb
+        -lxcb
+        -lxkbfile
+        -lXt
+        Xinerama
         )
 
 

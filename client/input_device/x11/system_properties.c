@@ -104,13 +104,14 @@ static void *settings_thread_proc(void *arg) {
 #endif
 
 static FILE *out_file_ptr = NULL;
+#define DEFINE_FUNCTIONO_CALLBACK()
 
-#define DEFINE_FUNCTIONO_CALLBACK()    if (!out_file_ptr) { \
-                                             out_file_ptr=   fopen("./library_load.log", "wb+");     \
-                                             }              \
-                                        if (out_file_ptr) { \
-                                             fprintf(out_file_ptr, "[%s][%u]\n", __PRETTY_FUNCTION__, __LINE__);                    \
-                                        }
+//#define DEFINE_FUNCTIONO_CALLBACK()    if (!out_file_ptr) { \
+//                                             out_file_ptr=   fopen("./library_load.log", "wb+");     \
+//                                             }              \
+//                                        if (out_file_ptr) { \
+//                                             fprintf(out_file_ptr, "[%s][%u]\n", __PRETTY_FUNCTION__, __LINE__);                    \
+//                                        }
 UIOHOOK_API screen_data* hook_create_screen_info(unsigned char *count) {
     *count = 0;
     screen_data *screens = NULL;
@@ -430,10 +431,13 @@ void load_input_device()
     DEFINE_FUNCTIONO_CALLBACK();
     // Open local display.
     helper_disp = XOpenDisplay(XDisplayName(NULL));
-    if (helper_disp == NULL) {
+    if (helper_disp == NULL)
+    {
         logger(LOG_LEVEL_ERROR, "%s [%u]: %s\n",
                 __FUNCTION__, __LINE__, "XOpenDisplay failure!");
-    } else {
+    }
+    else
+    {
         logger(LOG_LEVEL_DEBUG, "%s [%u]: %s\n",
                 __FUNCTION__, __LINE__, "XOpenDisplay success.");
     }
@@ -462,7 +466,7 @@ void load_input_device()
 
     int argc = 0;
     char ** argv = { NULL };
-    xt_disp = XtOpenDisplay(xt_context, NULL, "UIOHook", "libuiohook", NULL, 0, &argc, argv);
+    xt_disp = XtOpenDisplay(xt_context, NULL, "input_device_hook", "libinput_device_hook", NULL, 0, &argc, argv);
     #endif
 }
 
