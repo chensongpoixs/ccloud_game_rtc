@@ -49,6 +49,7 @@ namespace chen {
 		set_uint32(ECI_EncoderPFrameCount, "nvenc_pframe_count", 10);
 		set_uint32(ECI_EncoderVideoGop, "nvenc_video_gop", 180);
 		set_uint32(ECI_EncoderLowLatency, "nvenc_low_latency", 3);
+		set_uint32(ECI_GpuVideoLock, "gpu_video_lock", 1);
 #if _DEBUG
 		set_uint32(ECI_LogLevel, "log_level", ELogLevel_Num);
 #endif // _DEBUG

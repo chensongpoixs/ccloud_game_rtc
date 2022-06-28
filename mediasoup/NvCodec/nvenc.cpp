@@ -429,6 +429,75 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready,
 	return frame_size;
 }
 
+
+
+int nvenc_encode_texture_unlock_lock(void *nvenc_data, ID3D11Texture2D *texture, int * ready, uint8_t* out_buf, uint32_t out_buf_size, int lock_key, int unlock_key, IDXGIKeyedMutex* keyed_mutex)
+{
+	using namespace chen;
+	//NORMAL_EX_LOG("");
+	if (nvenc_data == nullptr)
+	{
+		ERROR_EX_LOG("nvenc_data == nullptr");
+		return -1;
+	}
+	//NORMAL_EX_LOG("");
+	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
+
+	std::lock_guard<std::mutex> locker(enc->mutex);
+	//NORMAL_EX_LOG("");
+	if (enc->nvenc == nullptr)
+	{
+		ERROR_EX_LOG("evenc ");
+		return -1;
+	}
+	//NORMAL_EX_LOG("");
+	std::vector<std::vector<uint8_t>> packet;
+	const NvEncInputFrame* input_frame = enc->nvenc->GetNextInputFrame();
+	//NORMAL_EX_LOG("");
+	ID3D11Texture2D *encoder_texture = reinterpret_cast<ID3D11Texture2D*>(input_frame->inputPtr);
+	//*ready = 1;
+	NORMAL_EX_LOG("");
+	if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex)
+	{
+		HRESULT hr = keyed_mutex->AcquireSync(lock_key, 3);
+		if (hr != S_OK)
+		{
+			NORMAL_EX_LOG("AcquireSync time out !!!");
+			return -1;
+		}
+	}
+	enc->d3d11_context->CopyResource(encoder_texture, texture);
+	if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex)
+	{
+		keyed_mutex->ReleaseSync(unlock_key);
+	}
+	//*ready = 0;
+	//NORMAL_EX_LOG("");
+	try
+	{
+		enc->nvenc->EncodeFrame(packet);
+	}
+	catch (...)
+	{
+		ERROR_EX_LOG("nvenc encode frame failed !!! packet ");
+		return -2;
+	}
+
+
+	int frame_size = 0;
+	for (std::vector<uint8_t> &packet : packet) {
+		if (frame_size + packet.size() < out_buf_size) {
+			memcpy(out_buf + frame_size, packet.data(), packet.size());
+			frame_size += (int)packet.size();
+		}
+		else {
+			break;
+		}
+	}
+
+	return frame_size;
+}
+
 int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unlock_key, 
 	uint8_t* out_buf, uint32_t out_buf_size)
 {
@@ -468,40 +537,53 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 		//NORMAL_EX_LOG("");
 		input_texture = enc->input_texture;
 		//NORMAL_EX_LOG("");
-		if (lock_key >= 0 && unlock_key >= 0)
+		//if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
 		{
-			hr = input_texture->QueryInterface( _uuidof(IDXGIKeyedMutex), reinterpret_cast<void**>(&enc->keyed_mutex));
-			//NORMAL_EX_LOG("hr = %u", hr);
-			if (FAILED(hr))
+			if (lock_key >= 0 && unlock_key >= 0)
 			{
-				enc->input_texture->Release();
-				enc->input_texture = nullptr;
-				return -1;
+				hr = input_texture->QueryInterface(_uuidof(IDXGIKeyedMutex), reinterpret_cast<void**>(&enc->keyed_mutex));
+				//NORMAL_EX_LOG("hr = %u", hr);
+				if (FAILED(hr))
+				{
+					enc->input_texture->Release();
+					enc->input_texture = nullptr;
+					return -1;
+				}
+				//NORMAL_EX_LOG("");
+				keyed_mutex = enc->keyed_mutex;
 			}
-			//NORMAL_EX_LOG("");
-			keyed_mutex = enc->keyed_mutex;
 		}
+		
 		//NORMAL_EX_LOG("");
 		enc->input_handle = video_data_ptr->handler;
 	}
 	//NORMAL_EX_LOG("");
-	if (input_texture != nullptr) {
-		if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
-			HRESULT hr = keyed_mutex->AcquireSync(lock_key, 3);
-			if (hr != S_OK) 
-			{
-				NORMAL_EX_LOG("AcquireSync time out !!!");
-				return -1;
+	if (input_texture != nullptr)
+	{
+		/*if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
+		{
+			if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
+				HRESULT hr = keyed_mutex->AcquireSync(lock_key, 3);
+				if (hr != S_OK)
+				{
+					NORMAL_EX_LOG("AcquireSync time out !!!");
+					return -1;
+				}
 			}
-		}
+		}*/
+		
 		//NORMAL_EX_LOG("");
 		//video_data_ptr->ready = 1;
-		frame_size = nvenc_encode_texture(enc, input_texture, &video_data_ptr->ready, out_buf, out_buf_size);
+		frame_size = nvenc_encode_texture_unlock_lock(enc, input_texture, &video_data_ptr->ready, out_buf, out_buf_size, lock_key, unlock_key, keyed_mutex);
 		//video_data_ptr->ready = 0;
 		//NORMAL_EX_LOG("");
-		if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
-			keyed_mutex->ReleaseSync(unlock_key);
-		}
+		/*if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
+		{
+			if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
+				keyed_mutex->ReleaseSync(unlock_key);
+			}
+		}*/
+		
 	}
 	//NORMAL_EX_LOG("");
 	return frame_size;
