@@ -68,7 +68,7 @@ set(ALL_LIB  	pthread
         glib-2.0
         GL
         pthread
-        libwebrtc.a
+       # libwebrtc.a
         X11
         Xtst
         -lX11-xcb
@@ -82,6 +82,35 @@ set(ALL_LIB  	pthread
         -lxkbfile
         -lXt
         Xinerama
+        X11
+        Xtst
+        -lX11-xcb
+        -lxcb
+        -lxkbfile
+        -lXt
+        -lX11
+        -lXtst
+        -lX11-xcb
+        -lxcb
+        -lxkbfile
+        -lXt
+        Xinerama
+        xcb-composite
+
+
+#/usr/lib/x86_64-linux-gnu/libX11.so  
+#/usr/lib/x86_64-linux-gnu/libxcb.so  
+#/usr/lib/x86_64-linux-gnu/libxcb-xfixes.so  
+#/usr/lib/x86_64-linux-gnu/libxcb-randr.so 
+ #/usr/lib/x86_64-linux-gnu/libxcb-shm.so  
+ #/usr/lib/x86_64-linux-gnu/libxcb-xinerama.so  
+ #/usr/lib/x86_64-linux-gnu/libxcb-composite.so  
+ -lpthread  
+ #/usr/lib/x86_64-linux-gnu/libGLX.so  
+ #/usr/lib/x86_64-linux-gnu/libOpenGL.so
+  
+
+
         )
 
 
