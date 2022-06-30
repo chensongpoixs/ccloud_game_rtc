@@ -33,12 +33,7 @@ LINK_DIRECTORIES(
         #${PROJECT_SOURCE_DIR}/linux/lib
 )
 
-file(GLOB ALL_CXX_SRCS
-        ./*.cpp  ./*.cc
-        ./*.c
-        )
 
-add_executable(${PROJECT_NAME} ${ALL_CXX_SRCS})
 
 set(ALL_LIB  	pthread
         pthread
@@ -113,8 +108,31 @@ set(ALL_LIB  	pthread
 
         )
 
+file(GLOB ALL_CXX_SRCS
+        main.cpp
+        )
 
+add_executable(${PROJECT_NAME} ${ALL_CXX_SRCS})
 target_link_libraries(${PROJECT_NAME} ${ALL_LIB})
+
+#################
+
+file(GLOB ALL_WINDOWS
+        window.cpp
+        )
+
+add_executable(select_window ${ALL_WINDOWS})
+target_link_libraries(select_window ${ALL_LIB})
+
+
+
+
+file(GLOB ALL_WINDOWS_X11
+        x11_get_window_id.cpp
+        )
+
+add_executable(x11_get_window_id ${ALL_WINDOWS_X11})
+target_link_libraries(x11_get_window_id ${ALL_LIB})
 
 #add_subdirectory(clib)
 #add_subdirectory(common)
