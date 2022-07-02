@@ -13,6 +13,7 @@
 //#include "Utils/AppEncUtils.h"
 //#include "Utils/AppEncUtils.h"
 namespace chen {
+	uint32 g_gpu_index;
 	static const std::unordered_map<uint32, GUID> g_encoder_preset = {
 	{1, NV_ENC_PRESET_P1_GUID},
 	{2, NV_ENC_PRESET_P2_GUID},
@@ -119,7 +120,7 @@ static void* nvenc_create()
 	if (!is_supported()) {
 		return nullptr;
 	}
-
+	int32 index = 0;
 	struct nvenc_data* enc = new nvenc_data;
 	HRESULT hr = S_OK;
 
@@ -127,8 +128,45 @@ static void* nvenc_create()
 	if (FAILED(hr)) {
 		return nullptr;
 	}
+	
+	SYSTEM_LOG(" start  gpu info [g_gpu_index = %u] ....", g_gpu_index);
 
-	for (int gpuIndex = 0; gpuIndex <= 1; gpuIndex++) {
+
+	hr = enc->factory->EnumAdapters(g_gpu_index, &enc->adapter);
+	if (FAILED(hr)) 
+	{
+		WARNING_EX_LOG("[g_gpu_index = %u] enumadapters failed !!! ", g_gpu_index);
+		goto gpuadapter;
+	}
+	else
+	{
+		char desc[128] = { 0 };
+		DXGI_ADAPTER_DESC adapterDesc;
+		enc->adapter->GetDesc(&adapterDesc);
+		wcstombs(desc, adapterDesc.Description, sizeof(desc));
+		if (strstr(desc, "NVIDIA") != NULL) 
+		{
+			hr = D3D11CreateDevice(enc->adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, 0, NULL, 0, D3D11_SDK_VERSION,
+				&enc->d3d11_device, nullptr, &enc->d3d11_context);
+			enc->adapter->Release();
+			enc->adapter = nullptr;
+			if (SUCCEEDED(hr)) 
+			{
+				index = g_gpu_index;
+				SYSTEM_LOG("use gpu info g_gpu_index = %u ok ", g_gpu_index);
+				goto findok;
+			}
+		}
+		else
+		{
+			WARNING_EX_LOG("[g_gpu_index = %u]  not NVIDIA  [desc = %s] failed !!! ", g_gpu_index, desc);
+		}
+	}
+gpuadapter:
+	NORMAL_EX_LOG("gpuadapter");
+	for (int gpuIndex = 0; gpuIndex <= 5; gpuIndex++) 
+	{
+		NORMAL_EX_LOG("gpuadapter [gpuIndex = %u]", gpuIndex);
 		hr = enc->factory->EnumAdapters(gpuIndex, &enc->adapter);
 		if (FAILED(hr)) {
 			goto failed;
@@ -138,11 +176,12 @@ static void* nvenc_create()
 			DXGI_ADAPTER_DESC adapterDesc;
 			enc->adapter->GetDesc(&adapterDesc);
 			wcstombs(desc, adapterDesc.Description, sizeof(desc));
-			if (strstr(desc, "NVIDIA") == NULL) {
+			if (strstr(desc, "NVIDIA") == NULL) 
+			{
 				continue;
 			}
 		}
-
+		index = gpuIndex;
 		hr = D3D11CreateDevice(enc->adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, 0, NULL, 0, D3D11_SDK_VERSION,
 							   &enc->d3d11_device, nullptr, &enc->d3d11_context);
 		enc->adapter->Release();
@@ -151,7 +190,8 @@ static void* nvenc_create()
 			break;
 		}
 	}
-
+findok:
+	NORMAL_EX_LOG("used gpu index = %u", index);
 	if (enc->factory) {
 		enc->factory->Release();
 		enc->factory = nullptr;
@@ -404,6 +444,7 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready,
 	enc->d3d11_context->CopyResource(encoder_texture, texture);
 	//*ready = 0;
 	//NORMAL_EX_LOG("");
+	
 	try
 	{
 		enc->nvenc->EncodeFrame(packet);
@@ -434,26 +475,26 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready,
 int nvenc_encode_texture_unlock_lock(void *nvenc_data, ID3D11Texture2D *texture, int * ready, uint8_t* out_buf, uint32_t out_buf_size, int lock_key, int unlock_key, IDXGIKeyedMutex* keyed_mutex)
 {
 	using namespace chen;
-	//NORMAL_EX_LOG("");
+	NORMAL_EX_LOG("");
 	if (nvenc_data == nullptr)
 	{
 		ERROR_EX_LOG("nvenc_data == nullptr");
 		return -1;
 	}
-	//NORMAL_EX_LOG("");
+	NORMAL_EX_LOG("");
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
-	//NORMAL_EX_LOG("");
+	NORMAL_EX_LOG("");
 	if (enc->nvenc == nullptr)
 	{
 		ERROR_EX_LOG("evenc ");
 		return -1;
 	}
-	//NORMAL_EX_LOG("");
+	NORMAL_EX_LOG("");
 	std::vector<std::vector<uint8_t>> packet;
 	const NvEncInputFrame* input_frame = enc->nvenc->GetNextInputFrame();
-	//NORMAL_EX_LOG("");
+	NORMAL_EX_LOG("");
 	ID3D11Texture2D *encoder_texture = reinterpret_cast<ID3D11Texture2D*>(input_frame->inputPtr);
 	//*ready = 1;
 	NORMAL_EX_LOG("");
@@ -472,7 +513,7 @@ int nvenc_encode_texture_unlock_lock(void *nvenc_data, ID3D11Texture2D *texture,
 		keyed_mutex->ReleaseSync(unlock_key);
 	}
 	//*ready = 0;
-	//NORMAL_EX_LOG("");
+	NORMAL_EX_LOG("");
 	try
 	{
 		enc->nvenc->EncodeFrame(packet);
@@ -517,13 +558,13 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 	ID3D11Texture2D* input_texture = enc->input_texture;
 	IDXGIKeyedMutex* keyed_mutex = enc->keyed_mutex;
 	int frame_size = 0;
-	//NORMAL_EX_LOG("[enc->input_handle = %p][handle = %p]", enc->input_handle, video_data_ptr->handler);
+	NORMAL_EX_LOG("[enc->input_handle = %p][handle = %p]", enc->input_handle, video_data_ptr->handler);
 	if (enc->input_handle != video_data_ptr->handler) {
 		if (enc->input_texture) {
 			enc->input_texture->Release();
 			enc->input_texture = nullptr;
 		}
-		//NORMAL_EX_LOG("");
+		NORMAL_EX_LOG("");
 		if (enc->keyed_mutex) {
 			enc->keyed_mutex->Release();
 			enc->keyed_mutex = nullptr;
@@ -534,7 +575,7 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 		if (FAILED(hr)) {
 			return -1;
 		}
-		//NORMAL_EX_LOG("");
+		NORMAL_EX_LOG("");
 		input_texture = enc->input_texture;
 		//NORMAL_EX_LOG("");
 		//if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
@@ -554,10 +595,10 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 			}
 		}
 		
-		//NORMAL_EX_LOG("");
+		NORMAL_EX_LOG("");
 		enc->input_handle = video_data_ptr->handler;
 	}
-	//NORMAL_EX_LOG("");
+	NORMAL_EX_LOG("");
 	if (input_texture != nullptr)
 	{
 		/*if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
@@ -572,11 +613,11 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 			}
 		}*/
 		
-		//NORMAL_EX_LOG("");
+		NORMAL_EX_LOG("");
 		//video_data_ptr->ready = 1;
 		frame_size = nvenc_encode_texture_unlock_lock(enc, input_texture, &video_data_ptr->ready, out_buf, out_buf_size, lock_key, unlock_key, keyed_mutex);
 		//video_data_ptr->ready = 0;
-		//NORMAL_EX_LOG("");
+		NORMAL_EX_LOG("");
 		/*if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
 		{
 			if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
@@ -585,7 +626,7 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 		}*/
 		
 	}
-	//NORMAL_EX_LOG("");
+	NORMAL_EX_LOG("");
 	return frame_size;
 }
 

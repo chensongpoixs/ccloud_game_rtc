@@ -657,69 +657,55 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 	int height = input_frame.height();
 	ID3D11Texture2D* texture = nvenc_info.get_texture(nv_encoders_[index]);
 	ID3D11DeviceContext* context = nvenc_info.get_context(nv_encoders_[index]);
-	 if (texture && context && input_frame.video_frame_buffer()->ToI420()->get_texture())
+	 if (texture && context  )
 	{
+		 NORMAL_EX_LOG("");
+		 int max_buffer_size = height * width * 4;
+		 std::shared_ptr<uint8_t> out_buffer(new uint8_t[max_buffer_size]);
+		 if (0 != g_gpu_index)
+		 {
+			 NORMAL_EX_LOG("");
+			 D3D11_MAPPED_SUBRESOURCE dsec = { 0 };
+			 HRESULT hr = context->Map(texture, D3D11CalcSubresource(0, 0, 0), D3D11_MAP_WRITE, 0, &dsec);
+			 if (SUCCEEDED(hr)) {
 
+				 NORMAL_EX_LOG("");
+				 libyuv::ARGBCopy(input_frame.video_frame_buffer()->ToI420()->DataY(), width * 4, (uint8_t*)dsec.pData, dsec.RowPitch, width, height);
 
-////		D3D11_MAPPED_SUBRESOURCE dsec = {0};
-////		HRESULT hr = context->Map(texture, D3D11CalcSubresource(0, 0, 0), D3D11_MAP_WRITE, 0, &dsec);
-////		if (SUCCEEDED(hr)) {
-////#if 1
-////			for (int y = 0; y < height; y++) 
-////			{
-////				memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
-////					input_frame.video_frame_buffer()->ToI420()->DataY()  + y * width * 4, width * 4);
-////				/*memcpy((uint8_t*)dsec.pData + y * dsec.RowPitch,
-////						image_buffer_.get() + y * width * 4, width * 4);*/
-////			}//FOURCC_ARGB//NV_ENC_BUFFER_FORMAT_ABGR//BGRAToARGB //NV_ENC_BUFFER_FORMAT_ABGR
-////			
-////			libyuv::ARGBCopy(input_frame.video_frame_buffer()->ToI420()->DataY(), width * 4, (uint8_t*)dsec.pData, dsec.RowPitch, width, height);
-////			memcpy(dsec.pData, input_frame.video_frame_buffer()->ToI420()->DataY(), width * height * 4);
-////			/*::fwrite(image_buffer_.get(), 1, width * height * 4, out_file_ptr);
-////			::fflush(out_file_ptr);*/
-////#else
-////			 nv12
-////			libyuv::NV12ToARGB(input_frame.video_frame_buffer()->ToI420()->DataY(), input_frame.video_frame_buffer()->ToI420()->StrideY()
-////				,input_frame.video_frame_buffer()->ToI420()->DataU(), input_frame.video_frame_buffer()->ToI420()->StrideU()*2, 
-////				(uint8_t*)dsec.pData, dsec.RowPitch, width, height );
-////			memcpy(dsec.pData, input_frame.video_frame_buffer()->ToI420()->DataY(), width * height * 1.5);
-////
-////
-////			/*uint8_t* y_plane_ = image_buffer_.get();
-////			for (int i = 0; i < height; i++) {
-////				memcpy((uint8_t*)dsec.pData + dsec.RowPitch * i, y_plane_ + width * i, width);
-////			}
-////			uint8_t* uv_plane_ = image_buffer_.get() + width * height;
-////			for (int i = 0; i < height / 2; i++) {
-////				memcpy((uint8_t*)dsec.pData + dsec.RowPitch * (height + i), uv_plane_ + width * i, width);
-////			}*/
-////#endif
-////
-////			context->Unmap(texture, D3D11CalcSubresource(0, 0, 0));
+				 NORMAL_EX_LOG("");
+				 context->Unmap(texture, D3D11CalcSubresource(0, 0, 0));
+				 NORMAL_EX_LOG("");
+				 int frame_size =   nvenc_info.encode_texture(nv_encoders_[index], texture, 0, out_buffer.get(), max_buffer_size);
+				 NORMAL_EX_LOG("");
+				 if (frame_size > 0)
+				 {
+					 frame_packet.resize(frame_size);
+					 ::memcpy(&frame_packet[0], out_buffer.get(), frame_size);
+				 }
+				 else
+				 {
+					 ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
+					 return false;
+				 }
 
-		
-			int max_buffer_size = height * width * 4;
-			std::shared_ptr<uint8_t> out_buffer(new uint8_t[max_buffer_size]);
+			 }
+			 
+		 }
+		 else if (input_frame.video_frame_buffer()->ToI420()->get_texture())
+		 {
 
-			//int frame_size = nvenc_info.encode_texture(nv_encoders_[index], texture, out_buffer.get(), max_buffer_size);
-			int frame_size = nvenc_info.encode_handle((void*)nv_encoders_[index], (HANDLE)input_frame.video_frame_buffer()->ToI420()->get_texture(), 0, 0, out_buffer.get(), max_buffer_size); ;
-			if (frame_size > 0) 
-			{
-				frame_packet.resize(frame_size);
-				::memcpy(&frame_packet[0], out_buffer.get(), frame_size);
-			}
-			else
-			{
-				ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
-				return false;
-			}
-			/*static FILE *out_file_ptr = fopen("chensong_20220603.h264", "wb+");
-			if (out_file_ptr)
-			{
-				::fwrite(&frame_packet[0], 1, frame_size, out_file_ptr);
-				::fflush(out_file_ptr);
-			}*/
-		//}
+			 int frame_size = nvenc_info.encode_handle((void*)nv_encoders_[index], (HANDLE)input_frame.video_frame_buffer()->ToI420()->get_texture(), 0, 0, out_buffer.get(), max_buffer_size); ;
+			 if (frame_size > 0)
+			 {
+				 frame_packet.resize(frame_size);
+				 ::memcpy(&frame_packet[0], out_buffer.get(), frame_size);
+			 }
+			 else
+			 {
+				 ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
+				 return false;
+			 }
+		 }
 	}
 	else
 	{

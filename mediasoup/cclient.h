@@ -78,7 +78,7 @@ namespace chen {
 
 
 	public:
-		bool init();
+		bool init(uint32 gpu_index);
 		void Loop(const std::string& mediasoupIp, uint16_t port, const std::string& roomName, const std::string& clientName
 			, uint32_t reconnect_waittime);
 		void stop();

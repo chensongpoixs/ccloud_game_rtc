@@ -10,5 +10,6 @@
 #include "NvEncoder/NvEncoderD3D11.h" 
 namespace chen {
 extern struct encoder_info nvenc_info;
+extern uint32 g_gpu_index;;
 }
 #endif

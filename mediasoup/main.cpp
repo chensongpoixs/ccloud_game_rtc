@@ -27,7 +27,7 @@ int  testmain(int argc, char *argv[])
 	signal(SIGTERM, signalHandler);
 
 
-	g_mediasoup_mgr.init();
+	g_mediasoup_mgr.init(0);
 
 	//g_mediasoup_mgr.set_mediasoup_status_callback(&mediasoup_callback);
 	/*

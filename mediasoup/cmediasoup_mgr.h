@@ -22,7 +22,7 @@ namespace cmediasoup
 		cmediasoup_mgr();
 		~cmediasoup_mgr();
 	public:
-		bool init( );
+		bool init( uint32_t gpu_index);
 
 		void startup(const char * mediasoupIp = "127.0.0.1", uint16_t mediasoupPort = 8888, const  char * roomName = "chensong", const char* clientName = "chensong"
 			, uint32_t reconnectWaittime = 5);

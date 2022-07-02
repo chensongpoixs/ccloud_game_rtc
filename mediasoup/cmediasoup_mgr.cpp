@@ -12,10 +12,10 @@ namespace cmediasoup
 	cmediasoup_mgr::~cmediasoup_mgr()
 	{
 	}
-	bool cmediasoup_mgr::init( )
+	bool cmediasoup_mgr::init(uint32_t gpu_index)
 	{
 		//if (!m_stoped)
-		m_init = s_client.init( );
+		m_init = s_client.init(gpu_index);
 		return m_init;
 	}
 	void cmediasoup_mgr::startup(const char* mediasoupIp, uint16_t port

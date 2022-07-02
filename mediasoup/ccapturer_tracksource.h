@@ -88,7 +88,7 @@ namespace chen {
 
 
 																//chen::draw_font_func(i420_buffer_->MutableDataY(), i420_buffer_->MutableDataU(), i420_buffer_->MutableDataV(), "A", g_width, g_height, 3, 1, width , height);
-			NORMAL_EX_LOG("");
+			//NORMAL_EX_LOG("");
 																// seting 马流的信息 
 			{
 				webrtc::VideoFrame captureFrame =
@@ -132,7 +132,8 @@ namespace chen {
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
 
-
+			i420_buffer_->set_texture(NULL);
+			NORMAL_EX_LOG("");
 			::memcpy(i420_buffer_->MutableDataY(), rgba, width * height * 4);
 			//libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
 			//	i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),

@@ -10,6 +10,7 @@
 #include "crecv_transport.h"
 #include "csend_transport.h"
 #include "cinput_device.h"
+#include "NvCodec/nvenc.h"
 namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
@@ -109,8 +110,9 @@ namespace chen {
 		}
 	}
 	
-	bool cclient::init()
+	bool cclient::init(uint32 gpu_index)
 	{
+		
 		printf("Log init ...\n");
 		if (!LOG::init(ELogStorageScreenFile))
 		{
@@ -119,6 +121,8 @@ namespace chen {
 		}
 		show_work_dir();
 		SYSTEM_LOG("Log init ...\n");
+		g_gpu_index = gpu_index;
+		SYSTEM_LOG("gpu index = %u", g_gpu_index);
 		static const   char* config_file = "client.cfg";
 		bool init = g_cfg.init(config_file);
 		if (!init)
