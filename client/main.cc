@@ -176,7 +176,7 @@ int  main(int argc, char *argv[])
         , const char* roomName, const char* clientName
 
     */
-    g_mediasoup_mgr.startup("192.168.1.83", 8888, "chensong", "chensong");
+    g_mediasoup_mgr.startup("192.168.1.32", 8888, "unix", "unix");
     while (!stoped)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

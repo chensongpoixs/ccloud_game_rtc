@@ -43,6 +43,9 @@ namespace chen {
 		set_uint32(ECI_RtcVideoGop, "rtc_video_gop", 60);
 
 		set_uint32(ECI_LogLevel, "log_level", ELogLevel_Info);
+
+        // unix test window id
+        set_uint32(ECI_UnixWindowId, "unix_window_id", 0);
 #if _DEBUG
 		set_uint32(ECI_LogLevel, "log_level", ELogLevel_Num);
 #endif // _DEBUG

@@ -67,6 +67,7 @@ Xtst
         -lxkbfile
         -lXt
         Xinerama
+        xcb-composite
         )
 
 

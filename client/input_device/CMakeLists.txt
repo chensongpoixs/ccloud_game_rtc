@@ -91,11 +91,11 @@ if(UNIX AND NOT APPLE)
         add_compile_definitions(${PROJECT_NAME} PRIVATE USE_XRECORD_ASYNC)
     endif()
 
-    option(USE_XTEST "XTest API (default: ON)" ON)
-    if(USE_XTEST)
-        # XTest API is provided by Xtst
-        add_compile_definitions(${PROJECT_NAME} PRIVATE USE_XTEST)
-    endif()
+#    option(USE_XTEST "XTest API (default: ON)" ON)
+#    if(USE_XTEST)
+#        # XTest API is provided by Xtst
+#        add_compile_definitions(${PROJECT_NAME} PRIVATE USE_XTEST)
+#    endif()
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         option(USE_EVDEV "Generic Linux input driver (default: ON)" ON)

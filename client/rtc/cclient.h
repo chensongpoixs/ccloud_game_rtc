@@ -150,7 +150,7 @@ namespace chen {
 
 	private:
 		void _clear_register();
-
+        void _start_capture_thread();
 		void _osg_thread();
 		void _osg_copy_rgba_thread();
 	private:
@@ -183,7 +183,7 @@ namespace chen {
 		time_t							m_produce_video;
 		bool							m_webrtc_connect;
 		 
-		std::thread						m_osg_work_thread;
+		std::thread						m_osg_work_thread; // unix capture image
 		std::vector<cosg_webrtc_rgba>   m_frame_rgba_vec; // 
 		uint64							m_osg_frame;
 		uint64							m_webrtc_frame;
@@ -195,6 +195,7 @@ namespace chen {
 		cmediasoup::mediasoup_status_update_cb		m_mediasoup_status_callback;
 		uint32							m_websocket_timer;
 		bool							m_send_produce_video_msg;
+
 	};
 #define  s_client chen::csingleton<chen::cclient>::get_instance()
 }

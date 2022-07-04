@@ -104,8 +104,19 @@ namespace  chen {
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
 
+#ifdef _MSC_VER
+            ::memcpy(i420_buffer_->MutableDataY(), rgba, width * height * 4);
+#elif defined(__GNUC__) ||defined(__APPLE__)
+            libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
+            	i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
+            	i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
+            	i420_buffer_->StrideV(), 0, 0, width, height, width,
+            	height, libyuv::kRotate0, libyuv::FOURCC_ARGB); // GL_BGRA，  FOURCC_BGRA 、、GL_BGR
+#else
+            // 其他不支持的编译器需要自己实现这个方法
+#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+#endif
 
-			::memcpy(i420_buffer_->MutableDataY(), rgba, width * height * 4);
 			//libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
 			//	i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
 			//	i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),

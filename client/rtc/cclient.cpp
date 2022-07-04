@@ -10,6 +10,8 @@
 #include "crecv_transport.h"
 #include "csend_transport.h"
 #include "cinput_device.h"
+
+#include "cinput_device_hook.h"
 namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
@@ -185,7 +187,7 @@ namespace chen {
 	}
 	void cclient::stop()
 	{
-		SYSTEM_LOG("client sop OK !!!");
+		SYSTEM_LOG("client stop OK !!!");
 		m_stoped = true;
 		m_webrtc_connect = false;
 	}
@@ -201,6 +203,12 @@ namespace chen {
         {
             WARNING_EX_LOG("desktop_capture_ptr === nullptr !!!");
         }
+
+
+		if (g_cfg.get_uint32(ECI_UnixWindowId)>0)
+		{
+			m_osg_work_thread = std::thread(&cclient::_start_capture_thread, this);
+		}
 		// mediasoup_ip, mediasoup_port ;
 		// room_name , client_id;
 		//  Reconnect_waittime, 
@@ -1251,6 +1259,29 @@ namespace chen {
 		m_client_protoo_msg_call.clear();
 	}
 
+	static  bool capture_callback(unsigned  char * rgba_ptr, uint32_t width, uint32_t height)
+	{
+		s_client.webrtc_video(rgba_ptr, width, height);
+	}
+
+	void cclient::_start_capture_thread()
+	{
+
+//#ifdef __unix__
+
+		while (!m_stoped)
+		{
+			capture_image( &capture_callback);
+            //NORMAL_EX_LOG("capture image ok ....");
+			 usleep(20);
+		}
+//#elif defined(__GNUC__) ||defined(__APPLE__)
+//		typedef   char TCHAR;
+//#else
+//		// 其他不支持的编译器需要自己实现这个方法
+//#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+//#endif
+	}
 	void cclient::_osg_thread()
 	{
 		 

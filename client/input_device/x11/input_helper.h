@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 #include <X11/Xlib.h>
-
+#include <xcb/xcb.h>
 #ifdef USE_XKB_COMMON
 #include <X11/Xlib-xcb.h>
 #include <xkbcommon/xkbcommon.h>
@@ -27,6 +27,13 @@
 // Helper display used by input helper, properties and post event.
 extern Display *helper_disp;
 
+extern xcb_connection_t * g_connection;
+
+
+extern int g_win_h;
+extern int g_win_w;
+extern int g_win_d;
+extern xcb_pixmap_t g_win_pixmap;
 /* Converts a X11 key symbol to a single Unicode character.  No direct X11
  * functionality exists to provide this information.
  */

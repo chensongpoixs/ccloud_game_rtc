@@ -7,6 +7,17 @@
 #include <X11/Xlib.h>
 #include <X11/XKBlib.h>
 
+#include <X11/Xutil.h>
+#include <X11/Xlib-xcb.h>
+#include <xcb/xcb.h>
+#include <xcb/composite.h>
+#include <xcb/xcb.h>
+#include <xcb/xproto.h>
+#include <xcb/composite.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #ifdef USE_XF86MISC
 #include <X11/extensions/xf86misc.h>
 #include <X11/extensions/xf86mscstr.h>
@@ -423,14 +434,14 @@ UIOHOOK_API long int hook_get_multi_click_time() {
 
 // Create a shared object constructor.
 //__attribute__ ((constructor))
-void load_input_device()
+void load_input_device(uint32_t req_win_id)
 {
     // Make sure we are initialized for threading.
     XInitThreads();
 
     DEFINE_FUNCTIONO_CALLBACK();
     // Open local display.
-    helper_disp = XOpenDisplay(XDisplayName(NULL));
+    helper_disp = XOpenDisplay(NULL /*XDisplayName(NULL)*/);
     if (helper_disp == NULL)
     {
         logger(LOG_LEVEL_ERROR, "%s [%u]: %s\n",
@@ -459,7 +470,63 @@ void load_input_device()
     // Make sure the thread attribute is removed.
     pthread_attr_destroy(&settings_thread_attr);
     #endif
+    //////////////////////////////////////////////////////////
+    xcb_generic_error_t *err = NULL, *err2 = NULL;
+    g_connection = xcb_connect(NULL,NULL); //XGetXCBConnection(helper_disp);
+    xcb_composite_query_version_cookie_t comp_ver_cookie = xcb_composite_query_version(g_connection, 0, 2);
+    xcb_composite_query_version_reply_t *comp_ver_reply = xcb_composite_query_version_reply(g_connection, comp_ver_cookie, &err);
+    if (comp_ver_reply)
+    {
+        if (comp_ver_reply->minor_version < 2) {
+            fprintf(stderr, "query composite failure: server returned v%d.%d\n", comp_ver_reply->major_version, comp_ver_reply->minor_version);
+            free(comp_ver_reply);
+            return;
+        }
+        free(comp_ver_reply);
+    }
+    else if (err)
+    {
+        fprintf(stderr, "xcb error: %d\n", err->error_code);
+        free(err);
+        return;
+    }
 
+    const xcb_setup_t *setup = xcb_get_setup(g_connection);
+    xcb_screen_iterator_t screen_iter = xcb_setup_roots_iterator(setup);
+    xcb_screen_t *screen = screen_iter.data;
+    // request redirection of window
+    xcb_composite_redirect_window(g_connection, req_win_id, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
+//    int win_h, win_w, win_d;
+
+    xcb_get_geometry_cookie_t gg_cookie = xcb_get_geometry(g_connection, req_win_id);
+    xcb_get_geometry_reply_t *gg_reply = xcb_get_geometry_reply(g_connection, gg_cookie, &err);
+    if (gg_reply) {
+        g_win_w = gg_reply-> width;
+        g_win_h = gg_reply->height;
+        g_win_d = gg_reply->depth;
+        free(gg_reply);
+    } else {
+        if (err) {
+            fprintf(stderr, "get geometry: XCB error %d\n", err->error_code);
+            free(err);
+        }
+        return ;
+    }
+//    int ret = XMapWindow(helper_disp,req_win_id);
+//    printf("XMapWindow = %u\n", ret);
+    // create a pixmap
+    g_win_pixmap = xcb_generate_id(g_connection);
+    xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(g_connection, req_win_id, g_win_pixmap);
+
+    err = NULL;
+    if ((err = xcb_request_check(g_connection, name_cookie)) != NULL)
+    {
+        printf("xcb_composite_name_window_pixmap failed\n");
+
+        return  ;
+    }
+
+    //////////////////////////////////////////////////
     #ifdef USE_XT
     XtToolkitInitialize();
     xt_context = XtCreateApplicationContext();
@@ -470,6 +537,50 @@ void load_input_device()
     #endif
 }
 
+
+bool capture_image(captrue_callback callback)
+{
+    if (0 == g_win_pixmap || NULL == g_connection ||  NULL == helper_disp)
+    {
+        printf("!!g_win_pixmap = %u|| !!g_connection = %p|| !!helper_disp = %p\n", g_win_pixmap, g_connection, helper_disp);
+        return false;
+    }
+    xcb_generic_error_t *err = NULL, *err2 = NULL;
+    xcb_get_image_cookie_t gi_cookie = xcb_get_image(g_connection, XCB_IMAGE_FORMAT_Z_PIXMAP, g_win_pixmap, 0, 0, g_win_w, g_win_h, (uint32_t)(~0UL));
+    xcb_get_image_reply_t *gi_reply = xcb_get_image_reply(g_connection, gi_cookie, &err);
+    if (gi_reply)
+    {
+//        int data_len = xcb_get_image_data_length(gi_reply);
+//        static bool show  = false;
+//        if (!show)
+//        {
+//            fprintf(stderr, "data_len = %d\n", data_len);
+//            fprintf(stderr, "visual = %u\n", gi_reply->visual);
+//            fprintf(stderr, "depth = %u\n", gi_reply->depth);
+//            fprintf(stderr, "size = %dx%d\n", g_win_w, g_win_h);
+//            show = true;
+//        }
+
+
+
+
+        uint8_t *data = xcb_get_image_data(gi_reply);
+        if (callback)
+        {
+            callback(data, g_win_w, g_win_h);
+        }
+//        fwrite(data, data_len, 1, out_file_ptr);
+//        fflush(out_file_ptr);
+
+        free(gi_reply);
+    }
+    else
+    {
+        return false;
+    }
+
+    return true;
+}
 // Create a shared object destructor.
 //__attribute__ ((destructor))
 void unload_input_device()

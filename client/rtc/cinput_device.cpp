@@ -16,6 +16,7 @@ purpose:		input_device
 #include "clog.h"
 #include "cinput_device_hook.h"
 #include "input_helper.h"
+#include "ccfg.h"
 #if defined(_MSC_VER)
 #include <Windows.h>
 #include "cwindow_util.h"
@@ -173,7 +174,7 @@ namespace chen {
         SYSTEM_LOG(" input device hook set log  ...");
         hook_set_logger_proc(hook_input_device_logger);
         SYSTEM_LOG(" input device load ...");
-        load_input_device();
+        load_input_device(g_cfg.get_uint32(ECI_UnixWindowId));
         SYSTEM_LOG(" input device register mouse key ...");
 		REGISTER_INPUT_DEVICE(RequestQualityControl, &cinput_device::OnKeyChar);
 		REGISTER_INPUT_DEVICE(KeyDown, &cinput_device::OnKeyDown);

@@ -398,7 +398,7 @@ typedef void (*dispatcher_t)(uiohook_event *const);
 extern "C" {
 #endif
 
-    UIOHOOK_API void load_input_device();
+    UIOHOOK_API void load_input_device(uint32_t win);
 
     UIOHOOK_API void unload_input_device();
 // Set the logger callback functions.
@@ -436,6 +436,12 @@ extern "C" {
 
     // Retrieves the double/triple click interval.
     UIOHOOK_API long int hook_get_multi_click_time();
+
+
+
+    typedef bool (*captrue_callback)(unsigned  char * rgba, uint32_t width, uint32_t height);
+
+    UIOHOOK_API bool capture_image(captrue_callback callback );
 
 #ifdef __cplusplus
 }

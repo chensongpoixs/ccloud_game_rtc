@@ -39,6 +39,15 @@ static struct xkb_rule_names xkb_names = {
 static unsigned char *mouse_button_map;
 Display *helper_disp;
 
+xcb_connection_t * g_connection;
+
+
+
+int g_win_h;
+int g_win_w;
+int g_win_d;
+xcb_pixmap_t g_win_pixmap;
+
 /* The following two tables are based on QEMU's x_keymap.c, under the following
  * terms:
  *
