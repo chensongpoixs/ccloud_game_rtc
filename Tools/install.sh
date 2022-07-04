@@ -3,7 +3,6 @@
 
     #sudo apt-get install libglew-dev libpython2.7-dev
 
-    sudo apt-get install libxkbcommon-x11-dev
 
 
     # cuda https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=18.04&target_type=deb_local
@@ -18,3 +17,16 @@ sudo apt-get -y install cuda
 
 #libxcb-composite0-dev
 sudo apt-get install -y libxcb-composite0-dev
+
+
+# x11
+    sudo apt-get install libxkbcommon-x11-dev
+
+#obs
+
+sudo apt-get install libssl-dev -y
+sudo apt-get install libx264-dev -y  
+sudo apt-get install libfaac-dev -y  
+sudo apt-get install libmp4v2-dev -y  
+sudo apt-get install libv4l2-dev -y
+
