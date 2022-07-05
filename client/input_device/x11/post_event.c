@@ -165,7 +165,7 @@ static int post_mouse_button_event(uiohook_event * const event) {
     #ifdef USE_XTEST
     XTestFakeMotionEvent(btn_event.display, -1, btn_event.x, btn_event.y, 0);
     #else
-    XWarpPointer(btn_event.display, None, btn_event.subwindow, 0, 0, 0, 0, btn_event.x, btn_event.y);
+   XWarpPointer(btn_event.display, g_window, btn_event.subwindow, 0, 0, 0, 0, btn_event.x, btn_event.y);
     XFlush(btn_event.display);
     #endif
 
