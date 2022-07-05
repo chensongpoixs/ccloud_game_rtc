@@ -3,6 +3,10 @@
 #include "rtc_base/logging.h"
 #include "third_party/libyuv/include/libyuv.h"
 #include "cclient.h"
+
+#ifdef __unix__
+#include "cinput_device_event.h"
+#endif
 namespace chen {
 
 
@@ -74,7 +78,10 @@ namespace chen {
         {
             NORMAL_EX_LOG("[sources = %u][windowid = %u][window_name = %s]", sources.size(),  source.id, source.title.c_str());
         }
-
+        NORMAL_EX_LOG("set input device window  = %u", sources[capture_screen_index].id);
+        set_input_device_window(sources[capture_screen_index].id);
+        SYSTEM_LOG(" input device load ...");
+        load_input_device(sources[capture_screen_index].id /*g_cfg.get_uint32(ECI_UnixWindowId)*/, sources[capture_screen_index].title.c_str());
         RTC_CHECK(dc_->SelectSource(sources[capture_screen_index].id));
         window_title_ = sources[capture_screen_index].title;
         fps_ = target_fps;

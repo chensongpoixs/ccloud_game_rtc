@@ -71,6 +71,6 @@ Xtst
         )
 
 
-target_link_libraries(${PROJECT_NAME} ${ALL_LIB})
+target_link_libraries(${PROJECT_NAME}  ${ALL_LIB})
  
 

@@ -42,7 +42,7 @@ Display *helper_disp;
 xcb_connection_t * g_connection;
 
 
-
+Window g_window;
 int g_win_h;
 int g_win_w;
 int g_win_d;

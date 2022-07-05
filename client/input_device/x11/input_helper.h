@@ -29,7 +29,7 @@ extern Display *helper_disp;
 
 extern xcb_connection_t * g_connection;
 
-
+extern  Window  g_window;
 extern int g_win_h;
 extern int g_win_w;
 extern int g_win_d;
@@ -95,5 +95,6 @@ extern xcb_pixmap_t g_win_pixmap;
  * is changed.
  */
  void unload_input_helper();
+
 
 #endif

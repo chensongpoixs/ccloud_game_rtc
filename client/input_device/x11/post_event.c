@@ -24,7 +24,7 @@ static int post_key_event(uiohook_event * const event) {
                 __FUNCTION__, __LINE__, event->data.keyboard.keycode);
         return UIOHOOK_FAILURE;
     }
-    printf("keycode = %u\n", keycode);
+   // printf("keycode = %u\n", keycode);
     #ifdef USE_XTEST
     Bool is_pressed;
     #else
@@ -37,8 +37,8 @@ static int post_key_event(uiohook_event * const event) {
         .send_event = False,
         .display = helper_disp,
 
-        .root = XDefaultRootWindow(helper_disp),
-        .window = None,
+        .root = g_window /*XDefaultRootWindow(helper_disp)*/,
+        .window =  None/*None*/,
         .subwindow = None,
 
         .x_root = 0,
@@ -145,9 +145,9 @@ static int post_mouse_button_event(uiohook_event * const event) {
         .send_event = False,
         .display = helper_disp,
 
-        .window = None,                                   /* “event” window it is reported relative to */
+        .window = None/*None*/,                                   /* “event” window it is reported relative to */
         .root = None,                                     /* root window that the event occurred on */
-        .subwindow = XDefaultRootWindow(helper_disp),     /* child window */
+        .subwindow = g_window /*XDefaultRootWindow(helper_disp)*/,     /* child window */
 
         .time = CurrentTime,
 
@@ -173,6 +173,7 @@ static int post_mouse_button_event(uiohook_event * const event) {
     // FIXME This is still not working correctly, clicking on other windows does not yield focus.
     while (btn_event.subwindow != None)
     {
+        logger(LOG_LEVEL_INFO, "[subwindow = %u]", btn_event.subwindow);
         btn_event.window = btn_event.subwindow;
         XQueryPointer (
             btn_event.display,
@@ -185,6 +186,7 @@ static int post_mouse_button_event(uiohook_event * const event) {
             &btn_event.y,
             &btn_event.state
         );
+        logger(LOG_LEVEL_INFO, "[btn_event.window = %u][btn_event.subwindow = %u]", btn_event.window, btn_event.subwindow);
     }
     #endif
 
@@ -270,9 +272,9 @@ static int post_mouse_wheel_event(uiohook_event * const event) {
         .send_event = False,
         .display = helper_disp,
 
-        .window = None,                                   /* “event” window it is reported relative to */
+        .window = None/*None*/,                                   /* “event” window it is reported relative to */
         .root = None,                                     /* root window that the event occurred on */
-        .subwindow = XDefaultRootWindow(helper_disp),     /* child window */
+        .subwindow = g_window   /*XDefaultRootWindow(helper_disp)*/,     /* child window */
 
         .time = CurrentTime,
 
@@ -340,8 +342,8 @@ static void post_mouse_motion_event(uiohook_event * const event) {
         .send_event = False,
         .display = helper_disp,
 
-        .window = None,                                   /* “event” window it is reported relative to */
-        .root = XDefaultRootWindow(helper_disp),      /* root window that the event occurred on */
+        .window = None/*None*/,                                   /* “event” window it is reported relative to */
+        .root = g_window  /*XDefaultRootWindow(helper_disp)*/,      /* root window that the event occurred on */
         .subwindow = None,                                /* child window */
 
         .time = CurrentTime,
@@ -359,7 +361,7 @@ static void post_mouse_motion_event(uiohook_event * const event) {
     };
 
     int revert;
-    XGetInputFocus(helper_disp, &(mov_event.window), &revert);
+   // XGetInputFocus(helper_disp, &(mov_event.window), &revert);
 
     XSendEvent(helper_disp, mov_event.window, False, mov_event.state, (XEvent *) &mov_event);
     #endif
@@ -367,12 +369,13 @@ static void post_mouse_motion_event(uiohook_event * const event) {
 
 // TODO This should return a status code, UIOHOOK_SUCCESS or otherwise.
 UIOHOOK_API void hook_post_event(uiohook_event * const event) {
-    if (helper_disp == NULL) {
+    if (helper_disp == NULL)
+    {
         logger(LOG_LEVEL_ERROR, "%s [%u]: XDisplay helper_disp is unavailable!\n",
             __FUNCTION__, __LINE__);
         return; // UIOHOOK_ERROR_X_OPEN_DISPLAY
     }
-    printf("[helper_disp = %p]\n", helper_disp);
+  //  printf("[helper_disp = %p]\n", helper_disp);
     XLockDisplay(helper_disp);
 
     switch (event->type) {

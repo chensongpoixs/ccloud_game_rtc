@@ -434,18 +434,17 @@ UIOHOOK_API long int hook_get_multi_click_time() {
 
 // Create a shared object constructor.
 //__attribute__ ((constructor))
-void load_input_device(uint32_t req_win_id)
+void load_input_device(uint32_t req_win_id, const char * window_name)
 {
     // Make sure we are initialized for threading.
     XInitThreads();
 
     DEFINE_FUNCTIONO_CALLBACK();
     // Open local display.
-    helper_disp = XOpenDisplay(NULL /*XDisplayName(NULL)*/);
+    helper_disp = XOpenDisplay(NULL /*window_name*/ /*XDisplayName(NULL)*/);
     if (helper_disp == NULL)
     {
-        logger(LOG_LEVEL_ERROR, "%s [%u]: %s\n",
-                __FUNCTION__, __LINE__, "XOpenDisplay failure!");
+        logger(LOG_LEVEL_ERROR, "%s [%u]: window_name = %s,  %s\n", __FUNCTION__, __LINE__, window_name, "XOpenDisplay failure!");
     }
     else
     {
@@ -535,6 +534,8 @@ void load_input_device(uint32_t req_win_id)
     char ** argv = { NULL };
     xt_disp = XtOpenDisplay(xt_context, NULL, "input_device_hook", "libinput_device_hook", NULL, 0, &argc, argv);
     #endif
+
+
 }
 
 
@@ -601,4 +602,12 @@ void unload_input_device()
         XCloseDisplay(helper_disp);
         helper_disp = NULL;
     }
+}
+
+
+
+void set_input_device_window(uint32_t window)
+{
+
+    g_window = window;
 }

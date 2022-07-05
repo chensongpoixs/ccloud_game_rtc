@@ -129,25 +129,30 @@ namespace chen {
     static bool hook_input_device_logger(unsigned int level, const char *format, ...)
     {
         bool status = false;
+	char buffer[1024 * 3] = {0};
 
         va_list args;
         switch (level) {
             case LOG_LEVEL_INFO:
             {
                 va_start(args, format);
-                status = vfprintf(stdout, format, args) >= 0;
+
+                status =  vsnprintf(buffer, 1024 * 3, format, args) >= 0;
                 va_end(args);
                 break;
             }
 
             case LOG_LEVEL_WARN:
             {
+                va_start(args, format);
+                status =  vsnprintf(buffer, 1024 * 3, format, args) >= 0;
+                va_end(args);
                 break;
             }
             case LOG_LEVEL_ERROR:
             {
                 va_start(args, format);
-                status = vfprintf(stderr, format, args) >= 0;
+                status =  vsnprintf(buffer, 1024 * 3, format, args) >= 0;
                 va_end(args);
                 break;
             }
@@ -157,6 +162,9 @@ namespace chen {
                 break;
             }
         }
+
+        NORMAL_EX_LOG("input device [buffer = %s]", buffer);
+
 
         return true;
     }
@@ -173,8 +181,7 @@ namespace chen {
 	{
         SYSTEM_LOG(" input device hook set log  ...");
         hook_set_logger_proc(hook_input_device_logger);
-        SYSTEM_LOG(" input device load ...");
-        load_input_device(g_cfg.get_uint32(ECI_UnixWindowId));
+
         SYSTEM_LOG(" input device register mouse key ...");
 		REGISTER_INPUT_DEVICE(RequestQualityControl, &cinput_device::OnKeyChar);
 		REGISTER_INPUT_DEVICE(KeyDown, &cinput_device::OnKeyDown);
@@ -593,7 +600,7 @@ namespace chen {
 			// log -> error 
 			return false;
 		}
-#elif defined(__linux__)
+#elif defined(__unix__)
         static uiohook_event event;
         event.type = EVENT_MOUSE_PRESSED;
         event.data.mouse.button = active_type; //MOUSE_BUTTON1;

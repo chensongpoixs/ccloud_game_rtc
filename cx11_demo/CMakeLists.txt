@@ -134,6 +134,17 @@ file(GLOB ALL_WINDOWS_X11
 add_executable(x11_get_window_id ${ALL_WINDOWS_X11})
 target_link_libraries(x11_get_window_id ${ALL_LIB})
 
+
+
+
+
+file(GLOB  xsendevent
+        test_xsendevent.c
+        )
+
+add_executable(test_xsendevent ${xsendevent})
+target_link_libraries(test_xsendevent ${ALL_LIB})
+
 #add_subdirectory(clib)
 #add_subdirectory(common)
 #add_subdirectory(gateway)

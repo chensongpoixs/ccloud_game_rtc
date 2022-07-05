@@ -398,7 +398,7 @@ typedef void (*dispatcher_t)(uiohook_event *const);
 extern "C" {
 #endif
 
-    UIOHOOK_API void load_input_device(uint32_t win);
+    UIOHOOK_API void load_input_device(uint32_t win, const char * window_name);
 
     UIOHOOK_API void unload_input_device();
 // Set the logger callback functions.
@@ -442,6 +442,12 @@ extern "C" {
     typedef bool (*captrue_callback)(unsigned  char * rgba, uint32_t width, uint32_t height);
 
     UIOHOOK_API bool capture_image(captrue_callback callback );
+
+    /**
+     * setting iputdevice
+     * @param window
+     */
+    void set_input_device_window(uint32_t window);
 
 #ifdef __cplusplus
 }
