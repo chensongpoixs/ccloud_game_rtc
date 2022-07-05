@@ -204,11 +204,12 @@ namespace chen {
             WARNING_EX_LOG("desktop_capture_ptr === nullptr !!!");
         }
 
-
+#ifdef __unix__
 		if (g_cfg.get_uint32(ECI_UnixWindowId)>0)
 		{
 			m_osg_work_thread = std::thread(&cclient::_start_capture_thread, this);
 		}
+#endif
 		// mediasoup_ip, mediasoup_port ;
 		// room_name , client_id;
 		//  Reconnect_waittime, 
@@ -1267,11 +1268,14 @@ namespace chen {
 	void cclient::_start_capture_thread()
 	{
 
-//#ifdef __unix__
-
+#ifdef __unix__
+//        int32 width = 1920;
+//        int32 height = 1080;
+//        unsigned  char *rgba_ptr = new unsigned char[width * height * 4];
 		while (!m_stoped)
 		{
 			capture_image( &capture_callback);
+//            capture_callback();
             //NORMAL_EX_LOG("capture image ok ....");
 			 usleep(20);
 		}
@@ -1280,7 +1284,7 @@ namespace chen {
 //#else
 //		// 其他不支持的编译器需要自己实现这个方法
 //#error unexpected c complier (msc/gcc), Need to implement this method for demangle
-//#endif
+#endif
 	}
 	void cclient::_osg_thread()
 	{

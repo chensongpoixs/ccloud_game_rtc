@@ -47,7 +47,8 @@ namespace chen {
          dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(result);
 
 #elif defined(__GNUC__) ||defined(__APPLE__)
-        dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(webrtc::DesktopCaptureOptions::CreateDefault());
+//        dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(webrtc::DesktopCaptureOptions::CreateDefault());
+        dc_ = webrtc::DesktopCapturer::CreateWindowCapturer( webrtc::DesktopCaptureOptions::CreateDefault());
 #else
 // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -62,11 +63,16 @@ namespace chen {
 
         webrtc::DesktopCapturer::SourceList sources;
         dc_->GetSourceList(&sources);
-        if (capture_screen_index > sources.size()) {
+        if (capture_screen_index > sources.size())
+        {
             RTC_LOG(LS_WARNING) << "The total sources of screen is " << sources.size()
                 << ", but require source of index at "
                 << capture_screen_index;
             return false;
+        }
+        for (const webrtc::DesktopCapturer::Source & source : sources)
+        {
+            NORMAL_EX_LOG("[sources = %u][windowid = %u][window_name = %s]", sources.size(),  source.id, source.title.c_str());
         }
 
         RTC_CHECK(dc_->SelectSource(sources[capture_screen_index].id));
