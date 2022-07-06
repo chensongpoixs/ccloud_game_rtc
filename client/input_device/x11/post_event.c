@@ -51,7 +51,11 @@ static int post_key_event(uiohook_event * const event) {
     };
 
     int revert;
-    XGetInputFocus(helper_disp, &(key_event.window), &revert);
+    int ret = XGetInputFocus(helper_disp, &(key_event.window), &revert);
+    if (0 != ret)
+    {
+        logger(LOG_LEVEL_INFO, "[%s][%s][%d][XGetInputFocus ret = %u]", __FILE__, __FUNCTION__, __LINE__, ret);
+    }
     #endif
 
     if (event->type == EVENT_KEY_PRESSED) {
@@ -165,7 +169,8 @@ static int post_mouse_button_event(uiohook_event * const event) {
     #ifdef USE_XTEST
     XTestFakeMotionEvent(btn_event.display, -1, btn_event.x, btn_event.y, 0);
     #else
-   XWarpPointer(btn_event.display, g_window, btn_event.subwindow, 0, 0, 0, 0, btn_event.x, btn_event.y);
+    XWarpPointer(btn_event.display, g_window, btn_event.subwindow, 0, 0, 0, 0, btn_event.x, btn_event.y);
+//    XSetInputFocus(btn_event.display, g_window, RevertToNone, CurrentTime);
     XFlush(btn_event.display);
     #endif
 
