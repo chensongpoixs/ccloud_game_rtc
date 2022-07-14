@@ -13,10 +13,13 @@ purpose:		input_device
 #include "rtc_base/logging.h"
 #include "clog.h"
 #if defined(_MSC_VER)
-
+// TODO@chensong 20220711  UE 鼠标控制权问题
+#define _WIN32_WINNT 0x0400 
 #include <Windows.h>
 #include <WinUser.h>
 #include <UserEnv.h>
+#include <mutex>
+#include "detours.h"
 //void CallMessage(HWND hwnd, int nMsgId, int wParam, int lParam)
 //
 //{
@@ -70,6 +73,12 @@ namespace chen {
 //
 
 #define MESSAGE(g_wnd, message_id, param1, param2)  PostMessage(g_wnd, message_id, param1, param2);
+
+	//if (GetCapture() != g_wnd)
+#define MOUSE_INPUT(g_wnd)		 { \
+								SetForegroundWindow(g_wnd);  \
+								SetCapture(g_wnd);           \
+								SetFocus(g_wnd); }
 
 #define CliENTTOSCREENPOINT(hwnd, xx, yy) POINT CursorPoint; \
 	CursorPoint.x = xx; \
@@ -141,10 +150,214 @@ namespace chen {
 		,  m_int_point(){}
 	cinput_device::~cinput_device() {}
 
- 
+#if defined(_MSC_VER)
+	static void registerinputdevice(HWND hwnd)
+	{
+		static bool load = false;
+		if (load)
+		{
+			return;
+		}
+		load = true;
+		DWORD flags = RIDEV_REMOVE;
+
+
+		// NOTE: Currently has to be created every time due to conflicts with Direct8 Input used by the wx unrealed
+		RAWINPUTDEVICE RawInputDevice;
+
+		//The HID standard for mouse
+		const uint16 StandardMouse = 0x02;
+
+		RawInputDevice.usUsagePage = 0x01;
+		RawInputDevice.usUsage = StandardMouse;
+		RawInputDevice.dwFlags = flags;
+
+		// Process input for just the window that requested it.  NOTE: If we pass NULL here events are routed to the window with keyboard focus
+		// which is not always known at the HWND level with Slate
+		RawInputDevice.hwndTarget = hwnd;
+
+		// Register the raw input device
+		::RegisterRawInputDevices(&RawInputDevice, 1, sizeof(RAWINPUTDEVICE));
+	}
+
+
+#endif //#if defined(_MSC_VER)
 	//static bool g_move_init = false;
+	static HMODULE user32dll = NULL;
+	typedef UINT(WINAPI* PFN_GetRawInputData)(HRAWINPUT, UINT, LPVOID, PUINT, UINT);
+	PFN_GetRawInputData RealGetRawInputData = NULL;
+
+
+	static  std::map<uint64, RAWINPUT> g_hrawinput;
+	static const uint32 RAW_INPUT_SIZE = 300;
+	static uint32     g_read_index = 0;
+	static uint32	  g_write_index = 0;
+	static  std::mutex   g_mutex;
+	typedef std::lock_guard<std::mutex>		clock_guard;
+	 
+	/*struct craw_input
+	{
+		craw_input()
+		{
+			g_hrawinput = static_cast<RAWINPUT * *>(::malloc(sizeof( RAWINPUT*) * RAW_INPUT_SIZE));
+			g_read_index = 0;
+			g_write_index = 0;
+
+			for (int32 i = 0; i < RAW_INPUT_SIZE; ++i)
+			{
+				g_hrawinput[i] = static_cast<RAWINPUT*>(::malloc(sizeof(RAWINPUT)  ));
+				g_hrawinput[i]->header.dwSize = 0;
+			}
+		}
+	};
+
+	static const craw_input input_init;*/
+
+
+	static UINT WINAPI hook_get_raw_input_data(_In_ HRAWINPUT hRawInput, _In_ UINT uiCommand, _Out_writes_bytes_to_opt_(*pcbSize, return) LPVOID pData, _Inout_ PUINT pcbSize, _In_ UINT cbSizeHeader)
+	{ 
+		UINT ret = RealGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+		if (false)
+		{
+			RAWINPUT* temp_input = (RAWINPUT*)pData;
+			DEBUG_LOG("[g_hrawinput.size() = %u][g_read_index = %u][uiCommand = %u][ret = %u][cbSizeHeader = %u]",  g_hrawinput.size(), g_read_index, uiCommand, ret, cbSizeHeader);
+			DEBUG_LOG("[temp_input->header.dwType = %u]", temp_input->header.dwType);
+			DEBUG_LOG("[temp_input->data.mouse.lLastX = %u][temp_input->data.mouse.lLastY = %u]", temp_input->data.mouse.lLastX, temp_input->data.mouse.lLastY);
+		}
+		else
+		{
+				}
+		 
+		{ 
+			clock_guard lock(g_mutex);
+			if (  uiCommand == RID_INPUT /*&& (ret != 48 && ret != 0) && g_hrawinput.size() > g_read_index*/ )
+			{ 
+				std::map<uint64, RAWINPUT>::iterator iter = g_hrawinput.find((uint64)hRawInput);
+				if (iter != g_hrawinput.end())
+				{
+					DEBUG_LOG("[g_hrawinput.size() = %u][hRawInput = %u][uiCommand = %u][ret = %u][cbSizeHeader = %u]", g_hrawinput.size(), hRawInput, uiCommand, ret, cbSizeHeader);
+
+					//DEBUG_LOG("find [hRawInput = %u]", hRawInput);
+					ret = iter->second.header.dwSize;
+					if (pcbSize)
+					{
+						*pcbSize = ret;
+					}
+					if (pData)
+					{
+						memcpy(pData, &iter->second, ret);
+					}
+					
+				}
+				else
+				{
+					DEBUG_LOG("not find hRawInput = %u", hRawInput);
+				}
+				//const RAWINPUT & raw_input = g_hrawinput[g_read_index];
+				//////g_hrawinput.capacity() == RAW_INPUT_SIZE && g_hrawinput[g_read_index].header.dwType == RIM_TYPEMOUSE &&
+				////if (raw_input.header.dwSize > 0 && raw_input.header.dwType == RIM_TYPEMOUSE)
+				//{
+				//	DEBUG_LOG("[%s][%d][g_hrawinput.size() = %u][ret = %u][cbSizeHeader = %u][raw_input.header.dwSize = %u]", __FUNCTION__, __LINE__, g_hrawinput.size(), ret, cbSizeHeader, raw_input.header.dwSize);
+				//	ret = raw_input.header.dwSize;
+				//	if (pcbSize)
+				//	{
+				//		*pcbSize = ret;
+				//	}
+				//	if (pData)
+				//	{
+				//		RAWINPUT* temp_input = (RAWINPUT*)pData;
+				//		temp_input->header.dwType = raw_input.header.dwType;
+				//		temp_input->header.dwSize = ret;
+				//		temp_input->data.mouse.lLastX = raw_input.data.mouse.lLastX;
+				//	
+				//		//memcpy(pData, &raw_input, ret);
+				//		//g_hrawinput.pop_front();
+				//		++g_read_index;
+				//	}
+				//}
+			}
+		}
+		
+		if (false)
+		{
+			RAWINPUT* temp_input = (RAWINPUT*)pData;
+			DEBUG_LOG("[g_hrawinput.size() = %u][g_read_index = %u][uiCommand = %u][ret = %u][cbSizeHeader = %u]", g_hrawinput.size(), g_read_index, uiCommand, ret, cbSizeHeader);
+			DEBUG_LOG("[temp_input->header.dwType = %u]", temp_input->header.dwType);
+			DEBUG_LOG("[temp_input->data.mouse.lLastX = %u][temp_input->data.mouse.lLastY = %u]", temp_input->data.mouse.lLastX, temp_input->data.mouse.lLastY);
+		}
+		return ret;
+	}
+	static inline HMODULE get_system_module(const char* system_path, const char* module)
+	{
+		char base_path[MAX_PATH];
+
+		strcpy(base_path, system_path);
+		strcat(base_path, "\\");
+		strcat(base_path, module);
+		return GetModuleHandleA(base_path);
+	}
 	bool cinput_device::init()
 	{
+		//g_hrawinput.resize(RAW_INPUT_SIZE);
+		 // win
+		char system_path[MAX_PATH] = {0};
+
+		UINT ret = GetSystemDirectoryA(system_path, MAX_PATH);
+		if (!ret)
+		{
+			ERROR_EX_LOG("Failed to get windows system path: %lu\n", GetLastError());
+			//return false;
+		}
+		SYSTEM_LOG("[system_path = %s] ok ", system_path);
+		// hook mouse move  GetRawInputData
+		user32dll = get_system_module(system_path, "user32.dll");
+		if (!user32dll)
+		{
+			WARNING_EX_LOG("hook user32.dll failed !!!");
+			//return false;
+		}
+		SYSTEM_LOG("user32.dll hook ok !!!");
+		void* get_raw_input_data_proc = GetProcAddress(user32dll, "GetRawInputData");
+		if (!get_raw_input_data_proc)
+		{
+			ERROR_EX_LOG("seatch user32.dll table not find GetRawInputData !!!");
+		}
+		else
+		{
+			SYSTEM_LOG("Hook   input device  begin ... ");
+			DetourTransactionBegin();
+
+			
+			if (get_raw_input_data_proc)
+			{
+				RealGetRawInputData = (PFN_GetRawInputData)get_raw_input_data_proc;
+				DetourAttach((PVOID*)&RealGetRawInputData,
+					hook_get_raw_input_data);
+			}
+
+			SYSTEM_LOG("Hook  input end  ... ");
+			const LONG error = DetourTransactionCommit();
+			const bool success = error == NO_ERROR;
+			if (success)
+			{
+				NORMAL_EX_LOG("Hooked input device");
+				if (get_raw_input_data_proc)
+				{
+					NORMAL_EX_LOG("Hooked input device");
+				}
+				 
+				NORMAL_EX_LOG("Hooked input device ");
+			}
+			else
+			{
+				RealGetRawInputData = NULL;
+				 
+				ERROR_EX_LOG("Failed to attach Detours hook: %ld", error);
+			}
+		}
+
+		
+
 		REGISTER_INPUT_DEVICE(RequestQualityControl, &cinput_device::OnKeyChar);
 		REGISTER_INPUT_DEVICE(KeyDown, &cinput_device::OnKeyDown);
 		REGISTER_INPUT_DEVICE(KeyUp, &cinput_device::OnKeyUp);
@@ -467,6 +680,32 @@ namespace chen {
 			WARNING_EX_LOG("mouse enter insert [mouse_id = %s] failed !!!", m_mouse_id.c_str());
 			return false;
 		}*/
+		NORMAL_EX_LOG("OnMouseEnter===>");
+ #if defined(_MSC_VER)
+		 
+		//WINDOW_MAIN();
+		//
+
+		// 
+		//if (mwin)
+		//{
+		//	TRACKMOUSEEVENT tme;
+		//	tme.cbSize = sizeof(tme);	//结构体缓冲区大小
+		//	tme.dwFlags = TME_HOVER;	//注册WM_MOUSEHOVER消息
+		//	tme.dwHoverTime = 1; //WM_MOUSEHOVER消息触发间隔时间
+		//	tme.hwndTrack = mwin; //当前窗口句柄
+		//	::TrackMouseEvent(&tme); //注册发送消息
+		//	//MESSAGE(mwin, WM_MOUSEHOVER, 0, 0);
+		//}
+		//else
+		//{
+		//	// log -> error 
+		//	return false;
+		//}
+ 
+#endif // _MSC_VER
+
+
 		return true;
 		 
 	}
@@ -487,7 +726,28 @@ namespace chen {
 		m_all_consumer.erase(iter);*/
 
 		//std::map<uint32, cmouse_info>& cmouse_info = iter->second;
-		 
+		NORMAL_EX_LOG("OnMouseLeave===>");
+#if defined(_MSC_VER)
+
+		//WINDOW_MAIN();
+		// 
+		//if (mwin)
+		//{
+		//	TRACKMOUSEEVENT tme;
+		//	tme.cbSize = sizeof(tme);	//结构体缓冲区大小
+		//	tme.dwFlags = TME_LEAVE;	//注册WM_MOUSEHOVER消息
+		//	tme.dwHoverTime = 1; //WM_MOUSEHOVER消息触发间隔时间
+		//	tme.hwndTrack = mwin; //当前窗口句柄
+		//	::TrackMouseEvent(&tme); //注册发送消息
+		//	//MESSAGE(mwin, WM_MOUSEHOVER, 0, 0);
+		//}
+		//else
+		//{
+		//	// log -> error 
+		//	return false;
+		//}
+
+#endif // _MSC_VER
 		return true; 
 	}
  
@@ -527,6 +787,10 @@ namespace chen {
 		//g_move_init = true;
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
+		//MOUSE_INPUT(mwin);
+		/*registerinputdevice(mwin);
+		SetForegroundWindow(mwin);
+		SetActiveWindow(mwin);*/
 		g_main_mouse_down_up = mwin;
 		SET_POINT();
 		//WINDOW_CHILD();
@@ -582,6 +846,10 @@ namespace chen {
 		//g_move_init = false;
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
+		//MOUSE_INPUT(mwin);
+		/*registerinputdevice(mwin);
+		SetForegroundWindow(mwin);
+		SetActiveWindow(mwin);*/
 		/*SET_POINT();
 		WINDOW_CHILD();*/
 		//WINDOW_BNTTON_UP(vec);
@@ -633,7 +901,8 @@ namespace chen {
 		
 		FEvent MouseMoveEvent(EventType::MOUSE_MOVE);
 		MouseMoveEvent.SetMouseDelta(PosX, PosY, DeltaX, DeltaY);
-		
+		int32_t width = g_width;
+		int32_t height = g_height;
 		g_width = PosX;
 		g_height = PosY;
 
@@ -642,12 +911,23 @@ namespace chen {
 		PosY = g_height;*/
 		
 		#if defined(_MSC_VER)
+
 		WINDOW_MAIN();
+		//MOUSE_INPUT(mwin);
+		/*registerinputdevice(mwin);
+		SetForegroundWindow(mwin);
+		SetActiveWindow(mwin);*/
 		//WINDOW_BNTTON_UP(vec);
 		
 		if (mwin)
 		{
-			
+			//TRACKMOUSEEVENT tme;
+			//tme.cbSize = sizeof(tme);	//结构体缓冲区大小
+			//tme.dwFlags = TME_HOVER;	//注册WM_MOUSEHOVER消息
+			//tme.dwHoverTime = 1; //WM_MOUSEHOVER消息触发间隔时间
+			//tme.hwndTrack = mwin; //当前窗口句柄
+			//::TrackMouseEvent(&tme); //注册发送消息
+
 			POINT CursorPoint;
 			CursorPoint.x = PosX;
 			CursorPoint.y = PosY;
@@ -687,29 +967,93 @@ namespace chen {
 			//
 			//GetDesktopWindow()->GetActiveWindow() 
 				//GetForegroundWindow();
-			INPUT input;
-			input.type = INPUT_MOUSE;
-			static int x = 0;
-			static int y = 0;
-			int xx = CursorPoint.x ;
-			int yy = CursorPoint.y ;
-			input.mi.dx = xx - x;
-			input.mi.dy = yy - y;
-			x = xx;
-			y = yy;
-			input.mi.mouseData = 0;
-			input.mi.dwFlags = /*MOUSEEVENTF_ABSOLUTE |*/ MOUSEEVENTF_MOVE;   //MOUSEEVENTF_ABSOLUTE 代表决对位置  MOUSEEVENTF_MOVE代表移动事件
-			input.mi.time = 0;
-			input.mi.dwExtraInfo = 0;
-			SendInput(1, &input, sizeof(INPUT));
+			//SetForegroundWindow(mwin);
+			/*INPUT input;
+			input.type = INPUT_HARDWARE;
+			input.hi.uMsg = WM_INPUT;
+			input.hi.wParamL = MAKEWPARAM(DeltaX, DeltaY);
+			input.hi.wParamH = MAKELPARAM(CursorPoint.x, CursorPoint.y);*/
+			//static int x = 0;
+			//static int y = 0;
+			//int xx = CursorPoint.x ;
+			//int yy = CursorPoint.y ;
+			//input.mi.dx = xx - x;
+			//input.mi.dy = yy - y;
+			//x = xx;
+			//y = yy;
+			//input.mi.mouseData = 0;
+			//input.mi.dwFlags = /*MOUSEEVENTF_ABSOLUTE |*/ MOUSEEVENTF_MOVE;   //MOUSEEVENTF_ABSOLUTE 代表决对位置  MOUSEEVENTF_MOVE代表移动事件
+			//input.mi.time = 0;
+			//input.mi.dwExtraInfo = 0;
+			//SendInput(1, &input, sizeof(INPUT));
 
 			//::SetCursorPos(CursorPoint.x, CursorPoint.y);
 		//	MESSAGE(mwin, WM_INPUT/*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY), MAKELPARAM(CursorPoint.x, CursorPoint.y));
-			MESSAGE(mwin, WM_MOUSEMOVE/*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY) , MAKELPARAM(CursorPoint.x, CursorPoint.y ));
-			
+		//try sending 'W' 
+			RAWINPUT raw = { 0 };
+			//char c = 'W';
+			//header 
+			/*raw.header.dwSize = sizeof(raw);
+			raw.header.dwType = RIM_TYPEMOUSE;
+			raw.header.wParam = MAKEWPARAM(DeltaX, DeltaY);*/ //(wParam & 0xff =0 => 0) 
+			//raw.header.hDevice = hDevice;
+			//data 
+			//raw.data.mouse.lLastX = DeltaX;
+			//raw.data.mouse.lLastY = DeltaY;
+			//raw.data.mouse.usFlags
+			//raw.data.keyboard.Reserved = 0;
+			//raw.data.keyboard.Flags = RI_KEY_MAKE;  //Key down 
+			//raw.data.keyboard.MakeCode = static_cast<WORD>(MapVirtualKeyEx(c, MAPVK_VK_TO_VSC, GetKeyboardLayout(0)));
+			//raw.data.keyboard.Message = WM_KEYDOWN;
+			//raw.data.keyboard.VKey = VkKeyScanEx(c, GetKeyboardLayout(0));
+			//raw.data.keyboard.ExtraInformation = 0;   //??? 			//HGLOBAL raw_input_ptr = ::GlobalAlloc(GHND, sizeof(RAWINPUT));
+			// *pRaw = reinterpret_cast<RAWINPUT*>(::GlobalLock(raw_input_ptr));
+			//if (pRaw)
+			{
+				//char c = 'W';
+			//header
+				RAWINPUT pRaw;
+				pRaw.header.dwSize = sizeof(RAWINPUT);
+				pRaw.header.dwType = RIM_TYPEMOUSE;
+				pRaw.header.wParam = 0; //(wParam & 0xff =0 => 0)
+				pRaw.header.hDevice = 0;
 
-			
+				//data
+				pRaw.data.mouse.lLastX = width - g_width;
+				pRaw.data.mouse.lLastY = height - g_height;
+				//pRaw->data.keyboard.Reserved = 0;
+				//pRaw->data.keyboard.Flags = RI_KEY_MAKE;
+				//pRaw->data.keyboard.MakeCode = static_cast<WORD>(MapVirtualKeyEx(c, MAPVK_VK_TO_VSC, GetKeyboardLayout(0)));
+				//pRaw->data.keyboard.Message = WM_KEYDOWN;
+				//pRaw->data.keyboard.VKey = VkKeyScanEx(c, GetKeyboardLayout(0));
+				//pRaw->data.keyboard.ExtraInformation = 0;
+				//memcpy(g_hrawinput[g_write_index % RAW_INPUT_SIZE], &pRaw, sizeof(RAWINPUT));
+				//g_hrawinput[g_write_index % RAW_INPUT_SIZE] = pRaw;
+				
+				 {
+					clock_guard lock(g_mutex);
+					/*if (g_hrawinput.size() > 300)
+					{
+						g_hrawinput.clear();
+					}*/
+					//g_hrawinput.push_back(pRaw);
+					DEBUG_LOG("MAKELPARAM(CursorPoint.x, CursorPoint.y) = %u", MAKELPARAM(CursorPoint.x, CursorPoint.y));
+					g_hrawinput[MAKELPARAM(CursorPoint.x, CursorPoint.y)] = pRaw;
+					//g_write_index++;
+				}
+				//::GlobalUnlock(raw_input_ptr);
 
+				//UINT dataSz{ 0 };
+				//Send the message ///*Raw input handle*/
+				MESSAGE(mwin, WM_INPUT, (WPARAM)RIM_INPUT, MAKELPARAM(CursorPoint.x, CursorPoint.y));  //TODO: Handle to raw input 
+			}
+			
+			MESSAGE(mwin, WM_MOUSEMOVE /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY) , MAKELPARAM(CursorPoint.x, CursorPoint.y ));
+			//MESSAGE(mwin, WM_INPUT /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY), MAKELPARAM(CursorPoint.x, CursorPoint.y));
+
+
+			//WM_MOUSEHOVER
+			//WM_MOUSELEAVE
 			//RAWINPUT raw = { 0 };
 			//char c = 'W';
 			////header
