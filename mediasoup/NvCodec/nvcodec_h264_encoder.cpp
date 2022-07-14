@@ -238,7 +238,7 @@ int32_t NvCodecH264Encoder::Encode(
     // Skip frame?
     if ((*frame_types)[0] == webrtc::VideoFrameType::kEmptyFrame) 
 	{
-		NORMAL_EX_LOG("XXX");
+		//NORMAL_EX_LOG("XXX");
       return WEBRTC_VIDEO_CODEC_OK;
     }
     // Force key frame?
