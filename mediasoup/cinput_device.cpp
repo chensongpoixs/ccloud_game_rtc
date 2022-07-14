@@ -1019,8 +1019,8 @@ namespace chen {
 				pRaw.header.hDevice = 0;
 
 				//data
-				pRaw.data.mouse.lLastX = width - g_width;
-				pRaw.data.mouse.lLastY = height - g_height;
+				pRaw.data.mouse.lLastX = g_width - width ;
+				pRaw.data.mouse.lLastY =    g_height - height;
 				//pRaw->data.keyboard.Reserved = 0;
 				//pRaw->data.keyboard.Flags = RI_KEY_MAKE;
 				//pRaw->data.keyboard.MakeCode = static_cast<WORD>(MapVirtualKeyEx(c, MAPVK_VK_TO_VSC, GetKeyboardLayout(0)));
