@@ -313,18 +313,18 @@ namespace chen {
 		user32dll = get_system_module(system_path, "user32.dll");
 		if (!user32dll)
 		{
-			WARNING_EX_LOG("hook user32.dll failed !!!");
+			WARNING_EX_LOG(" REGISTER mouse  failed !!!");
 			//return false;
 		}
-		SYSTEM_LOG("user32.dll hook ok !!!");
+		SYSTEM_LOG("REGISTER  mouse ok !!!");
 		void* get_raw_input_data_proc = GetProcAddress(user32dll, "GetRawInputData");
 		if (!get_raw_input_data_proc)
 		{
-			ERROR_EX_LOG("seatch user32.dll table not find GetRawInputData !!!");
+			ERROR_EX_LOG("seatch mouse table not find GetRawInputData !!!");
 		}
 		else
 		{
-			SYSTEM_LOG("Hook   input device  begin ... ");
+			SYSTEM_LOG("    input device  begin ... ");
 			DetourTransactionBegin();
 
 			
@@ -335,24 +335,24 @@ namespace chen {
 					hook_get_raw_input_data);
 			}
 
-			SYSTEM_LOG("Hook  input end  ... ");
+			SYSTEM_LOG("   input end  ... ");
 			const LONG error = DetourTransactionCommit();
 			const bool success = error == NO_ERROR;
 			if (success)
 			{
-				NORMAL_EX_LOG("Hooked input device");
+				NORMAL_EX_LOG("  input device");
 				if (get_raw_input_data_proc)
 				{
-					NORMAL_EX_LOG("Hooked input device");
+					NORMAL_EX_LOG("  input device");
 				}
 				 
-				NORMAL_EX_LOG("Hooked input device ");
+				NORMAL_EX_LOG("  input device ");
 			}
 			else
 			{
 				RealGetRawInputData = NULL;
 				 
-				ERROR_EX_LOG("Failed to attach Detours hook: %ld", error);
+				ERROR_EX_LOG("Failed to attach    : %ld", error);
 			}
 		}
 

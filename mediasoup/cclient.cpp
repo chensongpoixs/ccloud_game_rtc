@@ -10,6 +10,11 @@
 #include "crecv_transport.h"
 #include "csend_transport.h"
 #include "cinput_device.h"
+#include <cstdlib>
+#include <cstdio>
+#include <iostream>
+#include <io.h>
+#define _CRT_SECURE_NO_WARNINGS
 namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
@@ -108,7 +113,21 @@ namespace chen {
 			pCStrKey = NULL;
 		}
 	}
-	
+	static void check_file(const char* file_name)
+	{
+
+		if (::_access(file_name, 0) != 0)
+		{
+			FILE* fp = ::fopen(file_name, "wb+");
+			if (!fp)
+			{
+				// return;
+				return;
+			}
+			::fclose(fp);
+			fp = NULL;
+		}
+	}
 	bool cclient::init()
 	{
 		printf("Log init ...\n");
@@ -120,6 +139,7 @@ namespace chen {
 		show_work_dir();
 		SYSTEM_LOG("Log init ...\n");
 		static const   char* config_file = "client.cfg";
+		check_file(config_file);
 		bool init = g_cfg.init(config_file);
 		if (!init)
 		{

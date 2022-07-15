@@ -489,7 +489,7 @@ webrtc::VideoEncoder::EncoderInfo NvCodecH264Encoder::GetEncoderInfo() const {
 
 int32_t NvCodecH264Encoder::InitNvEnc() {
 //#ifdef _WIN32
-//  DXGI_FORMAT dxgi_format = DXGI_FORMAT_NV12;
+ // DXGI_FORMAT dxgi_format = DXGI_FORMAT_NV12;
 //  NV_ENC_BUFFER_FORMAT nvenc_format = NV_ENC_BUFFER_FORMAT_NV12;
 //  if (use_native_) {
 //    dxgi_format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -543,7 +543,7 @@ int32_t NvCodecH264Encoder::InitNvEnc() {
     initialize_params_.maxEncodeHeight = height_;
 
     //encode_config.profileGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
-    encode_config.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
+    encode_config.rcParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;
 	encode_config.rcParams.averageBitRate = chen:: g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;;
     encode_config.rcParams.maxBitRate = chen::g_cfg.get_uint32(ECI_RtcMaxRate) * 1000; 
 

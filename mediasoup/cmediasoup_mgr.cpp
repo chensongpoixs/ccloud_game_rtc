@@ -22,6 +22,7 @@ namespace cmediasoup
 		, const char* roomName, const char* clientName
 		, uint32_t reconnect_waittime)
 	{
+
 		m_mediasoup_ip = mediasoupIp;
 		m_mediasoup_port = port;
 		m_room_name = roomName;

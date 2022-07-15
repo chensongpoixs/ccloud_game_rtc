@@ -22,14 +22,24 @@ namespace cmediasoup
 		cmediasoup_mgr();
 		~cmediasoup_mgr();
 	public:
+		/*
+		* 全局只初始化一次 
+		*/
 		bool init( );
-
+		/*
+		* mediadupIp : ip
+		* mediasoupPort :
+		* roomName : 房间
+		* clientName : 自己名字 
+		* reconnectWaittime : 从新连接需要等待的时间 单位秒
+		*/
 		void startup(const char * mediasoupIp = "127.0.0.1", uint16_t mediasoupPort = 8888, const  char * roomName = "chensong", const char* clientName = "chensong"
 			, uint32_t reconnectWaittime = 5);
 
 		void destroy();
 
 		void   webrtc_video(unsigned char * rgba_ptr, int width, int height);
+
 		void   webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr,  int width, int height);
 		void webrtc_texture(void * texture, int width, int height);
 		void webrtc_pause();
