@@ -4,7 +4,9 @@
 #include "clog.h"
 #include "ccfg.h"
 #include "cwebsocket_mgr.h"
-
+#include <iostream>
+#include <io.h>
+#define _CRT_SECURE_NO_WARNINGS
 #include "cdevice.h"
 #include "pc/video_track_source.h"
 #include "crecv_transport.h"
@@ -110,6 +112,21 @@ namespace chen {
 		}
 	}
 	
+	static void check_file(const char* file_name)
+	{
+
+		if (::_access(file_name, 0) != 0)
+		{
+			FILE* fp = ::fopen(file_name, "wb+");
+			if (!fp)
+			{
+				// return;
+				return;
+			}
+			::fclose(fp);
+			fp = NULL;
+		}
+	}
 	bool cclient::init(uint32 gpu_index)
 	{
 		
@@ -124,6 +141,7 @@ namespace chen {
 		g_gpu_index = gpu_index;
 		SYSTEM_LOG("gpu index = %u", g_gpu_index);
 		static const   char* config_file = "client.cfg";
+		check_file(config_file);
 		bool init = g_cfg.init(config_file);
 		if (!init)
 		{
