@@ -186,7 +186,15 @@ namespace chen {
 	static HMODULE user32dll = NULL;
 	typedef UINT(WINAPI* PFN_GetRawInputData)(HRAWINPUT, UINT, LPVOID, PUINT, UINT);
 	PFN_GetRawInputData RealGetRawInputData = NULL;
+	/// <summary>
+	/// GetCursorPos
+	/// </summary>
 
+	typedef BOOL (WINAPI* PFN_GetCursorPos)( _Out_ LPPOINT lpPoint);
+	PFN_GetCursorPos  RealGetCursorPos = NULL;
+
+	typedef BOOL (WINAPI* PFN_SetCursorPos)( _In_ int X, _In_ int Y);
+	PFN_SetCursorPos RealSetCursorPos = NULL;
 
 	static  std::map<uint64, RAWINPUT> g_hrawinput;
 	static const uint32 RAW_INPUT_SIZE = 300;
@@ -195,39 +203,13 @@ namespace chen {
 	static  std::mutex   g_mutex;
 	typedef std::lock_guard<std::mutex>		clock_guard;
 	 
-	/*struct craw_input
-	{
-		craw_input()
-		{
-			g_hrawinput = static_cast<RAWINPUT * *>(::malloc(sizeof( RAWINPUT*) * RAW_INPUT_SIZE));
-			g_read_index = 0;
-			g_write_index = 0;
-
-			for (int32 i = 0; i < RAW_INPUT_SIZE; ++i)
-			{
-				g_hrawinput[i] = static_cast<RAWINPUT*>(::malloc(sizeof(RAWINPUT)  ));
-				g_hrawinput[i]->header.dwSize = 0;
-			}
-		}
-	};
-
-	static const craw_input input_init;*/
+	 
 
 
 	static UINT WINAPI hook_get_raw_input_data(_In_ HRAWINPUT hRawInput, _In_ UINT uiCommand, _Out_writes_bytes_to_opt_(*pcbSize, return) LPVOID pData, _Inout_ PUINT pcbSize, _In_ UINT cbSizeHeader)
 	{ 
 		UINT ret = RealGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
-		if (false)
-		{
-			RAWINPUT* temp_input = (RAWINPUT*)pData;
-			DEBUG_LOG("[g_hrawinput.size() = %u][g_read_index = %u][uiCommand = %u][ret = %u][cbSizeHeader = %u]",  g_hrawinput.size(), g_read_index, uiCommand, ret, cbSizeHeader);
-			DEBUG_LOG("[temp_input->header.dwType = %u]", temp_input->header.dwType);
-			DEBUG_LOG("[temp_input->data.mouse.lLastX = %u][temp_input->data.mouse.lLastY = %u]", temp_input->data.mouse.lLastX, temp_input->data.mouse.lLastY);
-		}
-		else
-		{
-				}
-		 
+		  
 		{ 
 			clock_guard lock(g_mutex);
 			if (  uiCommand == RID_INPUT /*&& (ret != 48 && ret != 0) && g_hrawinput.size() > g_read_index*/ )
@@ -252,29 +234,7 @@ namespace chen {
 				else
 				{
 					DEBUG_LOG("not find hRawInput = %u", hRawInput);
-				}
-				//const RAWINPUT & raw_input = g_hrawinput[g_read_index];
-				//////g_hrawinput.capacity() == RAW_INPUT_SIZE && g_hrawinput[g_read_index].header.dwType == RIM_TYPEMOUSE &&
-				////if (raw_input.header.dwSize > 0 && raw_input.header.dwType == RIM_TYPEMOUSE)
-				//{
-				//	DEBUG_LOG("[%s][%d][g_hrawinput.size() = %u][ret = %u][cbSizeHeader = %u][raw_input.header.dwSize = %u]", __FUNCTION__, __LINE__, g_hrawinput.size(), ret, cbSizeHeader, raw_input.header.dwSize);
-				//	ret = raw_input.header.dwSize;
-				//	if (pcbSize)
-				//	{
-				//		*pcbSize = ret;
-				//	}
-				//	if (pData)
-				//	{
-				//		RAWINPUT* temp_input = (RAWINPUT*)pData;
-				//		temp_input->header.dwType = raw_input.header.dwType;
-				//		temp_input->header.dwSize = ret;
-				//		temp_input->data.mouse.lLastX = raw_input.data.mouse.lLastX;
-				//	
-				//		//memcpy(pData, &raw_input, ret);
-				//		//g_hrawinput.pop_front();
-				//		++g_read_index;
-				//	}
-				//}
+				}  
 			}
 		}
 		
@@ -287,6 +247,29 @@ namespace chen {
 		}
 		return ret;
 	}
+
+
+	static BOOL WINAPI hook_get_cursor_pos (_Out_ LPPOINT lpPoint)
+	{
+		if (lpPoint)
+		{
+			lpPoint->x = g_width;
+			lpPoint->y = g_height;
+			return 1;
+		}
+		return 0;
+	}
+	static BOOL WINAPI hook_set_cursor_pos(_In_ int X, _In_ int Y)
+	{
+		/*if (lpPoint)
+		{
+			lpPoint->x = g_width;
+			lpPoint->y = g_height;
+			return 1;
+		}*/
+		return 1;
+	}
+
 	static inline HMODULE get_system_module(const char* system_path, const char* module)
 	{
 		char base_path[MAX_PATH];
@@ -318,11 +301,13 @@ namespace chen {
 		}
 		SYSTEM_LOG("REGISTER  mouse ok !!!");
 		void* get_raw_input_data_proc = GetProcAddress(user32dll, "GetRawInputData");
-		if (!get_raw_input_data_proc)
+		void* get_cursor_pos_proc = GetProcAddress(user32dll, "GetCursorPos");
+		void* set_cursor_pos_proc = GetProcAddress(user32dll, "SetCursorPos");
+		/*if (!get_raw_input_data_proc)
 		{
 			ERROR_EX_LOG("seatch mouse table not find GetRawInputData !!!");
 		}
-		else
+		else*/
 		{
 			SYSTEM_LOG("    input device  begin ... ");
 			DetourTransactionBegin();
@@ -333,6 +318,18 @@ namespace chen {
 				RealGetRawInputData = (PFN_GetRawInputData)get_raw_input_data_proc;
 				DetourAttach((PVOID*)&RealGetRawInputData,
 					hook_get_raw_input_data);
+			}
+			if (get_cursor_pos_proc)
+			{
+				RealGetCursorPos = (PFN_GetCursorPos)get_cursor_pos_proc;
+				DetourAttach((PVOID*)&RealGetCursorPos,
+					hook_get_cursor_pos);
+			}
+			if (set_cursor_pos_proc)
+			{
+				RealSetCursorPos = (PFN_SetCursorPos)set_cursor_pos_proc;
+				DetourAttach((PVOID*)&RealSetCursorPos,
+					hook_set_cursor_pos);
 			}
 
 			SYSTEM_LOG("   input end  ... ");
@@ -345,14 +342,22 @@ namespace chen {
 				{
 					NORMAL_EX_LOG("  input device");
 				}
-				 
+				if (get_cursor_pos_proc)
+				{
+					NORMAL_EX_LOG("  input device");
+				}
+				if (set_cursor_pos_proc)
+				{
+					NORMAL_EX_LOG("  input device");
+				}
 				NORMAL_EX_LOG("  input device ");
 			}
 			else
 			{
 				RealGetRawInputData = NULL;
-				 
-				ERROR_EX_LOG("Failed to attach    : %ld", error);
+				RealGetCursorPos = NULL;
+				RealSetCursorPos = NULL;
+				ERROR_EX_LOG("Failed to attach  mouse  : %ld", error);
 			}
 		}
 
