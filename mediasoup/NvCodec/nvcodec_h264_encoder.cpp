@@ -392,10 +392,10 @@ int32_t NvCodecH264Encoder::Encode(
   NORMAL_EX_LOG("encoded_image_.size() = %u", encoded_image_.size());
   if (encoded_image_.size() > 0) {
 	  // Parse QP.
-	  //h264_bitstream_parser_.ParseBitstream(encoded_images_[i].data(),
-	  //                                      encoded_images_[i].size());
-	  //h264_bitstream_parser_.GetLastSliceQp(&encoded_images_[i].qp_);
-	  encoded_image_.qp_ = 10;
+	  h264_bitstream_parser_.ParseBitstream(encoded_image_.data(), encoded_image_.size());
+	  h264_bitstream_parser_.GetLastSliceQp(&encoded_image_.qp_);
+      NORMAL_EX_LOG("Qp = %u ", encoded_image_.qp_);
+	  //encoded_image_.qp_ = 10;
 
 	  // Deliver encoded image.
 	  webrtc::CodecSpecificInfo codec_specific;

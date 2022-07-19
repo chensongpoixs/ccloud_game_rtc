@@ -37,8 +37,8 @@ purpose:		input_device
 //}
 #endif // WIN
 namespace chen {
-	int32_t  g_width = 150;
-	int32_t  g_height = 150;
+	int32_t  g_width = 0;
+	int32_t  g_height = 0;
 	using FKeyCodeType = uint8;
 	using FCharacterType = TCHAR;
 	using FRepeatType = uint8;
@@ -267,6 +267,8 @@ namespace chen {
 			lpPoint->y = g_height;
 			return 1;
 		}*/
+
+		//BOOL ret = SetCursorPos(X, Y);
 		return 1;
 	}
 
@@ -301,8 +303,8 @@ namespace chen {
 		}
 		SYSTEM_LOG("REGISTER  mouse ok !!!");
 		void* get_raw_input_data_proc = GetProcAddress(user32dll, "GetRawInputData");
-		void* get_cursor_pos_proc = GetProcAddress(user32dll, "GetCursorPos");
-		void* set_cursor_pos_proc = GetProcAddress(user32dll, "SetCursorPos");
+		void* get_cursor_pos_proc =   GetProcAddress(user32dll, "GetCursorPos");
+		void* set_cursor_pos_proc =   GetProcAddress(user32dll, "SetCursorPos");
 		/*if (!get_raw_input_data_proc)
 		{
 			ERROR_EX_LOG("seatch mouse table not find GetRawInputData !!!");
