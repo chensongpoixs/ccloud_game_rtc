@@ -72,7 +72,12 @@ namespace chen {
 //													//NORMAL_EX_LOG("move cur_ms = %u, [ret_dispatch = %s]", ms, std::to_string(ret_dispatch).c_str());
 //
 
-#define MESSAGE(g_wnd, message_id, param1, param2)  PostMessage(g_wnd, message_id, param1, param2);
+//#define MESSAGE(g_wnd, message_id, param1, param2)  PostMessage(g_wnd, message_id, param1, param2);
+
+
+
+#define MESSAGE(g_wnd, message_id, param1, param2)   
+
 
 	//if (GetCapture() != g_wnd)
 #define MOUSE_INPUT(g_wnd)		 { \
@@ -183,6 +188,7 @@ namespace chen {
 
 #endif //#if defined(_MSC_VER)
 	//static bool g_move_init = false;
+	///////////////////////////////////////////////////////////////////////////////
 	static HMODULE user32dll = NULL;
 	typedef UINT(WINAPI* PFN_GetRawInputData)(HRAWINPUT, UINT, LPVOID, PUINT, UINT);
 	PFN_GetRawInputData RealGetRawInputData = NULL;
@@ -196,6 +202,25 @@ namespace chen {
 	typedef BOOL (WINAPI* PFN_SetCursorPos)( _In_ int X, _In_ int Y);
 	PFN_SetCursorPos RealSetCursorPos = NULL;
 
+
+	typedef  ATOM (WINAPI* PFN_RegisterClassA)( _In_ CONST WNDCLASSA* lpWndClass);
+	PFN_RegisterClassA RealRegisterClassA;
+
+
+	typedef ATOM (WINAPI* PFN_RegisterClassW)( _In_ CONST WNDCLASSW* lpWndClass);
+	PFN_RegisterClassW  RealRegisterClassW;
+
+
+
+	typedef BOOL (WINAPI* PFN_UnregisterClassA)(_In_ LPCSTR lpClassName,_In_opt_ HINSTANCE hInstance);
+	PFN_UnregisterClassA RealUnregisterClassA;
+
+	typedef BOOL (WINAPI* PFN_UnregisterClassW)(_In_ LPCWSTR lpClassName, _In_opt_ HINSTANCE hInstance);
+	PFN_UnregisterClassW RealUnregisterClassW;
+
+	///////////////////////////////////////////////////////////////////////////////
+	 
+
 	static  std::map<uint64, RAWINPUT> g_hrawinput;
 	static const uint32 RAW_INPUT_SIZE = 300;
 	static uint32     g_read_index = 0;
@@ -203,8 +228,23 @@ namespace chen {
 	static  std::mutex   g_mutex;
 	typedef std::lock_guard<std::mutex>		clock_guard;
 	 
+	static std::map<const WNDCLASSA*, const  WNDCLASSA*> g_wnd_classA;
+	static std::map<const  WNDCLASSW*,const  WNDCLASSW*> g_wnd_classW;
 	 
-
+#define MESSAGE(g_wnd, message_id, param1, param2)  for (std::map<const WNDCLASSA*, const WNDCLASSA*>::const_iterator iter = g_wnd_classA.begin(); iter != g_wnd_classA.end(); ++iter) \
+	{																																	\
+		if (iter->first && iter->first->lpfnWndProc)																					\
+		{																																\
+			iter->first->lpfnWndProc(g_wnd, message_id, param1, param2);																\
+		}																																\
+	}																																	\
+	for (std::map<const WNDCLASSW*, const WNDCLASSW*>::const_iterator iter = g_wnd_classW.begin(); iter != g_wnd_classW.end(); ++iter)	\
+	{																																	\
+		if (iter->first && iter->first->lpfnWndProc)																					\
+		{																																\
+			iter->first->lpfnWndProc(g_wnd, message_id, param1, param2);																\
+		}																																\
+	}
 
 	static UINT WINAPI hook_get_raw_input_data(_In_ HRAWINPUT hRawInput, _In_ UINT uiCommand, _Out_writes_bytes_to_opt_(*pcbSize, return) LPVOID pData, _Inout_ PUINT pcbSize, _In_ UINT cbSizeHeader)
 	{ 
@@ -270,6 +310,48 @@ namespace chen {
 		return 1;
 	}
 
+	static ATOM  hook_RegisterClassA(_In_ CONST WNDCLASSA* lpWndClass)
+	{
+		if (lpWndClass && lpWndClass->lpfnWndProc)
+		{
+			NORMAL_EX_LOG("add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
+			g_wnd_classA[lpWndClass] = lpWndClass;
+		}
+		else if(lpWndClass)
+		{
+			NORMAL_EX_LOG("not add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
+		}
+		return RegisterClassA(lpWndClass);
+	}
+
+
+	static ATOM  hook_RegisterClassW(_In_ CONST WNDCLASSW* lpWndClass)
+	{
+		if (lpWndClass && lpWndClass->lpfnWndProc)
+		{
+			NORMAL_EX_LOG("add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
+			g_wnd_classW[lpWndClass] = lpWndClass;
+		}
+		else if (lpWndClass)
+		{
+			NORMAL_EX_LOG("not add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
+		}
+		return RegisterClassW(lpWndClass);
+	}
+
+
+	static BOOL hook_UnregisterClassA(_In_ LPCSTR lpClassName, _In_opt_ HINSTANCE hInstance)
+	{
+
+		return UnregisterClassA(lpClassName, hInstance);
+	}
+
+
+	static BOOL hook_UnregisterClassW(_In_ LPCWSTR lpClassName, _In_opt_ HINSTANCE hInstance)
+	{
+		return UnregisterClassW(lpClassName, hInstance);
+	}
+
 	static inline HMODULE get_system_module(const char* system_path, const char* module)
 	{
 		char base_path[MAX_PATH];
@@ -303,6 +385,14 @@ namespace chen {
 		void* get_raw_input_data_proc = GetProcAddress(user32dll, "GetRawInputData");
 		void* get_cursor_pos_proc = GetProcAddress(user32dll, "GetCursorPos");
 		void* set_cursor_pos_proc = GetProcAddress(user32dll, "SetCursorPos");
+		/// <summary>
+		/// ///////////////////
+		/// </summary>
+		/// <returns></returns>
+		void* register_class_a_proc = GetProcAddress(user32dll, "RegisterClassA");
+		void* register_class_w_proc = GetProcAddress(user32dll, "RegisterClassW");
+
+
 		/*if (!get_raw_input_data_proc)
 		{
 			ERROR_EX_LOG("seatch mouse table not find GetRawInputData !!!");
@@ -332,6 +422,21 @@ namespace chen {
 					hook_set_cursor_pos);
 			}
 
+
+			if (register_class_a_proc)
+			{
+				RealRegisterClassA = (PFN_RegisterClassA)register_class_a_proc;
+				DetourAttach((PVOID*)&RealRegisterClassA,
+					hook_RegisterClassA);
+			}
+
+			if (register_class_w_proc)
+			{
+				RealRegisterClassW = (PFN_RegisterClassW)register_class_w_proc;
+				DetourAttach((PVOID*)&RealRegisterClassW,
+					hook_RegisterClassW);
+			}
+
 			SYSTEM_LOG("   input end  ... ");
 			const LONG error = DetourTransactionCommit();
 			const bool success = error == NO_ERROR;
@@ -350,6 +455,14 @@ namespace chen {
 				{
 					NORMAL_EX_LOG("  input device");
 				}
+				if (register_class_a_proc)
+				{
+					NORMAL_EX_LOG(" input device");
+				}
+				if (register_class_w_proc)
+				{
+					NORMAL_EX_LOG(" input device");
+				}
 				NORMAL_EX_LOG("  input device ");
 			}
 			else
@@ -357,6 +470,8 @@ namespace chen {
 				RealGetRawInputData = NULL;
 				RealGetCursorPos = NULL;
 				RealSetCursorPos = NULL;
+				RealRegisterClassA = NULL;
+				RealRegisterClassW = NULL;
 				ERROR_EX_LOG("Failed to attach  mouse  : %ld", error);
 			}
 		}
@@ -1052,6 +1167,7 @@ namespace chen {
 				//Send the message ///*Raw input handle*/
 				MESSAGE(mwin, WM_INPUT, (WPARAM)RIM_INPUT, MAKELPARAM(CursorPoint.x, CursorPoint.y));  //TODO: Handle to raw input 
 			}
+			
 			
 			MESSAGE(mwin, WM_MOUSEMOVE /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY) , MAKELPARAM(CursorPoint.x, CursorPoint.y ));
 			//MESSAGE(mwin, WM_INPUT /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY), MAKELPARAM(CursorPoint.x, CursorPoint.y));
