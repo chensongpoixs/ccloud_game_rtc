@@ -37,8 +37,8 @@ purpose:		input_device
 //}
 #endif // WIN
 namespace chen {
-	int32_t  g_width = 150;
-	int32_t  g_height = 150;
+	int32_t  g_width = 0;
+	int32_t  g_height = 0;
 	using FKeyCodeType = uint8;
 	using FCharacterType = TCHAR;
 	using FRepeatType = uint8;
@@ -1157,7 +1157,7 @@ namespace chen {
 						g_hrawinput.clear();
 					}*/
 					//g_hrawinput.push_back(pRaw);
-					DEBUG_LOG("MAKELPARAM(CursorPoint.x, CursorPoint.y) = %u", MAKELPARAM(CursorPoint.x, CursorPoint.y));
+					//DEBUG_LOG("MAKELPARAM(CursorPoint.x, CursorPoint.y) = %u", MAKELPARAM(CursorPoint.x, CursorPoint.y));
 					g_hrawinput[MAKELPARAM(CursorPoint.x, CursorPoint.y)] = pRaw;
 					//g_write_index++;
 				}

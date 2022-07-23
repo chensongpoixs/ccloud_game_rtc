@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="build_version.h" />
     <ClInclude Include="cassertion_macros.h" />
     <ClInclude Include="casync_log.h" />
     <ClInclude Include="cbase64.h" />
@@ -265,6 +266,9 @@
       <AdditionalDependencies>C:\Work\mediaserver\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvcuvid.lib;C:\Work\mediaserver\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvencodeapi.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cuda.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudadevrt.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudart.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudart_static.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\OpenCL.lib;C:\Work\mediaserver\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\lib\detours.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
+    <PreBuildEvent>
+      <Command>build_version.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

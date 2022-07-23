@@ -13,6 +13,7 @@
 #include "csend_transport.h"
 #include "cinput_device.h"
 #include "NvCodec/nvenc.h"
+#include "build_version.h"
 namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
@@ -137,6 +138,10 @@ namespace chen {
 			return false;
 		}
 		show_work_dir();
+		SYSTEM_LOG("git:branch:%s", BUILD_GIT_BRANCH_NAME);
+		SYSTEM_LOG("git:version:%u", BUILD_GIT_REVERSION);
+		SYSTEM_LOG("git:branch_hash:%s", BUILD_GIT_HASH);
+		SYSTEM_LOG("git:BUILD_TIME:%s", BUILD_TIME);
 		SYSTEM_LOG("Log init ...\n");
 		g_gpu_index = gpu_index;
 		SYSTEM_LOG("gpu index = %u", g_gpu_index);

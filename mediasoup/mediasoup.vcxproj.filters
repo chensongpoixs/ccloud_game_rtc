@@ -83,6 +83,7 @@
     <ClInclude Include="NvCodec\Utils\AppEncUtils.h">
       <Filter>NvCodec\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="build_version.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />
