@@ -72,12 +72,11 @@ namespace chen {
 //													//NORMAL_EX_LOG("move cur_ms = %u, [ret_dispatch = %s]", ms, std::to_string(ret_dispatch).c_str());
 //
 
-//#define MESSAGE(g_wnd, message_id, param1, param2)  PostMessage(g_wnd, message_id, param1, param2);
+#define MESSAGE(g_wnd, message_id, param1, param2)  PostMessage(g_wnd, message_id, param1, param2);
 
 
 
-#define MESSAGE(g_wnd, message_id, param1, param2)   
-
+ 
 
 	//if (GetCapture() != g_wnd)
 #define MOUSE_INPUT(g_wnd)		 { \
@@ -231,20 +230,20 @@ namespace chen {
 	static std::map<const WNDCLASSA*, const  WNDCLASSA*> g_wnd_classA;
 	static std::map<const  WNDCLASSW*,const  WNDCLASSW*> g_wnd_classW;
 	 
-#define MESSAGE(g_wnd, message_id, param1, param2)  for (std::map<const WNDCLASSA*, const WNDCLASSA*>::const_iterator iter = g_wnd_classA.begin(); iter != g_wnd_classA.end(); ++iter) \
-	{																																	\
-		if (iter->first && iter->first->lpfnWndProc)																					\
-		{																																\
-			iter->first->lpfnWndProc(g_wnd, message_id, param1, param2);																\
-		}																																\
-	}																																	\
-	for (std::map<const WNDCLASSW*, const WNDCLASSW*>::const_iterator iter = g_wnd_classW.begin(); iter != g_wnd_classW.end(); ++iter)	\
-	{																																	\
-		if (iter->first && iter->first->lpfnWndProc)																					\
-		{																																\
-			iter->first->lpfnWndProc(g_wnd, message_id, param1, param2);																\
-		}																																\
-	}
+//#define MESSAGE(g_wnd, message_id, param1, param2)  for (std::map<const WNDCLASSA*, const WNDCLASSA*>::const_iterator iter = g_wnd_classA.begin(); iter != g_wnd_classA.end(); ++iter) \
+//	{																																	\
+//		if (iter->first && iter->first->lpfnWndProc)																					\
+//		{																																\
+//			iter->first->lpfnWndProc(g_wnd, message_id, param1, param2);																\
+//		}																																\
+//	}																																	\
+//	for (std::map<const WNDCLASSW*, const WNDCLASSW*>::const_iterator iter = g_wnd_classW.begin(); iter != g_wnd_classW.end(); ++iter)	\
+//	{																																	\
+//		if (iter->first && iter->first->lpfnWndProc)																					\
+//		{																																\
+//			iter->first->lpfnWndProc(g_wnd, message_id, param1, param2);																\
+//		}																																\
+//	}
 
 	static UINT WINAPI hook_get_raw_input_data(_In_ HRAWINPUT hRawInput, _In_ UINT uiCommand, _Out_writes_bytes_to_opt_(*pcbSize, return) LPVOID pData, _Inout_ PUINT pcbSize, _In_ UINT cbSizeHeader)
 	{ 
@@ -389,8 +388,8 @@ namespace chen {
 		/// ///////////////////
 		/// </summary>
 		/// <returns></returns>
-		void* register_class_a_proc = GetProcAddress(user32dll, "RegisterClassA");
-		void* register_class_w_proc = GetProcAddress(user32dll, "RegisterClassW");
+		/*void* register_class_a_proc = GetProcAddress(user32dll, "RegisterClassA");
+		void* register_class_w_proc = GetProcAddress(user32dll, "RegisterClassW");*/
 
 
 		/*if (!get_raw_input_data_proc)
@@ -423,7 +422,7 @@ namespace chen {
 			}
 
 
-			if (register_class_a_proc)
+			/*if (register_class_a_proc)
 			{
 				RealRegisterClassA = (PFN_RegisterClassA)register_class_a_proc;
 				DetourAttach((PVOID*)&RealRegisterClassA,
@@ -435,7 +434,7 @@ namespace chen {
 				RealRegisterClassW = (PFN_RegisterClassW)register_class_w_proc;
 				DetourAttach((PVOID*)&RealRegisterClassW,
 					hook_RegisterClassW);
-			}
+			}*/
 
 			SYSTEM_LOG("   input end  ... ");
 			const LONG error = DetourTransactionCommit();
@@ -455,14 +454,14 @@ namespace chen {
 				{
 					NORMAL_EX_LOG("  input device");
 				}
-				if (register_class_a_proc)
+				/*if (register_class_a_proc)
 				{
 					NORMAL_EX_LOG(" input device");
 				}
 				if (register_class_w_proc)
 				{
 					NORMAL_EX_LOG(" input device");
-				}
+				}*/
 				NORMAL_EX_LOG("  input device ");
 			}
 			else
@@ -470,8 +469,8 @@ namespace chen {
 				RealGetRawInputData = NULL;
 				RealGetCursorPos = NULL;
 				RealSetCursorPos = NULL;
-				RealRegisterClassA = NULL;
-				RealRegisterClassW = NULL;
+				/*RealRegisterClassA = NULL;
+				RealRegisterClassW = NULL;*/
 				ERROR_EX_LOG("Failed to attach  mouse  : %ld", error);
 			}
 		}
