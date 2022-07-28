@@ -438,7 +438,7 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 	std::chrono::steady_clock::time_point cur_time_ms;
 	std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
 	std::chrono::steady_clock::duration dur;
-	std::chrono::microseconds microseconds;
+	std::chrono::milliseconds milliseconds;
 	uint32_t elapse = 0;
 	if (nv_encoders_.empty()) {
 		ReportError();
@@ -558,10 +558,9 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 		// |encoded_images_[i]._length| == 0.
 		if (encoded_images_[i].size() > 0) {
 			// Parse QP.
-			//h264_bitstream_parser_.ParseBitstream(encoded_images_[i].data(),
-			//                                      encoded_images_[i].size());
-			//h264_bitstream_parser_.GetLastSliceQp(&encoded_images_[i].qp_);
-			encoded_images_[i].qp_ = 10;
+			h264_bitstream_parser_.ParseBitstream(encoded_images_[i].data(), encoded_images_[i].size());
+			h264_bitstream_parser_.GetLastSliceQp(&encoded_images_[i].qp_);
+			//encoded_images_[i].qp_ = 10;
 
 			// Deliver encoded image.
 			CodecSpecificInfo codec_specific;
@@ -581,11 +580,11 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 	}
 	cur_time_ms = std::chrono::steady_clock::now();
 	dur = cur_time_ms - pre_time;
-	microseconds = std::chrono::duration_cast<std::chrono::microseconds>(dur);
-	elapse = static_cast<uint32_t>(microseconds.count());
-	if (elapse > 900)
+	milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+	elapse = static_cast<uint32_t>(milliseconds.count());
+	if (elapse > 3)
 	{
-		NORMAL_EX_LOG("encoder video  frame  microseconds = %lu", microseconds);
+		NORMAL_EX_LOG("encoder video  frame  milliseconds = %lu", elapse);
 	}
 	return WEBRTC_VIDEO_CODEC_OK;
 }
