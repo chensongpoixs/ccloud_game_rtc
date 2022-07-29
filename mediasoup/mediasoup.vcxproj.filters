@@ -138,6 +138,7 @@
     <None Include="NvCodec\Utils\Resize.cu">
       <Filter>NvCodec\Utils</Filter>
     </None>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

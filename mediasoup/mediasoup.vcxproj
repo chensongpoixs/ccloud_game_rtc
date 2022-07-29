@@ -128,6 +128,7 @@
     <None Include="NvCodec\Utils\BitDepth.cu" />
     <None Include="NvCodec\Utils\ColorSpace.cu" />
     <None Include="NvCodec\Utils\Resize.cu" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
