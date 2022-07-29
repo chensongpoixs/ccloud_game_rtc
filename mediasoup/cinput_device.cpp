@@ -257,7 +257,8 @@ namespace chen {
 			lpPoint->y = g_height;
 			return 1;
 		}
-		return 0;
+
+		return  RealGetCursorPos(lpPoint);
 	}
 	static BOOL WINAPI hook_set_cursor_pos(_In_ int X, _In_ int Y)
 	{
@@ -269,7 +270,7 @@ namespace chen {
 		}*/
 
 		//BOOL ret = SetCursorPos(X, Y);
-		return 1;
+		return RealSetCursorPos(X, Y);
 	}
 
 	static inline HMODULE get_system_module(const char* system_path, const char* module)
@@ -302,6 +303,9 @@ namespace chen {
 			//return false;
 		}
 		SYSTEM_LOG("REGISTER  mouse ok !!!");
+		// TODO@chensong 2022-07-29 
+		// UE中拿取桌面鼠标位置控件问题   
+		// debug@鼠标点击事件 WM_LBUTTONDOWN、WM_MBUTTONDOWN、WM_RBUTTONDOWN
 		void* get_raw_input_data_proc = GetProcAddress(user32dll, "GetRawInputData");
 		void* get_cursor_pos_proc =   GetProcAddress(user32dll, "GetCursorPos");
 		void* set_cursor_pos_proc =   GetProcAddress(user32dll, "SetCursorPos");
@@ -788,8 +792,8 @@ namespace chen {
 		g_height = PosY;
 		*/
 		
-		PosX = g_width;
-		PosY = g_height;
+		  g_width = PosX;
+		  g_height = PosY;
 		NORMAL_EX_LOG("g_width = %d, g_height = %d, active_type = %d, PosX = %d, PoxY = %d", g_width, g_height, active_type, PosX, PosY );
 		//g_move_init = true;
 		#if defined(_MSC_VER)
@@ -810,7 +814,7 @@ namespace chen {
 		if (mwin)
 		{
 			CliENTTOSCREENPOINT(mwin, PosX, PosY);
-			MESSAGE(mwin, active_type, MAKEWPARAM(0,0), MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(mwin, active_type, 1, MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
