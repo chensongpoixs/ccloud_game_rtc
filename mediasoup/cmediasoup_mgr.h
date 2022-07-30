@@ -34,7 +34,7 @@ namespace cmediasoup
 		/// <param name="rgba_ptr"></param>
 		/// <param name="width"></param>
 		/// <param name="height"></param>
-		void   webrtc_video(unsigned char * rgba_ptr /*DXGI_FORMAT_B8G8R8A8_UNORM*/, int width, int height);
+		void   webrtc_video(unsigned char * rgba_ptr /*DXGI_FORMAT_B8G8R8A8_UNORM*/, uint32_t fmt,  int width, int height);
 		/// <summary>
 		/// 
 		/// </summary>
@@ -42,8 +42,8 @@ namespace cmediasoup
 		/// <param name="uv_ptr"></param>
 		/// <param name="width"></param>
 		/// <param name="height"></param>
-		void   webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr,  int width, int height);
-		void webrtc_texture(void * texture, int width, int height);
+		void   webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, uint32_t fmt, int width, int height);
+		void webrtc_texture(void * texture, uint32_t fmt, int width, int height);
 		void webrtc_pause();
 		void webrtc_resume();
 		bool webrtc_video_staus() const { return m_webrtc_pause; }

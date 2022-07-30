@@ -11,5 +11,6 @@
 namespace chen {
 extern struct encoder_info nvenc_info;
 extern uint32 g_gpu_index;;
+extern DXGI_FORMAT g_dxgi_format;
 }
 #endif

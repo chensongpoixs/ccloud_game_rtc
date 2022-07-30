@@ -288,7 +288,8 @@ int32_t NvEncoder::InitEncode(const VideoCodec* inst,
 
 		encoder_config nvenc_config;
 		nvenc_config.codec = "h264";
-		nvenc_config.format = DXGI_FORMAT_B8G8R8A8_UNORM;//  DXGI_FORMAT_B8G8R8A8_UNORM;
+		// …Ë÷√œÒÀÿ∏Ò Ω
+		nvenc_config.format = g_dxgi_format, DXGI_FORMAT_B8G8R8A8_UNORM;//  DXGI_FORMAT_B8G8R8A8_UNORM;
 		nvenc_config.width = configurations_[i].width;
 		nvenc_config.height = configurations_[i].height;
 		nvenc_config.framerate = (uint32_t)configurations_[i].max_frame_rate;
@@ -541,9 +542,7 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 		encoded_images_[i].rotation_ = input_frame.rotation();
 		encoded_images_[i].SetColorSpace(input_frame.color_space());
 		encoded_images_[i].content_type_ =
-			(codec_.mode == VideoCodecMode::kScreensharing)
-				? VideoContentType::SCREENSHARE
-				: VideoContentType::UNSPECIFIED;
+			(codec_.mode == VideoCodecMode::kScreensharing) ? VideoContentType::SCREENSHARE : VideoContentType::UNSPECIFIED;
 		encoded_images_[i].timing_.flags = VideoSendTiming::kInvalid;
 		encoded_images_[i]._frameType = ConvertToVideoFrameType(info.eFrameType);
 		encoded_images_[i].SetSpatialIndex(configurations_[i].simulcast_idx);

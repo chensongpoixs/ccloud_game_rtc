@@ -14,6 +14,7 @@
 //#include "Utils/AppEncUtils.h"
 namespace chen {
 	uint32 g_gpu_index;
+	DXGI_FORMAT g_dxgi_format;
 	static const std::unordered_map<uint32, GUID> g_encoder_preset = {
 	{1, NV_ENC_PRESET_P1_GUID},
 	{2, NV_ENC_PRESET_P2_GUID},
@@ -324,6 +325,10 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	else if (enc->format == DXGI_FORMAT_R8G8B8A8_UNORM)
 	{
 		eBufferFormat = NV_ENC_BUFFER_FORMAT_ARGB; // error 
+	}
+	else if (enc->format == DXGI_FORMAT_R10G10B10A2_UNORM)
+	{
+		eBufferFormat = NV_ENC_BUFFER_FORMAT_ABGR10;
 	}
 	else {
 		//printf("[nvenc] Error: Unsupported dxgi format. \n");

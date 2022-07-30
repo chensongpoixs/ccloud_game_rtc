@@ -89,9 +89,9 @@ namespace chen {
 		void startup_ui();
 
 		// 线程不安全的
-		bool webrtc_video(unsigned char * rgba, int32_t width, int32_t height);
-		bool webrtc_texture(void * texture, int32_t width, int32_t height);
-		bool webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, int32_t width, int32_t height);
+		bool webrtc_video(unsigned char * rgba, uint32 fmt,  int32_t width, int32_t height);
+		bool webrtc_texture(void * texture, uint32 fmt, int32_t width, int32_t height);
+		bool webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, uint32 fmt, int32_t width, int32_t height);
 		bool webrtc_video(const webrtc::VideoFrame& frame);
 		bool webrtc_run();
 

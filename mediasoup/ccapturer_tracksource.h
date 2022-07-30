@@ -34,6 +34,7 @@
 #include <thread>
 #include <atomic>
 #include "ccfg.h"
+#include "NvCodec/nvenc.h"
  
 namespace chen {
 	 
@@ -50,7 +51,7 @@ namespace chen {
 			}
 			return nullptr;
 		}
-		bool OnFrameTexture(void * texture, int32_t width, int32_t height)
+		bool OnFrameTexture(void * texture, uint32 fmt, int32_t width, int32_t height)
 		{
 			if (!texture)
 			{
@@ -78,7 +79,8 @@ namespace chen {
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
 			i420_buffer_->set_texture(texture);
-
+			g_dxgi_format = static_cast<DXGI_FORMAT>(fmt);
+			NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
 			//::memcpy(i420_buffer_->MutableDataY(), rgba, width * height * 4);
 			//libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
 			//	i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
@@ -104,7 +106,7 @@ namespace chen {
 
 			return true;
 		}
-		bool OnFrame(unsigned char * rgba, int32_t width, int32_t height)
+		bool OnFrame(unsigned char * rgba, uint32 fmt, int32_t width, int32_t height)
 		{
 			if (!rgba)
 			{
@@ -133,7 +135,8 @@ namespace chen {
 			}
 
 			i420_buffer_->set_texture(NULL);
-			NORMAL_EX_LOG("");
+			g_dxgi_format = static_cast<DXGI_FORMAT>(fmt);
+			NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
 			::memcpy(i420_buffer_->MutableDataY(), rgba, width * height * 4);
 			//libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
 			//	i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
@@ -161,7 +164,7 @@ namespace chen {
 		}
 
 
-		bool OnFrame(unsigned char * y_ptr, unsigned char *uv_ptr, int32_t width, int32_t height)
+		bool OnFrame(unsigned char * y_ptr, uint32 fmt, unsigned char *uv_ptr, int32_t width, int32_t height)
 		{
 			if (!y_ptr )
 			{
@@ -188,11 +191,11 @@ namespace chen {
 			{
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
-
-			NORMAL_EX_LOG("");
+			g_dxgi_format = static_cast<DXGI_FORMAT>(fmt);
+			NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
 			::memcpy(i420_buffer_->MutableDataY(), y_ptr, width * height );
 			::memcpy(i420_buffer_->MutableDataU(), uv_ptr, width * height/ 2);
-			NORMAL_EX_LOG("");
+			//NORMAL_EX_LOG("");
 			//libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
 			//	i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
 			//	i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
@@ -217,6 +220,8 @@ namespace chen {
 
 			return true;
 		}
+	
+		// YUV 
 		bool OnFrame(const webrtc::VideoFrame & frame)
 		{
 			video_source_ptr->VideoOnFrame(frame);

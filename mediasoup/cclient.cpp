@@ -862,7 +862,7 @@ namespace chen {
 		//m_status = EMediasoup_WebSocket;
 		return true;
 	}
-	bool cclient::webrtc_video(unsigned char * rgba, int32_t width, int32_t height)
+	bool cclient::webrtc_video(unsigned char * rgba, uint32 fmt, int32_t width, int32_t height)
 	{
 		if (!m_webrtc_connect)
 		{
@@ -891,11 +891,11 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
-		return m_send_transport->webrtc_video(rgba, width, height);
+		return m_send_transport->webrtc_video(rgba, fmt, width, height);
 		 
 		return true;
 	}
-	bool cclient::webrtc_texture(void * texture, int32_t width, int32_t height)
+	bool cclient::webrtc_texture(void * texture, uint32 fmt, int32_t width, int32_t height)
 	{
 		NORMAL_EX_LOG("");
 		if (!m_webrtc_connect)
@@ -925,9 +925,9 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
-		return m_send_transport->webrtc_texture(texture, width, height);
+		return m_send_transport->webrtc_texture(texture, fmt, width, height);
 	}
-	bool cclient::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, int32_t width, int32_t height)
+	bool cclient::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, uint32 fmt, int32_t width, int32_t height)
 	{
 		if (!m_webrtc_connect)
 		{
@@ -957,7 +957,7 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
-		return m_send_transport->webrtc_video(y_ptr, uv_ptr, width, height);
+		return m_send_transport->webrtc_video(y_ptr, uv_ptr, fmt, width, height);
 
 		return true;
 	}
@@ -1284,7 +1284,7 @@ namespace chen {
 		uint32_t elapse = 0;
 		
 			
-		while (!m_stoped)
+	/*	while (!m_stoped)
 		{
 			pre_time = std::chrono::steady_clock::now();
 			if  (m_osg_frame > m_webrtc_frame)
@@ -1318,7 +1318,7 @@ namespace chen {
 				}
 			}
 			 
-		}
+		}*/
 	}
 	void cclient::_mediasoup_status_callback(uint32 status, uint32 error)
 	{
