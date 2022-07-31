@@ -296,6 +296,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
 	desc.Format = config->format;
+	NORMAL_EX_LOG("[format = %u]", config->format);
 	desc.SampleDesc.Count = 1;
 	desc.Usage = D3D11_USAGE_STAGING;
 	desc.BindFlags = 0;
@@ -332,7 +333,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	}
 	else {
 		//printf("[nvenc] Error: Unsupported dxgi format. \n");
-		ERROR_EX_LOG("[nvenc] Error: Unsupported dxgi format. ");
+		ERROR_EX_LOG("[nvenc] Error: Unsupported dxgi format = %u. ", enc->format);
 		return false;
 	}
 

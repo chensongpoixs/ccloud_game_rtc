@@ -289,7 +289,8 @@ int32_t NvEncoder::InitEncode(const VideoCodec* inst,
 		encoder_config nvenc_config;
 		nvenc_config.codec = "h264";
 		// …Ë÷√œÒÀÿ∏Ò Ω
-		nvenc_config.format = g_dxgi_format, DXGI_FORMAT_B8G8R8A8_UNORM;//  DXGI_FORMAT_B8G8R8A8_UNORM;
+		nvenc_config.format = g_dxgi_format;//  DXGI_FORMAT_B8G8R8A8_UNORM;
+		NORMAL_EX_LOG("[format = %u]", g_dxgi_format);
 		nvenc_config.width = configurations_[i].width;
 		nvenc_config.height = configurations_[i].height;
 		nvenc_config.framerate = (uint32_t)configurations_[i].max_frame_rate;
@@ -660,7 +661,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 		 NORMAL_EX_LOG("");
 		 int max_buffer_size = height * width * 4;
 		 std::shared_ptr<uint8_t> out_buffer(new uint8_t[max_buffer_size]);
-		 if (0 != g_gpu_index)
+		 if ( 0 != g_gpu_index  || g_dxgi_format == DXGI_FORMAT_R10G10B10A2_UNORM)
 		 {
 			 NORMAL_EX_LOG("");
 			 D3D11_MAPPED_SUBRESOURCE dsec = { 0 };
@@ -703,6 +704,10 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 				 ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
 				 return false;
 			 }
+		 }
+		 else
+		 {
+			 WARNING_EX_LOG("encoder texture type error !!!");
 		 }
 	}
 	else
