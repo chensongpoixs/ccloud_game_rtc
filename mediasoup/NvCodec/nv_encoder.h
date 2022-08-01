@@ -71,8 +71,7 @@ private:
 	void ReportInit();
 	void ReportError();
 
-	bool EncodeFrame(int index,const VideoFrame& input_frame,
-					std::vector<uint8_t>& frame_packet);
+	bool EncodeFrame(int index,const VideoFrame& input_frame, cnv_frame_packet & frame_packet /*std::vector<uint8_t>& frame_packet*/);
 
 	std::vector<void*> nv_encoders_;
 	std::vector<LayerConfig> configurations_;
@@ -92,6 +91,7 @@ private:
 
 	std::shared_ptr<uint8_t> image_buffer_;
 	unsigned int m_key_frame_count;
+	
 };
 
 }  // namespace webrtc

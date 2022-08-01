@@ -425,6 +425,7 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready,
 {
 	using namespace chen;
 	//NORMAL_EX_LOG("");
+	uint32_t packet_size = 0;
 	if (nvenc_data == nullptr) 
 	{
 		ERROR_EX_LOG("nvenc_data == nullptr");
@@ -453,7 +454,7 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready,
 	
 	try
 	{
-		enc->nvenc->EncodeFrame(packet);
+		enc->nvenc->EncodeFrame(out_buf, &packet_size);
 	}
 	catch (...)
 	{
@@ -462,7 +463,7 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready,
 	}
 	
 
-	int frame_size = 0;
+	/*int frame_size = 0;
 	for (std::vector<uint8_t> &packet : packet) {
 		if (frame_size + packet.size() < out_buf_size) {
 			memcpy(out_buf + frame_size, packet.data(), packet.size());
@@ -471,9 +472,9 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready,
 		else {
 			break;
 		}
-	}
+	}*/
 
-	return frame_size;
+	return packet_size;
 }
 
 
@@ -481,6 +482,7 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready,
 int nvenc_encode_texture_unlock_lock(void *nvenc_data, ID3D11Texture2D *texture , uint8_t* out_buf, uint32_t out_buf_size, int lock_key, int unlock_key, IDXGIKeyedMutex* keyed_mutex)
 {
 	using namespace chen;
+	uint32_t packet_size = 0;
 	NORMAL_EX_LOG("");
 	if (nvenc_data == nullptr)
 	{
@@ -522,7 +524,7 @@ int nvenc_encode_texture_unlock_lock(void *nvenc_data, ID3D11Texture2D *texture 
 	NORMAL_EX_LOG("");
 	try
 	{
-		enc->nvenc->EncodeFrame(packet);
+		enc->nvenc->EncodeFrame(out_buf, &packet_size);
 	}
 	catch (...)
 	{
@@ -531,7 +533,7 @@ int nvenc_encode_texture_unlock_lock(void *nvenc_data, ID3D11Texture2D *texture 
 	}
 
 
-	int frame_size = 0;
+	/*int frame_size = 0;
 	for (std::vector<uint8_t> &packet : packet) {
 		if (frame_size + packet.size() < out_buf_size) {
 			memcpy(out_buf + frame_size, packet.data(), packet.size());
@@ -540,9 +542,9 @@ int nvenc_encode_texture_unlock_lock(void *nvenc_data, ID3D11Texture2D *texture 
 		else {
 			break;
 		}
-	}
+	}*/
 
-	return frame_size;
+	return packet_size;
 }
 
 int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unlock_key, 

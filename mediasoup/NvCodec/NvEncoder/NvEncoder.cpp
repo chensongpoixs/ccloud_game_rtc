@@ -386,72 +386,103 @@ void NvEncoder::MapResources(uint32_t bfrIdx)
     }
 }
 
-void NvEncoder::EncodeFrame(std::vector<std::vector<uint8_t>> &vPacket, NV_ENC_PIC_PARAMS *pPicParams)
+//void NvEncoder::EncodeFrame(std::vector<std::vector<uint8_t>> &vPacket, NV_ENC_PIC_PARAMS *pPicParams)
+//{
+//    vPacket.clear();
+//    if (!IsHWEncoderInitialized())
+//    {
+//        NVENC_THROW_ERROR("Encoder device not found", NV_ENC_ERR_NO_ENCODE_DEVICE);
+//    }
+//	static  bool NeedsReconfigure = false;
+//	if (NeedsReconfigure)
+//	{
+//		m_initializeParams.encodeWidth = m_initializeParams.darWidth = m_nWidth;
+//		m_initializeParams.encodeHeight = m_initializeParams.darHeight = m_nHeight;
+//		// configure encoder frame
+//		NV_ENC_RC_PARAMS& RateControlParams = m_initializeParams.encodeConfig->rcParams;
+//
+//
+//
+//
+//		RateControlParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// ConvertRateControlModeNVENC(CurrentConfig.RateControlMode);
+//		RateControlParams.averageBitRate = DEFAULT_BITRATE;
+//		RateControlParams.maxBitRate = DEFAULT_BITRATE; // Not used for CBR
+//		RateControlParams.multiPass = NV_ENC_TWO_PASS_FULL_RESOLUTION;// ConvertMultipassModeNVENC(CurrentConfig.MultipassMode);
+//		RateControlParams.minQP = { 1, 1, 1 };
+//		RateControlParams.maxQP = { 51, 51, 51 };
+//		RateControlParams.enableMinQP = 1;
+//		RateControlParams.enableMaxQP = 1;
+//
+//		// If we have QP ranges turned on use the last encoded QP to guide the max QP for an i-frame, so the i-frame doesn't look too blocky
+//		// Note: this does nothing if we have i-frames turned off.
+//		/*if (RateControlParams.enableMaxQP && LastEncodedQP > 0 && CVarKeyframeQPUseLastQP.GetValueOnAnyThread())
+//		{
+//			RateControlParams.maxQP.qpIntra = LastEncodedQP;
+//		}
+//*/
+//		m_initializeParams.encodeConfig->profileGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
+//
+//		NV_ENC_CONFIG_H264& H264Config = m_initializeParams.encodeConfig->encodeCodecConfig.h264Config;
+//		H264Config.enableFillerDataInsertion = 1;
+//
+//		// `outputPictureTimingSEI` is used in CBR mode to fill video frame with data to match the requested bitrate.
+//		H264Config.outputPictureTimingSEI = 1;
+//		// helper macro to define and clear NVENC structures
+////  also sets the struct version number
+//#define NVENCStruct(OfType, VarName) \
+//	OfType	VarName = {0};	\
+//	VarName.version = OfType ## _VER
+//
+//		
+//		NVENCStruct(NV_ENC_RECONFIGURE_PARAMS, ReconfigureParams);
+//		memcpy(&ReconfigureParams.reInitEncodeParams, &m_initializeParams, sizeof(m_initializeParams));
+//		NORMAL_EX_LOG("reInitEncodeParams --- configure  !!!");
+//		auto const result = m_nvenc.nvEncReconfigureEncoder(m_hEncoder, &ReconfigureParams);
+//		if (result != NV_ENC_SUCCESS)
+//		{
+//			WARNING_EX_LOG("nvEncReconfigureEncoder failed !!! result = %u", result);
+//		}
+//		else
+//		{
+//			NORMAL_EX_LOG("nvEncReconfigureEncoder ok !!!");
+//			NeedsReconfigure = true;
+//		}
+//			//UE_LOG(LogEncoderNVENC, Error, TEXT("Failed to update NVENC encoder configuration (%s)"), *NVENC.GetErrorString(NVEncoder, result));
+//
+//		
+//	}
+//	 
+//    int bfrIdx = m_iToSend % m_nEncoderBuffer;
+//
+//    MapResources(bfrIdx);
+//
+//    NVENCSTATUS nvStatus = DoEncode(m_vMappedInputBuffers[bfrIdx], m_vBitstreamOutputBuffer[bfrIdx], pPicParams);
+//
+//    if (nvStatus == NV_ENC_SUCCESS || nvStatus == NV_ENC_ERR_NEED_MORE_INPUT)
+//    {
+//        m_iToSend++;
+//        GetEncodedPacket(m_vBitstreamOutputBuffer, vPacket, true);
+//    }
+//    else
+//    {
+//        NVENC_THROW_ERROR("nvEncEncodePicture API failed", nvStatus);
+//    }
+//}
+
+
+void NvEncoder::EncodeFrame(uint8_t* packet_ptr, uint32_t* packet_size, NV_ENC_PIC_PARAMS* pPicParams  )
 {
-    vPacket.clear();
+
+    if (!packet_size || !packet_ptr)
+    {
+        ERROR_EX_LOG("[packet_ptr = %p][packet_size = %p]", packet_ptr, packet_size);
+        return;
+    }
     if (!IsHWEncoderInitialized())
     {
         NVENC_THROW_ERROR("Encoder device not found", NV_ENC_ERR_NO_ENCODE_DEVICE);
     }
-	static  bool NeedsReconfigure = false;
-	if (NeedsReconfigure)
-	{
-		m_initializeParams.encodeWidth = m_initializeParams.darWidth = m_nWidth;
-		m_initializeParams.encodeHeight = m_initializeParams.darHeight = m_nHeight;
-		// configure encoder frame
-		NV_ENC_RC_PARAMS& RateControlParams = m_initializeParams.encodeConfig->rcParams;
 
-
-
-
-		RateControlParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// ConvertRateControlModeNVENC(CurrentConfig.RateControlMode);
-		RateControlParams.averageBitRate = DEFAULT_BITRATE;
-		RateControlParams.maxBitRate = DEFAULT_BITRATE; // Not used for CBR
-		RateControlParams.multiPass = NV_ENC_TWO_PASS_FULL_RESOLUTION;// ConvertMultipassModeNVENC(CurrentConfig.MultipassMode);
-		RateControlParams.minQP = { 1, 1, 1 };
-		RateControlParams.maxQP = { 51, 51, 51 };
-		RateControlParams.enableMinQP = 1;
-		RateControlParams.enableMaxQP = 1;
-
-		// If we have QP ranges turned on use the last encoded QP to guide the max QP for an i-frame, so the i-frame doesn't look too blocky
-		// Note: this does nothing if we have i-frames turned off.
-		/*if (RateControlParams.enableMaxQP && LastEncodedQP > 0 && CVarKeyframeQPUseLastQP.GetValueOnAnyThread())
-		{
-			RateControlParams.maxQP.qpIntra = LastEncodedQP;
-		}
-*/
-		m_initializeParams.encodeConfig->profileGUID = NV_ENC_H264_PROFILE_BASELINE_GUID;
-
-		NV_ENC_CONFIG_H264& H264Config = m_initializeParams.encodeConfig->encodeCodecConfig.h264Config;
-		H264Config.enableFillerDataInsertion = 1;
-
-		// `outputPictureTimingSEI` is used in CBR mode to fill video frame with data to match the requested bitrate.
-		H264Config.outputPictureTimingSEI = 1;
-		// helper macro to define and clear NVENC structures
-//  also sets the struct version number
-#define NVENCStruct(OfType, VarName) \
-	OfType	VarName = {0};	\
-	VarName.version = OfType ## _VER
-
-		
-		NVENCStruct(NV_ENC_RECONFIGURE_PARAMS, ReconfigureParams);
-		memcpy(&ReconfigureParams.reInitEncodeParams, &m_initializeParams, sizeof(m_initializeParams));
-		NORMAL_EX_LOG("reInitEncodeParams --- configure  !!!");
-		auto const result = m_nvenc.nvEncReconfigureEncoder(m_hEncoder, &ReconfigureParams);
-		if (result != NV_ENC_SUCCESS)
-		{
-			WARNING_EX_LOG("nvEncReconfigureEncoder failed !!! result = %u", result);
-		}
-		else
-		{
-			NORMAL_EX_LOG("nvEncReconfigureEncoder ok !!!");
-			NeedsReconfigure = true;
-		}
-			//UE_LOG(LogEncoderNVENC, Error, TEXT("Failed to update NVENC encoder configuration (%s)"), *NVENC.GetErrorString(NVEncoder, result));
-
-		
-	}
-	 
     int bfrIdx = m_iToSend % m_nEncoderBuffer;
 
     MapResources(bfrIdx);
@@ -461,7 +492,7 @@ void NvEncoder::EncodeFrame(std::vector<std::vector<uint8_t>> &vPacket, NV_ENC_P
     if (nvStatus == NV_ENC_SUCCESS || nvStatus == NV_ENC_ERR_NEED_MORE_INPUT)
     {
         m_iToSend++;
-        GetEncodedPacket(m_vBitstreamOutputBuffer, vPacket, true);
+        GetEncodedPacket(m_vBitstreamOutputBuffer, packet_ptr, packet_size, true);
     }
     else
     {
@@ -469,36 +500,36 @@ void NvEncoder::EncodeFrame(std::vector<std::vector<uint8_t>> &vPacket, NV_ENC_P
     }
 }
 
-void NvEncoder::RunMotionEstimation(std::vector<uint8_t> &mvData)
-{
-    if (!m_hEncoder)
-    {
-        NVENC_THROW_ERROR("Encoder Initialization failed", NV_ENC_ERR_NO_ENCODE_DEVICE);
-        return;
-    }
-
-    const uint32_t bfrIdx = m_iToSend % m_nEncoderBuffer;
-
-    MapResources(bfrIdx);
-
-    NVENCSTATUS nvStatus = DoMotionEstimation(m_vMappedInputBuffers[bfrIdx], m_vMappedRefBuffers[bfrIdx], m_vMVDataOutputBuffer[bfrIdx]);
-
-    if (nvStatus == NV_ENC_SUCCESS)
-    {
-        m_iToSend++;
-        std::vector<std::vector<uint8_t>> vPacket;
-        GetEncodedPacket(m_vMVDataOutputBuffer, vPacket, true);
-        if (vPacket.size() != 1)
-        {
-            NVENC_THROW_ERROR("GetEncodedPacket() doesn't return one (and only one) MVData", NV_ENC_ERR_GENERIC);
-        }
-        mvData = vPacket[0];
-    }
-    else
-    {
-        NVENC_THROW_ERROR("nvEncEncodePicture API failed", nvStatus);
-    }
-}
+//void NvEncoder::RunMotionEstimation(std::vector<uint8_t> &mvData)
+//{
+//    if (!m_hEncoder)
+//    {
+//        NVENC_THROW_ERROR("Encoder Initialization failed", NV_ENC_ERR_NO_ENCODE_DEVICE);
+//        return;
+//    }
+//
+//    const uint32_t bfrIdx = m_iToSend % m_nEncoderBuffer;
+//
+//    MapResources(bfrIdx);
+//
+//    NVENCSTATUS nvStatus = DoMotionEstimation(m_vMappedInputBuffers[bfrIdx], m_vMappedRefBuffers[bfrIdx], m_vMVDataOutputBuffer[bfrIdx]);
+//
+//    if (nvStatus == NV_ENC_SUCCESS)
+//    {
+//        m_iToSend++;
+//        std::vector<std::vector<uint8_t>> vPacket;
+//        GetEncodedPacket(m_vMVDataOutputBuffer, vPacket, true);
+//        if (vPacket.size() != 1)
+//        {
+//            NVENC_THROW_ERROR("GetEncodedPacket() doesn't return one (and only one) MVData", NV_ENC_ERR_GENERIC);
+//        }
+//        mvData = vPacket[0];
+//    }
+//    else
+//    {
+//        NVENC_THROW_ERROR("nvEncEncodePicture API failed", nvStatus);
+//    }
+//}
 
 
 void NvEncoder::GetSequenceParams(std::vector<uint8_t> &seqParams)
@@ -549,9 +580,9 @@ void NvEncoder::SendEOS()
     NVENC_API_CALL(m_nvenc.nvEncEncodePicture(m_hEncoder, &picParams));
 }
 
-void NvEncoder::EndEncode(std::vector<std::vector<uint8_t>> &vPacket)
+void NvEncoder::EndEncode(uint8_t* packet_ptr, uint32_t* packet_size /*std::vector<std::vector<uint8_t>> &vPacket*/)
 {
-    vPacket.clear();
+   // vPacket.clear();
     if (!IsHWEncoderInitialized())
     {
         NVENC_THROW_ERROR("Encoder device not initialized", NV_ENC_ERR_ENCODER_NOT_INITIALIZED);
@@ -559,12 +590,17 @@ void NvEncoder::EndEncode(std::vector<std::vector<uint8_t>> &vPacket)
 
     SendEOS();
 
-    GetEncodedPacket(m_vBitstreamOutputBuffer, vPacket, false);
+    GetEncodedPacket(m_vBitstreamOutputBuffer, packet_ptr, packet_size, false);
 }
 
-void NvEncoder::GetEncodedPacket(std::vector<NV_ENC_OUTPUT_PTR> &vOutputBuffer, std::vector<std::vector<uint8_t>> &vPacket, bool bOutputDelay)
+void NvEncoder::GetEncodedPacket(std::vector<NV_ENC_OUTPUT_PTR> &vOutputBuffer, uint8_t* packet_ptr, uint32_t* packet_size/*std::vector<std::vector<uint8_t>> &vPacket*/, bool bOutputDelay)
 {
-    unsigned i = 0;
+    if (!packet_size || !packet_ptr)
+    {
+        ERROR_EX_LOG("[packet_ptr = %p][packet_size = %p]", packet_ptr, packet_size);
+        return;
+    }
+    //unsigned i = 0;
     int iEnd = bOutputDelay ? m_iToSend - m_nOutputDelay : m_iToSend;
     for (; m_iGot < iEnd; m_iGot++)
     {
@@ -575,13 +611,15 @@ void NvEncoder::GetEncodedPacket(std::vector<NV_ENC_OUTPUT_PTR> &vOutputBuffer, 
         NVENC_API_CALL(m_nvenc.nvEncLockBitstream(m_hEncoder, &lockBitstreamData));
   
         uint8_t *pData = (uint8_t *)lockBitstreamData.bitstreamBufferPtr;
-        if (vPacket.size() < i + 1)
+        memcpy(packet_ptr + (*packet_size), &pData[0], lockBitstreamData.bitstreamSizeInBytes);
+        (*packet_size) += lockBitstreamData.bitstreamSizeInBytes;
+       /* if (vPacket.size() < i + 1)
         {
             vPacket.push_back(std::vector<uint8_t>());
         }
         vPacket[i].clear();
         vPacket[i].insert(vPacket[i].end(), &pData[0], &pData[lockBitstreamData.bitstreamSizeInBytes]);
-        i++;
+        i++;*/
 
         NVENC_API_CALL(m_nvenc.nvEncUnlockBitstream(m_hEncoder, lockBitstreamData.outputBitstream));
 
@@ -680,8 +718,10 @@ void NvEncoder::FlushEncoder()
         // flush the encoder queue and then unmapped it if any surface is still mapped
         try
         {
-            std::vector<std::vector<uint8_t>> vPacket;
-            EndEncode(vPacket);
+            //std::vector<std::vector<uint8_t>> vPacket;
+            std::shared_ptr<uint8_t> packet(new uint8_t[1920 * 1080 * 4]);
+            uint32_t packet_size = 0;
+            EndEncode(&packet.get()[0], & packet_size);
         }
         catch (...)
         {

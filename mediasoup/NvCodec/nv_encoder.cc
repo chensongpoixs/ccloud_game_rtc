@@ -88,15 +88,15 @@ VideoFrameType ConvertToVideoFrameType(EVideoFrameType type) {
 
 
 static void RtpFragmentize(EncodedImage* encoded_image,
-	const VideoFrameBuffer& frame_buffer,
-	std::vector<uint8_t>& frame_packet,
+	const VideoFrameBuffer& frame_buffer, cnv_frame_packet&  frame_packet
+	/*std::vector<uint8_t>& frame_packet*/,
 	RTPFragmentationHeader* frag_header)
 {
 	
 	size_t required_capacity = 0;
 	encoded_image->set_size(0);
 
-	required_capacity = frame_packet.size();
+	required_capacity = frame_packet.use_size;
 	//encoded_image->Allocate(required_capacity);
 
 	// TODO(nisse): Use a cache or buffer pool to avoid allocation?
@@ -105,8 +105,8 @@ static void RtpFragmentize(EncodedImage* encoded_image,
 
 	///////////////////////////////////////H264 NAL///////////////////////////////////////////////////////
 
-	memcpy(encoded_image->data() + encoded_image->size(), &frame_packet[0], frame_packet.size());
-	encoded_image->set_size(encoded_image->size() + frame_packet.size());
+	memcpy(encoded_image->data() + encoded_image->size(), &frame_packet.frame.get()[0], frame_packet.use_size);
+	encoded_image->set_size(encoded_image->size() + frame_packet.use_size);
 	
 	//////////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -504,7 +504,8 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 		// EncodeFrame output.
 		SFrameBSInfo info;
 		memset(&info, 0, sizeof(SFrameBSInfo));
-		std::vector<uint8_t> frame_packet;
+		//std::vector<uint8_t> frame_packet;
+		cnv_frame_packet  frame_packet;
 		++m_key_frame_count;
 		if (!EncodeFrame((int)i, input_frame, frame_packet))
 		{
@@ -512,19 +513,19 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 			return false;
 		}
 
-		if (frame_packet.size() == 0) 
+		if (frame_packet.use_size == 0) 
 		{
 			return WEBRTC_VIDEO_CODEC_OK;
 		}
 		else {
-			NORMAL_EX_LOG("frame size = %lu", frame_packet.size());
-			if (frame_packet[4] == 0x67) 
+			NORMAL_EX_LOG("frame size = %u", frame_packet.use_size);
+			if (frame_packet.frame.get()[4] == 0x67)
 			{
 				NORMAL_EX_LOG(" I frame  = %u", m_key_frame_count);
 				m_key_frame_count = 0;
 				info.eFrameType = videoFrameTypeIDR;
 			}
-			else if (frame_packet[4] == 0x61) 
+			else if (frame_packet.frame.get()[4] == 0x61)
 			{
 				NORMAL_EX_LOG(" P frame ");
 				info.eFrameType = videoFrameTypeP;
@@ -551,7 +552,7 @@ int32_t NvEncoder::Encode(const VideoFrame& input_frame,
 		// Split encoded image up into fragments. This also updates
 		// |encoded_image_|.
 		RTPFragmentationHeader frag_header;
-		RtpFragmentize(&encoded_images_[i], *frame_buffer, frame_packet, &frag_header);
+		RtpFragmentize(&encoded_images_[i], *frame_buffer, frame_packet , &frag_header);
 		//RtpFragmentize_webrtc(&encoded_images_[i], *frame_buffer, &info, &frag_header);
 
 		// Encoder can skip frames to save bandwidth in which case
@@ -627,10 +628,10 @@ void NvEncoder::LayerConfig::SetStreamState(bool send_stream)
 	sending = send_stream;
 }
 //static FILE *out_file_ptr = ::fopen("test_chensong2.rgb", "wb+");
-bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
-							std::vector<uint8_t>& frame_packet) 
+bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame, cnv_frame_packet& frame_packet
+							/*std::vector<uint8_t>& frame_packet*/) 
 {
-	frame_packet.clear();
+	//frame_packet.clear();
 	NORMAL_EX_LOG("");
 	if (nv_encoders_.empty() || !nv_encoders_[index])
 	{
@@ -660,8 +661,34 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 	{
 		 NORMAL_EX_LOG("");
 		 int max_buffer_size = height * width * 4;
-		 std::shared_ptr<uint8_t> out_buffer(new uint8_t[max_buffer_size]);
-		 if ( 0 != g_gpu_index  || g_dxgi_format == DXGI_FORMAT_R10G10B10A2_UNORM)
+		 //std::shared_ptr<uint8_t> out_buffer(new uint8_t[max_buffer_size]);
+		 frame_packet.frame.reset(new uint8_t[max_buffer_size]);
+		 if (g_dxgi_format == DXGI_FORMAT_R10G10B10A2_UNORM)
+		 {
+			 NORMAL_EX_LOG("");
+			 D3D11_MAPPED_SUBRESOURCE dsec = { 0 };
+			 HRESULT hr = context->Map(texture, D3D11CalcSubresource(0, 0, 0), D3D11_MAP_WRITE, 0, &dsec);
+			 if (SUCCEEDED(hr))
+			 {
+
+				 NORMAL_EX_LOG("");
+				 libyuv::ARGBCopy(input_frame.video_frame_buffer()->ToI420()->DataY(), width * 4, (uint8_t*)dsec.pData, dsec.RowPitch, width, height);
+
+				 NORMAL_EX_LOG("");
+				 context->Unmap(texture, D3D11CalcSubresource(0, 0, 0));
+				 NORMAL_EX_LOG("");
+				 int frame_size = nvenc_info.encode_texture(nv_encoders_[index], texture, 0, frame_packet.frame.get(), max_buffer_size);
+				 NORMAL_EX_LOG("");
+				 frame_packet.use_size = frame_size;
+				 if (frame_packet.use_size< 1)
+				 {
+					 ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
+					 return false;
+				 }
+
+			 }
+		 }
+		 else if ( 0 != g_gpu_index  )
 		 {
 			 NORMAL_EX_LOG("");
 			 D3D11_MAPPED_SUBRESOURCE dsec = { 0 };
@@ -674,14 +701,10 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 				 NORMAL_EX_LOG("");
 				 context->Unmap(texture, D3D11CalcSubresource(0, 0, 0));
 				 NORMAL_EX_LOG("");
-				 int frame_size =   nvenc_info.encode_texture(nv_encoders_[index], texture, 0, out_buffer.get(), max_buffer_size);
+				 int frame_size =   nvenc_info.encode_texture(nv_encoders_[index], texture, 0, frame_packet.frame.get(), max_buffer_size);
 				 NORMAL_EX_LOG("");
-				 if (frame_size > 0)
-				 {
-					 frame_packet.resize(frame_size);
-					 ::memcpy(&frame_packet[0], out_buffer.get(), frame_size);
-				 }
-				 else
+				 frame_packet.use_size = frame_size;
+				 if (frame_packet.use_size < 0) 
 				 {
 					 ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
 					 return false;
@@ -693,13 +716,9 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame,
 		 else if (input_frame.video_frame_buffer()->ToI420()->get_texture())
 		 {
 
-			 int frame_size = nvenc_info.encode_handle((void*)nv_encoders_[index], (HANDLE)input_frame.video_frame_buffer()->ToI420()->get_texture(), 0, 0, out_buffer.get(), max_buffer_size); ;
-			 if (frame_size > 0)
-			 {
-				 frame_packet.resize(frame_size);
-				 ::memcpy(&frame_packet[0], out_buffer.get(), frame_size);
-			 }
-			 else
+			 int frame_size = nvenc_info.encode_handle((void*)nv_encoders_[index], (HANDLE)input_frame.video_frame_buffer()->ToI420()->get_texture(), 0, 0, frame_packet.frame.get(), max_buffer_size); ;
+			 frame_packet.use_size = frame_size;
+			 if (frame_packet.use_size < 1)
 			 {
 				 ERROR_EX_LOG("encoder texture  frame_size = %d !!!!", frame_size);
 				 return false;
