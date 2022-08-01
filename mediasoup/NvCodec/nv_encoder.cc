@@ -289,7 +289,7 @@ int32_t NvEncoder::InitEncode(const VideoCodec* inst,
 		encoder_config nvenc_config;
 		nvenc_config.codec = "h264";
 		// …Ë÷√œÒÀÿ∏Ò Ω
-		nvenc_config.format = g_dxgi_format;//  DXGI_FORMAT_B8G8R8A8_UNORM;
+		nvenc_config.format =  g_dxgi_format;  //DXGI_FORMAT_B8G8R8A8_UNORM;
 		NORMAL_EX_LOG("[format = %u]", g_dxgi_format);
 		nvenc_config.width = configurations_[i].width;
 		nvenc_config.height = configurations_[i].height;
