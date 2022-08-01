@@ -306,7 +306,7 @@ namespace chen {
 			lpPoint->y = g_height;
 			return 1;
 		}*/
-		return 1;
+		return RealSetCursorPos(X, Y);
 	}
 
 	static ATOM  hook_RegisterClassA(_In_ CONST WNDCLASSA* lpWndClass)
