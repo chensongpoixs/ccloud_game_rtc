@@ -296,7 +296,7 @@ namespace chen {
 			lpPoint->y = g_height;
 			return 1;
 		}
-		return 0;
+		return RealGetCursorPos(lpPoint);;
 	}
 	static BOOL WINAPI hook_set_cursor_pos(_In_ int X, _In_ int Y)
 	{
@@ -895,13 +895,13 @@ namespace chen {
 
 		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
 		//ProcessEvent(MouseDownEvent);
-		/*
+		
 		g_width = PosX;
 		g_height = PosY;
-		*/
 		
+		/*
 		PosX = g_width;
-		PosY = g_height;
+		PosY = g_height;*/
 		NORMAL_EX_LOG("g_width = %d, g_height = %d, active_type = %d, PosX = %d, PoxY = %d", g_width, g_height, active_type, PosX, PosY );
 		//g_move_init = true;
 		#if defined(_MSC_VER)
@@ -922,7 +922,7 @@ namespace chen {
 		if (mwin)
 		{
 			CliENTTOSCREENPOINT(mwin, PosX, PosY);
-			MESSAGE(mwin, active_type, MAKEWPARAM(0,0), MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(mwin, active_type, 1/*MAKEWPARAM(0,0)*/, MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -1279,10 +1279,10 @@ namespace chen {
 		FEvent MouseWheelEvent(EventType::MOUSE_WHEEL);
 		MouseWheelEvent.SetMouseWheel(Delta, PosX, PosY);
 		//ProcessEvent(MouseWheelEvent);
-		/*g_width = PosX;
-		g_height = PosY;*/
-		PosX = g_width;
-		PosY = g_height;
+		g_width = PosX;
+		g_height = PosY;
+		/*PosX = g_width;
+		PosY = g_height;*/
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
 		NORMAL_EX_LOG(" PosX = %d, PoxY = %d", PosX, PosY);

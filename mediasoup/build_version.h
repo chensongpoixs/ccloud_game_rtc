@@ -1,4 +1,4 @@
 static const char * BUILD_GIT_BRANCH_NAME = "encode" ;
-static const int BUILD_GIT_REVERSION = 87   ;
-static const char * BUILD_GIT_HASH = "2e3fc69aa8225263703a2d5af513fb76a0c82f12";   ;
-static const char * BUILD_TIME = "2022-08-01 18:41:53";   
+static const int BUILD_GIT_REVERSION = 88   ;
+static const char * BUILD_GIT_HASH = "693bfb4f51d28cf684267a6c728082bd3146ee8c";   ;
+static const char * BUILD_TIME = "2022-08-02 15:26:26";   
