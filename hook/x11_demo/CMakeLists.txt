@@ -1,4 +1,4 @@
-project(cxcb_demo)
+project(x11_demo)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 MESSAGE(STATUS "#########################")
 SET(CMAKE_BUILD_TYPE Release)
@@ -15,7 +15,7 @@ INCLUDE_DIRECTORIES(
         #					${PROJECT_SOURCE_DIR}/common/cmsg
         #					${PROJECT_SOURCE_DIR}/common/cmessage
         #					#${PROJECT_SOURCE_DIR}/
-        ${PROJECT_SOURCE_DIR}
+        ../..
 )
 
 
