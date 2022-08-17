@@ -51,6 +51,7 @@ void VideoCaptureSource::OnFrame(const webrtc::VideoFrame& frame) {
 		&cropped_width, &cropped_height, &out_width, &out_height)) {
 		// Drop frame in order to respect frame rate constraint.
 		//RTC_LOG(LS_INFO) << "video adapter input failed !!!";
+        WARNING_EX_LOG("video adapter input failed !!!");
 		return;
 	}
 

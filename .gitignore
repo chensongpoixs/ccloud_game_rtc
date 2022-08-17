@@ -1,7 +1,7 @@
 .idea
 cmake-build-debug
 build
-linux/lib
+linux/old_lib
 inject/linux/inject
 inject/linux/inject32
 inject/linux/sample-library.so

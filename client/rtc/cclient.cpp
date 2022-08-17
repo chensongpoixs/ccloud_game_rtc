@@ -11,7 +11,7 @@
 #include "csend_transport.h"
 #include "cinput_device.h"
 
-#include "cinput_device_hook.h"
+//#include "cinput_device_hook.h"
 namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
@@ -73,8 +73,22 @@ namespace chen {
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 
 	const uint32_t TICK_TIME = 200;
+#ifdef __unix__
+    cclient::cclient()
+            :m_id(100000)
+            ,m_loaded(false)
+            , m_stoped(false)
+            , m_status(EMediasoup_None)
+            , m_produce_consumer(true)
+            , m_ui_type(EUI_None)
+            , m_mediasoup_status_callback(nullptr)
+            , m_websocket_timer(0)
+            , m_send_produce_video_msg(false)
+            , m_linux_app_capture_ptr(NULL)
+    {}
 
-	cclient::cclient()
+#else
+    cclient::cclient()
 		:m_id(100000)
 		,m_loaded(false)
 		, m_stoped(false)
@@ -83,7 +97,11 @@ namespace chen {
 		, m_ui_type(EUI_None)
 		, m_mediasoup_status_callback(nullptr)
 		, m_websocket_timer(0)
-		, m_send_produce_video_msg(false){}
+		, m_send_produce_video_msg(false)
+
+        {}
+#endif
+
 	cclient::~cclient(){}
 
 	static void show_work_dir()
@@ -180,6 +198,20 @@ namespace chen {
 		{
 			m_desktop_capture_ptr = nullptr;
 		}
+
+#ifdef __unix__
+        if (!g_cfg.get_string(ECI_UnixWindowId).empty())
+        {
+            m_linux_app_capture_ptr = new clinux_capture();
+            if (!m_linux_app_capture_ptr->init())
+            {
+                ERROR_EX_LOG("linux app capture init failed !!!");
+                return  false;
+            }
+            SYSTEM_LOG("linux app capture init ok !!!");
+        }
+#endif
+
 		
 		
 		mediasoupclient::Initialize();
@@ -205,10 +237,18 @@ namespace chen {
         }
 
 #ifdef __unix__
-		if (g_cfg.get_uint32(ECI_UnixWindowId)>0)
-		{
-			m_osg_work_thread = std::thread(&cclient::_start_capture_thread, this);
-		}
+        if (m_linux_app_capture_ptr)
+        {
+           if (! m_linux_app_capture_ptr->startup(g_cfg.get_string(ECI_UnixWindowId).c_str()))
+           {
+               ERROR_EX_LOG("linux app capture failed !!! window  = %s ", g_cfg.get_string(ECI_UnixWindowId).c_str());
+               return  ;
+           }
+        }
+//		if (!g_cfg.get_string(ECI_UnixWindowId).empty())
+//		{
+//			m_osg_work_thread = std::thread(&cclient::_start_capture_thread, this);
+//		}
 #endif
 		// mediasoup_ip, mediasoup_port ;
 		// room_name , client_id;
@@ -576,6 +616,19 @@ namespace chen {
 			m_desktop_capture_ptr->StopCapture();
 			m_desktop_capture_ptr = nullptr;
 		 }
+
+#ifdef __unix__
+        if (m_linux_app_capture_ptr)
+        {
+            SYSTEM_LOG("linux app cpature thread destroy ...");
+            m_linux_app_capture_ptr->stop();
+            m_linux_app_capture_ptr->destroy();
+            delete m_linux_app_capture_ptr;
+            m_linux_app_capture_ptr = NULL;
+            SYSTEM_LOG("linux app cpature thread destroy OK !!!");
+        }
+#endif
+
 		SYSTEM_LOG("osg copy thread destroy ...");
 		if (m_osg_copy_thread.joinable())
 		{
@@ -954,12 +1007,12 @@ namespace chen {
 	{
 		if (!m_webrtc_connect)
 		{
-			//WARNING_EX_LOG("not connect webrtc video wait !!!");
+			WARNING_EX_LOG("not connect webrtc video wait !!!");
 			return false;
 		}
 		if (!m_send_transport)
 		{
-			//WARNING_EX_LOG("m_send_transport == nullptr !!!");
+			WARNING_EX_LOG("m_send_transport == nullptr !!!");
 			return false;
 		}
 
@@ -1274,7 +1327,7 @@ namespace chen {
 //        unsigned  char *rgba_ptr = new unsigned char[width * height * 4];
 		while (!m_stoped)
 		{
-			capture_image( &capture_callback);
+//			capture_image( &capture_callback);
 //            capture_callback();
             //NORMAL_EX_LOG("capture image ok ....");
 			 usleep(20);

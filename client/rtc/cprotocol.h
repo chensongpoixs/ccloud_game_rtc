@@ -14,7 +14,7 @@ purpose:		protocol
 
 namespace chen {
 
-	enum  EToStreamMsg :uint8
+	enum  EToStreamMsg
 	{
 		/**********************************************************************/
 
@@ -44,7 +44,7 @@ namespace chen {
 		// Keyboard Input Message. Range = 60..69.
 		KeyDown = 60,
 		KeyUp = 61,
-		KeyPress = 62,
+		EKeyPress = 62,
 
 		// Mouse Input Messages. Range = 70..79.
 		MouseEnter = 70,
@@ -89,7 +89,7 @@ namespace chen {
 
 
 	template<typename T>
-	static const T& ParseBuffer(const uint8*& Data, uint32& Size)
+	static const T& ParseBuffer(const uint8_t*& Data, uint32_t& Size)
 	{
 		checkf(sizeof(T) <= Size, TEXT("%d - %d"), sizeof(T), Size);
 		const T& Value = *reinterpret_cast<const T*>(Data);

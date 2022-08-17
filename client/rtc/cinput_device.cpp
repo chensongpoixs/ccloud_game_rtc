@@ -14,8 +14,8 @@ purpose:		input_device
 #include "cinput_device_event.h"
 #include "rtc_base/logging.h"
 #include "clog.h"
-#include "cinput_device_hook.h"
-#include "input_helper.h"
+//#include "cinput_device_hook.h"
+//#include "input_helper.h"
 #include "ccfg.h"
 #if defined(_MSC_VER)
 #include <Windows.h>
@@ -128,42 +128,42 @@ namespace chen {
 #define REGISTER_KEYDOWN(key, value) m_keydown_map.insert(std::make_pair(key, value));
     static bool hook_input_device_logger(unsigned int level, const char *format, ...)
     {
-        bool status = false;
-	char buffer[1024 * 3] = {0};
+//        bool status = false;
+//	char buffer[1024 * 3] = {0};
+//
+//        va_list args;
+//        switch (level) {
+//            case LOG_LEVEL_INFO:
+//            {
+//                va_start(args, format);
+//
+//                status =  vsnprintf(buffer, 1024 * 3, format, args) >= 0;
+//                va_end(args);
+//                break;
+//            }
+//
+//            case LOG_LEVEL_WARN:
+//            {
+//                va_start(args, format);
+//                status =  vsnprintf(buffer, 1024 * 3, format, args) >= 0;
+//                va_end(args);
+//                break;
+//            }
+//            case LOG_LEVEL_ERROR:
+//            {
+//                va_start(args, format);
+//                status =  vsnprintf(buffer, 1024 * 3, format, args) >= 0;
+//                va_end(args);
+//                break;
+//            }
+//            default:
+//            {//ERROR_LOG("[%s][%d]" format, FUNCTION, __LINE__, ##__VA_ARGS__)
+////                WARNING_EX_LOG(f);
+//                break;
+//            }
+//        }
 
-        va_list args;
-        switch (level) {
-            case LOG_LEVEL_INFO:
-            {
-                va_start(args, format);
-
-                status =  vsnprintf(buffer, 1024 * 3, format, args) >= 0;
-                va_end(args);
-                break;
-            }
-
-            case LOG_LEVEL_WARN:
-            {
-                va_start(args, format);
-                status =  vsnprintf(buffer, 1024 * 3, format, args) >= 0;
-                va_end(args);
-                break;
-            }
-            case LOG_LEVEL_ERROR:
-            {
-                va_start(args, format);
-                status =  vsnprintf(buffer, 1024 * 3, format, args) >= 0;
-                va_end(args);
-                break;
-            }
-            default:
-            {//ERROR_LOG("[%s][%d]" format, FUNCTION, __LINE__, ##__VA_ARGS__)
-//                WARNING_EX_LOG(f);
-                break;
-            }
-        }
-
-        NORMAL_EX_LOG("input device [buffer = %s]", buffer);
+//        NORMAL_EX_LOG("input device [buffer = %s]", buffer);
 
 
         return true;
@@ -180,7 +180,7 @@ namespace chen {
 	bool cinput_device::init()
 	{
         SYSTEM_LOG(" input device hook set log  ...");
-        hook_set_logger_proc(hook_input_device_logger);
+//        hook_set_logger_proc(hook_input_device_logger);
 
         SYSTEM_LOG(" input device register mouse key ...");
 		REGISTER_INPUT_DEVICE(RequestQualityControl, &cinput_device::OnKeyChar);
@@ -203,7 +203,7 @@ namespace chen {
 		m_input_device.clear();
         SYSTEM_LOG("input device register mouse destroy ok !!!");
 		m_all_consumer.clear();
-        unload_input_device();
+//        unload_input_device();
         SYSTEM_LOG("input device unload destroy ok !!!");
 
 	}
@@ -341,17 +341,17 @@ namespace chen {
 			return false;
 		}
 #elif defined(__linux__)
-        static uiohook_event event  ;
-        event.type = EVENT_KEY_PRESSED;
-        event.mask = 0X200;
+//        static uiohook_event event  ;
+//        event.type = EVENT_KEY_PRESSED;
+//        event.mask = 0X200;
 //        event.data.keyboard.keychar = CHAR_UNDEFINED;
-        unsigned char  code =  XKeysymToKeycode(helper_disp, KeyCode);
+//        unsigned char  code =  XKeysymToKeycode(helper_disp, KeyCode);
 //        unsigned char code = XKeysymToKeycode(helper_disp, XStringToKeysym(KeyCode));
-        NORMAL_EX_LOG("code = %u", code);
-        event.data.keyboard.keycode = code;
-        event.data.keyboard.keychar = KeyCode;// VC_ESCAPE;
-        event.data.keyboard.rawcode = KeyCode;
-        hook_post_event(&event);
+//        NORMAL_EX_LOG("code = %u", code);
+//        event.data.keyboard.keycode = code;
+//        event.data.keyboard.keychar = KeyCode;// VC_ESCAPE;
+//        event.data.keyboard.rawcode = KeyCode;
+//        hook_post_event(&event);
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -409,18 +409,18 @@ namespace chen {
 			return false;
 		}
 #elif defined(__linux__)
-        static uiohook_event event;
-        event.type = EVENT_KEY_RELEASED;
-        event.mask = 0X200;
+//        static uiohook_event event;
+//        event.type = EVENT_KEY_RELEASED;
+//        event.mask = 0X200;
 //        event.data.keyboard.keychar = CHAR_UNDEFINED;
 //        unsigned char  code =  XKeysymToKeycode(helper_disp, KeyCode);
-        unsigned char  code =  XKeysymToKeycode(helper_disp, KeyCode);
-//        unsigned char code = XKeysymToKeycode(helper_disp, XStringToKeysym(KeyCode));
-        NORMAL_EX_LOG("code = %u", code);
-        event.data.keyboard.keycode = code;
-        event.data.keyboard.keychar = KeyCode;// VC_ESCAPE;
-        event.data.keyboard.rawcode = KeyCode;
-        hook_post_event(&event);
+//        unsigned char  code =  XKeysymToKeycode(helper_disp, KeyCode);
+////        unsigned char code = XKeysymToKeycode(helper_disp, XStringToKeysym(KeyCode));
+//        NORMAL_EX_LOG("code = %u", code);
+//        event.data.keyboard.keycode = code;
+//        event.data.keyboard.keychar = KeyCode;// VC_ESCAPE;
+//        event.data.keyboard.rawcode = KeyCode;
+//        hook_post_event(&event);
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -482,13 +482,13 @@ namespace chen {
 			return false;
 		}
 #elif defined(__linux__)
-        static uiohook_event event;
-        event.type = EVENT_KEY_TYPED;
-        event.mask = 0x00;
-        event.data.keyboard.keychar = Character;
-        event.data.keyboard.keycode = Character;// VC_ESCAPE;
-        event.data.keyboard.keycode = Character;
-        hook_post_event(&event);
+//        static uiohook_event event;
+//        event.type = EVENT_KEY_TYPED;
+//        event.mask = 0x00;
+//        event.data.keyboard.keychar = Character;
+//        event.data.keyboard.keycode = Character;// VC_ESCAPE;
+//        event.data.keyboard.keycode = Character;
+//        hook_post_event(&event);
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -601,13 +601,13 @@ namespace chen {
 			return false;
 		}
 #elif defined(__unix__)
-        static uiohook_event event;
-        event.type = EVENT_MOUSE_PRESSED;
-        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
-        event.data.mouse.x = PosX;
-        event.data.mouse.y = PosY;
+//        static uiohook_event event;
+//        event.type = EVENT_MOUSE_PRESSED;
+//        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
+//        event.data.mouse.x = PosX;
+//        event.data.mouse.y = PosY;
 
-        hook_post_event(&event);
+//        hook_post_event(&event);
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -669,13 +669,13 @@ namespace chen {
 			return false;
 		}
 #elif defined(__linux__)
-        static uiohook_event event;
-        event.type = EVENT_MOUSE_RELEASED;
-        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
-        event.data.mouse.x = PosX;
-        event.data.mouse.y = PosY;
+//        static uiohook_event event;
+//        event.type = EVENT_MOUSE_RELEASED;
+//        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
+//        event.data.mouse.x = PosX;
+//        event.data.mouse.y = PosY;
 
-        hook_post_event(&event);
+//        hook_post_event(&event);
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -729,13 +729,13 @@ namespace chen {
 			return false;
 		}
 #elif defined(__linux__)
-        static uiohook_event event;
-        event.type = EVENT_MOUSE_MOVED;
-        event.data.mouse.button = MOUSE_NOBUTTON; //MOUSE_BUTTON1;
-        event.data.mouse.x = PosX;
-        event.data.mouse.y = PosY;
+//        static uiohook_event event;
+//        event.type = EVENT_MOUSE_MOVED;
+//        event.data.mouse.button = MOUSE_NOBUTTON; //MOUSE_BUTTON1;
+//        event.data.mouse.x = PosX;
+//        event.data.mouse.y = PosY;
 
-        hook_post_event(&event);
+//        hook_post_event(&event);
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -743,7 +743,7 @@ namespace chen {
 		//ProcessEvent(MouseMoveEvent);
 		return true;
 	}
-	/** 
+	/** 鼠标离开控制范围？
 	* 鼠标双击
 	*/
 	bool cinput_device::OnMouseDoubleClick(const uint8*& Data,   uint32 Size)
@@ -797,13 +797,13 @@ namespace chen {
 			return false;
 		}
 #elif defined(__linux__)
-        static uiohook_event event;
-        event.type = EVENT_MOUSE_CLICKED;
-        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
-        event.data.mouse.x = PosX;
-        event.data.mouse.y = PosY;
+//        static uiohook_event event;
+//        event.type = EVENT_MOUSE_CLICKED;
+//        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
+//        event.data.mouse.x = PosX;
+//        event.data.mouse.y = PosY;
 
-        hook_post_event(&event);
+//        hook_post_event(&event);
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -847,13 +847,13 @@ namespace chen {
 			return false;
 		}
 #elif defined(__linux__)
-        static uiohook_event event;
-        event.type = EVENT_MOUSE_WHEEL;
-        event.data.wheel.x = PosX;
-        event.data.wheel.y = PosY;
-        event.data.wheel.amount = Delta;
-        event.data.wheel.rotation = Delta;
-        hook_post_event(&event);
+//        static uiohook_event event;
+//        event.type = EVENT_MOUSE_WHEEL;
+//        event.data.wheel.x = PosX;
+//        event.data.wheel.y = PosY;
+//        event.data.wheel.amount = Delta;
+//        event.data.wheel.rotation = Delta;
+//        hook_post_event(&event);
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -908,19 +908,19 @@ namespace chen {
 //        REGISTER_KEYDOWN(	45,	-);
 //        REGISTER_KEYDOWN(	46,	.);
 //        REGISTER_KEYDOWN(	47,	/);
-        REGISTER_KEYDOWN(	48,	VC_0);
-        REGISTER_KEYDOWN(	49,	VC_1);
-        REGISTER_KEYDOWN(	50,	VC_2);
-        REGISTER_KEYDOWN(	51,	VC_3);
-        REGISTER_KEYDOWN(	52,	VC_4);
-        REGISTER_KEYDOWN(	53,	VC_5);
-        REGISTER_KEYDOWN(	54,	VC_6);
-        REGISTER_KEYDOWN(	55,	VC_7);
-        REGISTER_KEYDOWN(	56,	VC_8);
-        REGISTER_KEYDOWN(	57,	VC_9);
+//        REGISTER_KEYDOWN(	48,	VC_0);
+//        REGISTER_KEYDOWN(	49,	VC_1);
+//        REGISTER_KEYDOWN(	50,	VC_2);
+//        REGISTER_KEYDOWN(	51,	VC_3);
+//        REGISTER_KEYDOWN(	52,	VC_4);
+//        REGISTER_KEYDOWN(	53,	VC_5);
+//        REGISTER_KEYDOWN(	54,	VC_6);
+//        REGISTER_KEYDOWN(	55,	VC_7);
+//        REGISTER_KEYDOWN(	56,	VC_8);
+//        REGISTER_KEYDOWN(	57,	VC_9);
 //        REGISTER_KEYDOWN(	58,	:);
 //        REGISTER_KEYDOWN(	59,	;);
-//        REGISTER_KEYDOWN(64,	@);
+//        REGISTER_KEY鼠标离开控制范围？DOWN(64,	@);
 //        REGISTER_KEYDOWN(65,	A);
 //        REGISTER_KEYDOWN(66,	B);
 //        REGISTER_KEYDOWN(67,	C);

@@ -19,7 +19,8 @@ static long current_modifier_mask = NoEventMask;
 
 static int post_key_event(uiohook_event * const event) {
     KeyCode keycode = scancode_to_keycode(event->data.keyboard.keycode);
-    if (keycode == 0x0000) {
+    if (keycode == 0x0000)
+    {
         logger(LOG_LEVEL_WARN, "%s [%u]: Unable to lookup scancode: %li\n",
                 __FUNCTION__, __LINE__, event->data.keyboard.keycode);
         return UIOHOOK_FAILURE;
@@ -88,7 +89,9 @@ static int post_key_event(uiohook_event * const event) {
         }
         #endif
 
-    } else if (event->type == EVENT_KEY_RELEASED) {
+    }
+    else if (event->type == EVENT_KEY_RELEASED)
+    {
         #ifdef USE_XTEST
         is_pressed = False;
         #else
@@ -145,11 +148,12 @@ static int post_key_event(uiohook_event * const event) {
 
 static int post_mouse_button_event(uiohook_event * const event) {
     XButtonEvent btn_event = {
+//            .type = MotionNotify,
         .serial = 0,
         .send_event = False,
         .display = helper_disp,
 
-        .window = None/*None*/,                                   /* “event” window it is reported relative to */
+        .window = g_window/*None*/,                                   /* “event” window it is reported relative to */
         .root = None,                                     /* root window that the event occurred on */
         .subwindow = g_window /*XDefaultRootWindow(helper_disp)*/,     /* child window */
 
@@ -161,7 +165,7 @@ static int post_mouse_button_event(uiohook_event * const event) {
         .x_root = 0,                                      /* coordinates relative to root */
         .y_root = 0,
 
-        .state = 0x00,                                    /* key or button mask */
+        .state = 0x00 ,                                    /* key or button mask */
         .same_screen = True
     };
 
@@ -170,7 +174,7 @@ static int post_mouse_button_event(uiohook_event * const event) {
     XTestFakeMotionEvent(btn_event.display, -1, btn_event.x, btn_event.y, 0);
     #else
     XWarpPointer(btn_event.display, g_window, btn_event.subwindow, 0, 0, 0, 0, btn_event.x, btn_event.y);
-//    XSetInputFocus(btn_event.display, g_window, RevertToNone, CurrentTime);
+//    XGetInputFocus(btn_event.display, g_window, RevertToNone, CurrentTime);
     XFlush(btn_event.display);
     #endif
 
@@ -347,7 +351,7 @@ static void post_mouse_motion_event(uiohook_event * const event) {
         .send_event = False,
         .display = helper_disp,
 
-        .window = None/*None*/,                                   /* “event” window it is reported relative to */
+        .window = g_window/*None*/,                                   /* “event” window it is reported relative to */
         .root = g_window  /*XDefaultRootWindow(helper_disp)*/,      /* root window that the event occurred on */
         .subwindow = None,                                /* child window */
 
@@ -366,7 +370,7 @@ static void post_mouse_motion_event(uiohook_event * const event) {
     };
 
     int revert;
-   // XGetInputFocus(helper_disp, &(mov_event.window), &revert);
+//    XGetInputFocus(helper_disp, &(mov_event.window), &revert);
 
     XSendEvent(helper_disp, mov_event.window, False, mov_event.state, (XEvent *) &mov_event);
     #endif

@@ -62,6 +62,12 @@ bool DesktopCapture::Init(size_t target_fps, size_t capture_screen_index)
     return false;
   }
 
+  for (auto &source : sources)
+  {
+      NORMAL_EX_LOG("[screen_id = %u][screen name = %s]", source.id,  source.title.c_str());
+  }
+
+
   RTC_CHECK(dc_->SelectSource(sources[capture_screen_index].id));
   window_title_ = sources[capture_screen_index].title;
   fps_ = target_fps;

@@ -5,7 +5,7 @@ MESSAGE(STATUS "#########################")
 
 
 file(GLOB ALL_C_SRCS
-        ./*.c
+        ./xcomposite.c
         )
 
 # CXXFLAGS="-O3 -fPIC"

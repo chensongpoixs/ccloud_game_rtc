@@ -13,7 +13,7 @@ purpose:		input_device_event
 #include "api/data_channel_interface.h"
 #include <map>
 #include "cprotocol.h"
-#include "cinput_device_hook.h"
+//#include "cinput_device_hook.h"
 namespace chen {
 
 	namespace EMouseButtons
@@ -419,17 +419,17 @@ namespace chen {
             {
                 case 0:
                 {
-                    OutButton = MOUSE_BUTTON1; //Event ==EventType::MOUSE_DOWN  ?   WM_LBUTTONDOWN : WM_LBUTTONUP; // EMouseButtons::Left;
+                    OutButton = 1; //MOUSE_BUTTON1; //Event ==EventType::MOUSE_DOWN  ?   WM_LBUTTONDOWN : WM_LBUTTONUP; // EMouseButtons::Left;
                 }
                     break;
                 case 1:
                 {
-                    OutButton = MOUSE_BUTTON3;// Event ==EventType::MOUSE_DOWN  ?    WM_MBUTTONDOWN : WM_MBUTTONUP;  ; // EMouseButtons::Middle;
+                    OutButton = 3; //MOUSE_BUTTON3;// Event ==EventType::MOUSE_DOWN  ?    WM_MBUTTONDOWN : WM_MBUTTONUP;  ; // EMouseButtons::Middle;
                 }
                     break;
                 case 2:
                 {
-                    OutButton = MOUSE_BUTTON2; // Event ==EventType::MOUSE_DOWN  ? WM_RBUTTONDOWN: WM_RBUTTONUP ; // EMouseButtons::Right;
+                    OutButton = 2; //MOUSE_BUTTON2; // Event ==EventType::MOUSE_DOWN  ? WM_RBUTTONDOWN: WM_RBUTTONUP ; // EMouseButtons::Right;
                 }
                     break;
                 case 3:

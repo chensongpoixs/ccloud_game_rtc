@@ -5,8 +5,8 @@ MESSAGE(STATUS "#########################")
  
 
 file(GLOB ALL_CXX_SRCS
-        ./input_device/*.h
-        ./input_device/*.c
+#        ./input_device/*.h
+#        ./input_device/*.c
         ./*.h
         ./*.c
                        ./*.cpp 
@@ -22,10 +22,17 @@ file(GLOB ALL_CXX_SRCS
 
 )
 
-add_executable(${PROJECT_NAME} ${ALL_CXX_SRCS})
-add_dependencies(${PROJECT_NAME} input_device)
+# CXXFLAGS="-O3 -fPIC"
 
-set(ALL_LIB   input_device
+#############################################################################
+#
+
+#############################################################################
+#add_library(${PROJECT_NAME}  SHARED   ${ALL_CXX_SRCS}   ) #SHARED  STATIC
+add_executable(${PROJECT_NAME}    ${ALL_CXX_SRCS})
+#add_dependencies(${PROJECT_NAME} input_device)
+#input_device
+set(ALL_LIB
 pthread
 Xtst
         Xft
@@ -68,6 +75,7 @@ Xtst
         -lXt
         Xinerama
         xcb-composite
+        libinput_device.a
         )
 
 

@@ -166,10 +166,11 @@ endif()
 #        "${UIOHOOK_SOURCE_DIR}/system_properties.c"
 #        )
 
-file(GLOB ALL_C_SRCS
-        ./*.c
-        ./${INPUT_DEVICE_SOURCE_DIR}/*.c
-        )
-
-add_library(${PROJECT_NAME} STATIC ${ALL_C_SRCS})
-target_link_libraries(${PROJECT_NAME} )
+#file(GLOB ALL_C_SRCS
+#        ./*.c
+#        ./${INPUT_DEVICE_SOURCE_DIR}/*.c
+#        )
+##set(CMAKE_CXX_FLAGS         " -O3 -fPIC ")  #注意调试的话,此行代码一定要添加!
+##set(CMAKE_CXX_FLAGS         "-std=c++11   -fno-rtti  -fPIC ")  #注意调试的话,此行代码一定要添加!
+#add_library(${PROJECT_NAME} STATIC ${ALL_C_SRCS})
+#target_link_libraries(${PROJECT_NAME} )

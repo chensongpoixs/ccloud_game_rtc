@@ -207,7 +207,8 @@ UIOHOOK_API void hook_post_event(uiohook_event * const event) {
     int status = UIOHOOK_FAILURE;
 
     INPUT *input = (INPUT *) calloc(1, sizeof(INPUT))   ;
-    if (input == NULL) {
+    if (input == NULL)
+    {
         logger(LOG_LEVEL_ERROR, "%s [%u]: failed to allocate memory: calloc!\n",
                 __FUNCTION__, __LINE__);
         return; // UIOHOOK_ERROR_OUT_OF_MEMORY

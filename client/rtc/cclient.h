@@ -11,6 +11,7 @@
 #include "csingleton.h"
 #include "cdesktop_capture.h"
 #include "cmediasoup_mgr.h"
+#include "clinux_capture.h"
 namespace chen {
 
 	class csend_transport;
@@ -195,6 +196,9 @@ namespace chen {
 		cmediasoup::mediasoup_status_update_cb		m_mediasoup_status_callback;
 		uint32							m_websocket_timer;
 		bool							m_send_produce_video_msg;
+#ifdef __unix__
+        clinux_capture *                m_linux_app_capture_ptr;
+#endif
 
 	};
 #define  s_client chen::csingleton<chen::cclient>::get_instance()

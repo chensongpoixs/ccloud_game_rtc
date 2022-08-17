@@ -56,8 +56,7 @@ bool init()
 bool ewmhIsSupported()
 {
     Display *display = xdisp;
-    Atom netSupportingWmCheck =
-            XInternAtom(display, "_NET_SUPPORTING_WM_CHECK", true);
+    Atom netSupportingWmCheck = XInternAtom(display, "_NET_SUPPORTING_WM_CHECK", true);
     Atom actualType;
     int format = 0;
     unsigned long num = 0, bytes = 0;
@@ -115,7 +114,8 @@ std::list<Window> getTopLevelWindows()
     unsigned long num, bytes;
     Window *data = 0;
 
-    for (int i = 0; i < ScreenCount(xdisp); ++i) {
+    for (int i = 0; i < ScreenCount(xdisp); ++i)
+    {
         Window rootWin = RootWindow(xdisp, i);
 
         int status = XGetWindowProperty(xdisp, rootWin, netClList, 0L,
@@ -124,8 +124,7 @@ std::list<Window> getTopLevelWindows()
                                         &bytes, (uint8_t **)&data);
 
         if (status != Success) {
-            printf("Failed getting root "
-                              "window properties\n");
+            printf("Failed getting root  window properties\n");
             continue;
         }
 
@@ -214,36 +213,38 @@ inline std::string getWindowClass(Window win)
 
 void show_all_window()
 {
-    std::vector<WindowInfo> window_strings;
-    for (Window win : getTopLevelWindows()) {
+//    std::vector<WindowInfo> window_strings;
+    for (Window win : getTopLevelWindows())
+    {
         std::string wname =  getWindowName(win);
         std::string cls =  getWindowClass(win);
         std::string winid = std::to_string((long long)win);
-        std::string desc = (winid + WIN_STRING_DIV + wname + WIN_STRING_DIV + cls);
+        printf("[wname = %s][cls = %s][winid = %s]\n", wname.c_str(), cls.c_str(), winid.c_str());
+//        std::string desc = (winid + WIN_STRING_DIV + wname + WIN_STRING_DIV + cls);
 
-        std::string wname_lowercase = wname;
-        std::transform(wname_lowercase.begin(), wname_lowercase.end(),
-                       wname_lowercase.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
-
-        window_strings.push_back({.lex_comparable = wname_lowercase,
-                                         .name = wname,
-                                         .desc = desc});
+//        std::string wname_lowercase = wname;
+//        std::transform(wname_lowercase.begin(), wname_lowercase.end(),
+//                       wname_lowercase.begin(),
+//                       [](unsigned char c) { return std::tolower(c); });
+//
+//        window_strings.push_back({.lex_comparable = wname_lowercase,
+//                                         .name = wname,
+//                                         .desc = desc});
     }
 
-    std::sort(window_strings.begin(), window_strings.end(),
-              [](const WindowInfo &a, const WindowInfo &b) -> bool {
-                  return std::lexicographical_compare(
-                          a.lex_comparable.begin(),
-                          a.lex_comparable.end(),
-                          b.lex_comparable.begin(),
-                          b.lex_comparable.end());
-              });
-
-    for (auto s : window_strings)
-    {
-        printf("[lex_comparable = %s][name = %s][desc = %s]\n", s.lex_comparable.c_str(), s.name.c_str(), s.desc.c_str());
-    }
+//    std::sort(window_strings.begin(), window_strings.end(),
+//              [](const WindowInfo &a, const WindowInfo &b) -> bool {
+//                  return std::lexicographical_compare(
+//                          a.lex_comparable.begin(),
+//                          a.lex_comparable.end(),
+//                          b.lex_comparable.begin(),
+//                          b.lex_comparable.end());
+//              });
+//
+//    for (auto s : window_strings)
+//    {
+//        printf("[lex_comparable = %s][name = %s][desc = %s]\n", s.lex_comparable.c_str(), s.name.c_str(), s.desc.c_str());
+//    }
 
 }
 
