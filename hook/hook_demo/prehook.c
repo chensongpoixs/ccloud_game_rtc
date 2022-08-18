@@ -103,16 +103,16 @@ void show_hook_info(Display *display, const XEvent* e)
 //                unsigned int keycode;	/* detail */
 //                Bool same_screen;	/* same screen flag */
 //            } XKeyEvent;
-            (void)sprintf(buffer, "[KeyPress  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %p][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
+            int len = sprintf(buffer, "[KeyPress  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
                           e->xkey.type, display, e->xkey.serial, e->xkey.send_event, e->xkey.display, e->xkey.window, e->xkey.root, e->xkey.subwindow, e->xkey.x, e->xkey.y, e->xkey.x_root, e->xkey.y_root, e->xkey.state, e->xkey.keycode, e->xkey.same_screen);
-            show(buffer, sizeof(buffer));
+            show(buffer, len);
             break;
         }
         case KeyRelease:
         {
-            (void)sprintf(buffer, "[KeyRelease  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %p][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
+            int len =  sprintf(buffer, "[KeyRelease  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
                           e->xkey.type, display, e->xkey.serial, e->xkey.send_event, e->xkey.display, e->xkey.window, e->xkey.root, e->xkey.subwindow, e->xkey.x, e->xkey.y, e->xkey.x_root, e->xkey.y_root, e->xkey.state, e->xkey.keycode, e->xkey.same_screen);
-            show(buffer, sizeof(buffer));
+            show(buffer, len);
             break;
         }
         case ButtonPress:
@@ -133,16 +133,16 @@ void show_hook_info(Display *display, const XEvent* e)
 //                unsigned int button;	/* detail */
 //                Bool same_screen;	/* same screen flag */
 //            } XButtonEvent;
-            (void)sprintf(buffer, "[ButtonPress type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %p][root = %p][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
+            int len =  sprintf(buffer, "[ButtonPress type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %p][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
                           e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
-            show(buffer, sizeof (buffer));
+            show(buffer, len);
             break;
         }
         case ButtonRelease:
         {
-            (void)sprintf(buffer, "[ButtonRelease type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %p][root = %p][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
+            int len =  sprintf(buffer, "[ButtonRelease type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %p][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
                           e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
-            show(buffer, sizeof (buffer));
+            show(buffer, len);
             break;
         }
         case MotionNotify:
@@ -164,167 +164,197 @@ void show_hook_info(Display *display, const XEvent* e)
 //                Bool same_screen;	/* same screen flag */
 //            } XMotionEvent;
 
-            (void)sprintf(buffer, "[MotionNotify type = %u][ display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %p][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][is_hint = %c][same_screen = %d]\n",
+            int len =  sprintf(buffer, "[MotionNotify type = %u][ display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][is_hint = %c][same_screen = %d]\n",
                           e->xmotion.type, display, e->xmotion.serial, e->xmotion.send_event, e->xmotion.display, e->xmotion.window, e->xmotion.root, e->xmotion.subwindow, e->xmotion.x, e->xmotion.y, e->xmotion.x_root, e->xmotion.y_root, e->xmotion.state, e->xmotion.is_hint, e->xmotion.same_screen);
 
-           show(buffer, sizeof(buffer));
+           show(buffer, len);
             break;
         }
         case EnterNotify:
         {
-            show("EnterNotify", strlen("EnterNotify"));
+            int len =  sprintf(buffer, "EnterNotify   = %d", EnterNotify);
+            show(buffer, len);
             break;
         }
         case LeaveNotify:
         {
-            show("LeaveNotify", strlen("LeaveNotify"));
+            int len =  sprintf(buffer, "LeaveNotify   = %d", LeaveNotify);
+            show(buffer, len);
             break;
         }
         case FocusIn:
         {
-            show("FocusIn", strlen("FocusIn"));
+            int len =  sprintf(buffer, "FocusIn   = %d", FocusIn);
+            show(buffer, len);
             break;
         }
         case FocusOut:
         {
-            show("FocusOut", strlen("FocusOut"));
+            int len =  sprintf(buffer, "FocusOut   = %d", FocusOut);
+            show(buffer, len);
             break;
         }
         case KeymapNotify:
         {
-            show("KeymapNotify", strlen("KeymapNotify"));
+            int len =  sprintf(buffer, "KeymapNotify   = %d", KeymapNotify);
+            show(buffer, len);
             break;
         }
         case Expose:
         {
-            show("Expose", strlen("Expose"));
+            int len =  sprintf(buffer, "Expose   = %d", Expose);
+            show(buffer, len);
             break;
         }
         case GraphicsExpose:
         {
-            show("GraphicsExpose", strlen("GraphicsExpose"));
+            int len =  sprintf(buffer, "GraphicsExpose   = %d", GraphicsExpose);
+            show(buffer, len);
             break;
         }
         case NoExpose:
         {
-            show("NoExpose", strlen("NoExpose"));
+            int len =  sprintf(buffer, "NoExpose   = %d", NoExpose);
+            show(buffer, len);
             break;
         }
         case VisibilityNotify:
         {
-            show("VisibilityNotify", strlen("VisibilityNotify"));
+            int len =  sprintf(buffer, "VisibilityNotify   = %d", VisibilityNotify);
+            show(buffer, len);
             break;
         }
         case CreateNotify:
         {
-            show("CreateNotify", strlen("CreateNotify"));
+            int len =  sprintf(buffer, "CreateNotify   = %d", CreateNotify);
+            show(buffer, len);
             break;
         }
         case DestroyNotify:
         {
-            show("DestroyNotify", strlen("DestroyNotify"));
+            int len =  sprintf(buffer, "DestroyNotify   = %d", DestroyNotify);
+            show(buffer, len);
             break;
         }
         case UnmapNotify:
         {
-            show("UnmapNotify", strlen("UnmapNotify"));
+            int len =  sprintf(buffer, "UnmapNotify   = %d", UnmapNotify);
+            show(buffer, len);
             break;
         }
         case MapNotify:
         {
-            show("MapNotify", strlen("MapNotify"));
+            int len =  sprintf(buffer, "MapNotify   = %d", MapNotify);
+            show(buffer, len);
             break;
         }
         case MapRequest:
         {
-            show("MapRequest", strlen("MapRequest"));
+            int len =  sprintf(buffer, "MapRequest   = %d", MapRequest);
+            show(buffer, len);
             break;
         }
         case ReparentNotify:
         {
-            show("ReparentNotify", strlen("ReparentNotify"));
+            int len =  sprintf(buffer, "ReparentNotify   = %d", ReparentNotify);
+            show(buffer, len);
             break;
         }
         case ConfigureNotify:
         {
-            show("ConfigureNotify", strlen("ConfigureNotify"));
+            int len =  sprintf(buffer, "ConfigureNotify   = %d", ConfigureNotify);
+            show(buffer, len);
             break;
         }
         case ConfigureRequest:
         {
-            show("ConfigureRequest", strlen("ConfigureRequest"));
+            int len =  sprintf(buffer, "ConfigureRequest   = %d", ConfigureRequest);
+            show(buffer, len);
             break;
         }
         case GravityNotify:
         {
-            show("GravityNotify", strlen("GravityNotify"));
+            int len =  sprintf(buffer, "GravityNotify   = %d", GravityNotify);
+            show(buffer, len);
             break;
         }
         case ResizeRequest:
         {
-            show("ResizeRequest", strlen("ResizeRequest"));
+            int len =  sprintf(buffer, "ResizeRequest   = %d", ResizeRequest);
+            show(buffer, len);
             break;
         }
         case CirculateNotify:
         {
-            show("CirculateNotify", strlen("CirculateNotify"));
+            int len =  sprintf(buffer, "CirculateNotify   = %d", CirculateNotify);
+            show(buffer, len);
             break;
         }
         case CirculateRequest:
         {
-            show("CirculateRequest", strlen("CirculateRequest"));
+            int len =  sprintf(buffer, "CirculateRequest   = %d", CirculateRequest);
+            show(buffer, len);
             break;
         }
         case PropertyNotify:
         {
-            show("PropertyNotify", strlen("PropertyNotify"));
+            int len =  sprintf(buffer, "PropertyNotify   = %d", PropertyNotify);
+            show(buffer, len);
             break;
         }
         case SelectionClear:
         {
-            show("SelectionClear", strlen("SelectionClear"));
+            int len =  sprintf(buffer, "SelectionClear   = %d", SelectionClear);
+            show(buffer, len);
             break;
         }
         case SelectionRequest:
         {
-            show("SelectionRequest", strlen("SelectionRequest"));
+            int len =  sprintf(buffer, "SelectionRequest   = %d", SelectionRequest);
+            show(buffer, len);
             break;
         }
         case SelectionNotify:
         {
-            show("SelectionNotify", strlen("SelectionNotify"));
+            int len =  sprintf(buffer, "SelectionNotify   = %d", SelectionNotify);
+            show(buffer, len);
             break;
         }
         case ColormapNotify:
         {
-            show("ColormapNotify", strlen("ColormapNotify"));
+            int len =  sprintf(buffer, "ColormapNotify   = %d", ColormapNotify);
+            show(buffer, len);
             break;
         }
         case ClientMessage:
         {
-            show("ClientMessage", strlen("ClientMessage"));
+            int len =  sprintf(buffer, "ClientMessage   = %d", ClientMessage);
+            show(buffer, len);
             break;
         }
         case MappingNotify:
         {
-            show("MappingNotify", strlen("MappingNotify"));
+            int len =  sprintf(buffer, "MappingNotify   = %d", MappingNotify);
+            show(buffer, len);
             break;
         }
         case GenericEvent:
         {
-            show("GenericEvent", strlen("GenericEvent"));
+            int len =  sprintf(buffer, "GenericEvent   = %d", GenericEvent);
+            show(buffer, len);
             break;
         }
         case LASTEvent:
         {
-            show("LASTEvent", strlen("LASTEvent"));
+            int len =  sprintf(buffer, "LASTEvent   = %d", LASTEvent);
+            show(buffer, len);
             break;
         }
         default:
         {
             char buffer[1024] = {0};
-            sprintf(buffer, "unknow type = %u\n", e->type);
-            show(buffer, sizeof(buffer));
+            int len =  sprintf(buffer, "unknow type = %u\n", e->type);
+            show(buffer, len);
             break;
         }
     }
@@ -359,21 +389,13 @@ static int *(*real_XNextEvent)(
         real_XNextEvent = dlsym(RTLD_NEXT, "XNextEvent");
     }
 
-      call_time_out("start call");
-
       int ret = real_XNextEvent(d, e);
       {
           e->xbutton.serial + g_new_seria + 1;
-//          e->xbutton.subwindow = 0;
 
-          call_time_out("start end");
-//          char buffer[10240] = {0};
           show_hook_info(d, e);
 
-//
-//          (void) sprintf(buffer, "pid = %lu] [real_XNextEvent   == %p][type = %u]\n", gettid(),   real_XNextEvent, e->type);
-//
-//          (void) write(1, buffer, strlen(buffer));
+
       }
 
     return ret;
@@ -396,13 +418,12 @@ long	event_mask	/* event_mask */
       {
           real_XSelectInput = dlsym(RTLD_NEXT, "XSelectInput");
       }
+
+      int size  = real_XSelectInput(display, w, event_mask);
       char buffer[102400] = {0};
-
-      (void)sprintf(buffer, "[real_XSelectInput][display = %p][window = %p][event_mask = %lu]\n", display, w, event_mask);
-      (void)write(1, buffer, sizeof(buffer));
-
-
-      return real_XSelectInput(display, w, event_mask);
+      (void)sprintf(buffer, "[real_XSelectInput][display = %p][window = %u][event_mask = %lu][ret = %u]\n", display, w, event_mask, size);
+      (void)write(1, buffer, strlen(buffer));
+      return size;
   }
 static  int* (*real_XPending)(
         Display*	display	/* display */
@@ -420,7 +441,7 @@ int XPending(
         char buffer[102400] = {0};
 
         (void)sprintf(buffer, "[real_XPending][display = %p] \n", display);
-        (void)write(1, buffer, sizeof(buffer));
+        (void)write(1, buffer, strlen(buffer));
 
 
         return real_XPending(display );
