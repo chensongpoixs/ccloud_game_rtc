@@ -51,6 +51,7 @@ LINK_DIRECTORIES(
         ${PROJECT_SOURCE_DIR}/linux/old_lib
        ${WEBRTC_DIR}/lib/
        )
+add_subdirectory(hook)
 add_subdirectory(client/linux_capture)
 # add_subdirectory(client/input_device)
  add_subdirectory(client)
