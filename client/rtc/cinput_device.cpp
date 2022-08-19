@@ -71,6 +71,7 @@ static  clock_type                      g_xevent_lock;
 
 static Display  *                              g_display_ptr = NULL;
 static Window                           g_main_window = 0;
+static unsigned  long                   g_count = 0;
 static  uint32_t g_new_seria = 0;
 static  uint32_t g_core_seria = 0;
 
@@ -568,9 +569,9 @@ int XPending( Display*	display	/* display */ )
 //
 //    (void)sprintf(buffer, "[real_XPending][display = %p][size = %u] \n", display, size);
 //    (void)write(1, buffer, strlen(buffer));
-//
-//    using namespace  chen;
-//    NORMAL_EX_LOG("[real_XPending][display = %p][size = %u] \n", display, size);
+
+    using namespace  chen;
+    NORMAL_EX_LOG("[real_XPending][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
 
     return size;
 }
@@ -1377,6 +1378,7 @@ namespace chen {
         xButton.xbutton.same_screen = 1;
         xButton.xbutton.button = 1;
         xButton.xbutton.state = 16;
+        xButton.xbutton.time = CurrentTime;
 //        {
 //            clock_guard lock(g_xevent_lock);
 ////            g_xevent.push_back(xButton);
@@ -1385,7 +1387,10 @@ namespace chen {
         xButton.xbutton.window = g_main_window;
         if (g_main_window && g_display_ptr)
         {
-            XSendEvent(g_display_ptr, g_main_window, True, 0xfff, &xButton);
+//            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
+            XSendEvent(g_display_ptr, g_main_window, True, ButtonPress, &xButton);
+            XSync(g_display_ptr, true);
+            XFlush(g_display_ptr);
         }
 
 #else
@@ -1461,11 +1466,15 @@ namespace chen {
         xButton.xbutton.send_event = 0;
         xButton.xbutton.same_screen = 1;
         xButton.xbutton.button = 1;
+        xButton.xbutton.time = CurrentTime;
 //        xButton.xbutton.state = 16;
         xButton.xbutton.window = g_main_window;
         if (g_main_window && g_display_ptr)
         {
-            XSendEvent(g_display_ptr, g_main_window, True, 0xfff, &xButton);
+//            XTestFakeButtonEvent(g_display_ptr, -1, False, CurrentTime);
+            XSendEvent(g_display_ptr, g_main_window, True, ButtonRelease, &xButton);
+            XSync(g_display_ptr, true);
+            XFlush(g_display_ptr);
         }
 //        {
 //            clock_guard lock(g_xevent_lock);
@@ -1544,6 +1553,7 @@ namespace chen {
             xmouse.xmotion.send_event = 0;
             xmouse.xmotion.same_screen = 1;
             xmouse.xmotion.window = g_main_window;
+            xmouse.xmotion.time = CurrentTime;
 //        {
 ////
 //
@@ -1558,7 +1568,10 @@ namespace chen {
 
             if (g_display_ptr && g_main_window)
             {
-                XSendEvent(g_display_ptr, g_main_window, True, 0xfff, &xmouse);
+//                XTestFakeMotionEvent(g_display_ptr, -1, PosX, PosY, CurrentTime);
+                XSendEvent(g_display_ptr, g_main_window, True, MotionNotify, &xmouse);
+                XSync(g_display_ptr, true);
+                XFlush(g_display_ptr);
 //                XQueryPointer(g_display_ptr, DefaultRootWindow(g_display_ptr ), &event.xbutton.root, &event.xbutton.window,
 //                              &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
 
