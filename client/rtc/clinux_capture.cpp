@@ -12,6 +12,7 @@ purpose:		linux_app_capture
 #include "clog.h"
 #include "cclient.h"
 #include "ccfg.h"
+#include "cinput_device.h"
 namespace  chen {
 
     static std::string getWindowAtom(Display * xdisp, Window win, const char *atom)
@@ -122,6 +123,7 @@ namespace  chen {
             ERROR_EX_LOG("not find window_name = %s", window_name);
             return false;
         }
+        s_input_device.set_main_window(m_win);
 //        m_win = win;
         xcb_generic_error_t *err = NULL, *err2 = NULL;
         m_connection_ptr = xcb_connect(NULL,NULL); //XGetXCBConnection(helper_disp);

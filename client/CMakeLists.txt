@@ -28,8 +28,8 @@ file(GLOB ALL_CXX_SRCS
 #
 
 #############################################################################
-#add_library(${PROJECT_NAME}  SHARED   ${ALL_CXX_SRCS}   ) #SHARED  STATIC
-add_executable(${PROJECT_NAME}    ${ALL_CXX_SRCS})
+add_library(${PROJECT_NAME}  SHARED   ${ALL_CXX_SRCS}   ) #SHARED  STATIC
+#add_executable(${PROJECT_NAME}    ${ALL_CXX_SRCS})
 #add_dependencies(${PROJECT_NAME} input_device)
 #input_device
 set(ALL_LIB

@@ -7,10 +7,39 @@ purpose:		input_device
 ************************************************************************************************/
 
 #include "cinput_device.h"
+//#define _GNU_SOURCE
+#include <sys/types.h>
+//#include <dlfcn.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+//#include <sys/syscall.h>
+#include <sys/time.h>
+//#include <opencl-c.h>
+//#include <GL/glu.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <SDL2/SDL.h>
+//#include <Xlib.h>
+#include <X11/Xlib.h>
+//#include <gtk/gtk.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <X11/extensions/XTest.h>
-#include "cprotocol.h"
+//#include <GL/wglew.h>
+//#include <GL/glew.h>
+//typedef void	(*t_glFlush)(void);
+//FILE  * out_log_file_ptr = fopen("./log/hook.log", "wb+");
+//#include <>
+
+
+//#include <xcb/xproto.h>
+#define gettid() syscall(__NR_gettid)
+//#include "cprotocol.h"
 #include "cinput_device_event.h"
 #include "rtc_base/logging.h"
 #include "clog.h"
@@ -21,6 +50,533 @@ purpose:		input_device
 #include <Windows.h>
 #include "cwindow_util.h"
 #endif // WIN
+
+#if defined(__unix__)
+
+//#define _GNU_SOURCE
+#include <dlfcn.h>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <xcb/xproto.h>
+#include <list>
+#include <X11/Xlib.h>
+
+typedef std::mutex                    clock_type;
+typedef std::lock_guard<std::mutex>  clock_guard;
+static std::list<XEvent >               g_xevent;
+static  clock_type                      g_xevent_lock;
+
+static Display  *                              g_display_ptr = NULL;
+static Window                           g_main_window = 0;
+static  uint32_t g_new_seria = 0;
+static  uint32_t g_core_seria = 0;
+
+
+//#define gettid() syscall(__NR_gettid)
+
+typedef  int (*Hook_XNextEvent)( Display*	d 	/* display */, XEvent*		e/* event_return */ )   ;
+static  Hook_XNextEvent   real_XNextEvent = NULL;
+typedef int (*Hook_XSelectInput)(  Display*	display	/* display */, Window	w	/* w */, long		event_mask/* event_mask */ )  ;
+static Hook_XSelectInput real_XSelectInput = NULL;
+typedef   int  (*Hook_XPending)(  Display*	display	/* display */ )  ;
+static Hook_XPending  real_XPending = NULL;
+
+typedef int (*Hook_select) (int __nfds, fd_set *__restrict __readfds,
+                    fd_set *__restrict __writefds,
+                    fd_set *__restrict __exceptfds,
+                    struct timeval *__restrict __timeout);
+static Hook_select real_select = NULL;
+
+
+
+//int select(int __nfds, fd_set *__restrict __readfds,
+//fd_set *__restrict __writefds,
+//        fd_set *__restrict __exceptfds,
+//struct timeval *__restrict __timeout)
+//{
+//    if (!real_select)
+//    {
+//        real_select = reinterpret_cast<Hook_select>(dlsym(RTLD_NEXT, "select"));
+//    }
+////    poll
+//    if (g_display_ptr)
+//    {
+//        using namespace chen;
+//        ERROR_EX_LOG("select fd = %s, display fd = %u", __nfds, ConnectionNumber(g_display_ptr));
+//    }
+//    return real_select(__nfds, __readfds, __writefds, __exceptfds, __timeout);
+//}
+//ConnectionNumber
+
+
+
+
+
+
+
+
+
+
+
+void show(const char * str, size_t len)
+{
+//    XCheckIfEvent
+//    char buffer[10240] = {0};
+//    (void) sprintf(buffer, "real_XNextEvent %s [time_now :%d-%d-%d %d:%d:%d.%ld]\n", str, 1900 + t->tm_year,
+//                   1+t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, tv.tv_usec);
+    using namespace chen;
+    ERROR_EX_LOG("=================[%s]", std::string(str, len).c_str());
+}
+void show_hook_info(Display *display, const XEvent* e)
+{
+    char buffer[102400] = {0};
+
+    switch (e->type)
+    {
+        case KeyPress:
+        {
+//            typedef struct {
+//                int type;		/* of event */
+//                unsigned long serial;	/* # of last request processed by server */
+//                Bool send_event;	/* true if this came from a SendEvent request */
+//                Display *display;	/* Display the event was read from */
+//                Window window;	        /* "event" window it is reported relative to */
+//                Window root;	        /* root window that the event occurred on */
+//                Window subwindow;	/* child window */
+//                Time time;		/* milliseconds */
+//                int x, y;		/* pointer x, y coordinates in event window */
+//                int x_root, y_root;	/* coordinates relative to root */
+//                unsigned int state;	/* key or button mask */
+//                unsigned int keycode;	/* detail */
+//                Bool same_screen;	/* same screen flag */
+//            } XKeyEvent;
+//            g_main_window = e->xkey.window;
+            int len = sprintf(buffer, "[KeyPress  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
+                              e->xkey.type, display, e->xkey.serial, e->xkey.send_event, e->xkey.display, e->xkey.window, e->xkey.root, e->xkey.subwindow, e->xkey.x, e->xkey.y, e->xkey.x_root, e->xkey.y_root, e->xkey.state, e->xkey.keycode, e->xkey.same_screen);
+            show(buffer, len);
+            break;
+        }
+        case KeyRelease:
+        {
+            int len =  sprintf(buffer, "[KeyRelease  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
+                               e->xkey.type, display, e->xkey.serial, e->xkey.send_event, e->xkey.display, e->xkey.window, e->xkey.root, e->xkey.subwindow, e->xkey.x, e->xkey.y, e->xkey.x_root, e->xkey.y_root, e->xkey.state, e->xkey.keycode, e->xkey.same_screen);
+            show(buffer, len);
+            break;
+        }
+        case ButtonPress:
+        {
+            //
+//            typedef struct {
+//                int type;		/* of event */
+//                unsigned long serial;	/* # of last request processed by server */
+//                Bool send_event;	/* true if this came from a SendEvent request */
+//                Display *display;	/* Display the event was read from */
+//                Window window;	        /* "event" window it is reported relative to */
+//                Window root;	        /* root window that the event occurred on */
+//                Window subwindow;	/* child window */
+//                Time time;		/* milliseconds */
+//                int x, y;		/* pointer x, y coordinates in event window */
+//                int x_root, y_root;	/* coordinates relative to root */
+//                unsigned int state;	/* key or button mask */
+//                unsigned int button;	/* detail */
+//                Bool same_screen;	/* same screen flag */
+//            } XButtonEvent;
+
+            int len =  sprintf(buffer, "[ButtonPress type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %u][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
+                               e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
+            show(buffer, len);
+            break;
+        }
+        case ButtonRelease:
+        {
+            int len =  sprintf(buffer, "[ButtonRelease type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %u][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
+                               e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
+            show(buffer, len);
+            break;
+        }
+        case MotionNotify:
+        {
+
+//            typedef struct {
+//                int type;		/* of event */
+//                unsigned long serial;	/* # of last request processed by server */
+//                Bool send_event;	/* true if this came from a SendEvent request */
+//                Display *display;	/* Display the event was read from */
+//                Window window;	        /* "event" window reported relative to */
+//                Window root;	        /* root window that the event occurred on */
+//                Window subwindow;	/* child window */
+//                Time time;		/* milliseconds */
+//                int x, y;		/* pointer x, y coordinates in event window */
+//                int x_root, y_root;	/* coordinates relative to root */
+//                unsigned int state;	/* key or button mask */
+//                char is_hint;		/* detail */
+//                Bool same_screen;	/* same screen flag */
+//            } XMotionEvent;
+//            g_main_window = e->xcrossing.window;
+//            e->xcrossing.window = g_main_window;
+            int len =  sprintf(buffer, "[MotionNotify type = %u][ display = %p][serial = %u][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][is_hint = %c][same_screen = %d]\n",
+                               e->xmotion.type, display, e->xmotion.serial, e->xmotion.send_event, e->xmotion.display, e->xmotion.window, e->xmotion.root, e->xmotion.subwindow, e->xmotion.x, e->xmotion.y, e->xmotion.x_root, e->xmotion.y_root, e->xmotion.state, e->xmotion.is_hint, e->xmotion.same_screen);
+
+            show(buffer, len);
+            break;
+        }
+        case EnterNotify:
+        {
+//            typedef struct {
+//                int type;		/* of event */
+//                unsigned long serial;	/* # of last request processed by server */
+//                Bool send_event;	/* true if this came from a SendEvent request */
+//                Display *display;	/* Display the event was read from */
+//                Window window;	        /* "event" window reported relative to */
+//                Window root;	        /* root window that the event occurred on */
+//                Window subwindow;	/* child window */
+//                Time time;		/* milliseconds */
+//                int x, y;		/* pointer x, y coordinates in event window */
+//                int x_root, y_root;	/* coordinates relative to root */
+//                int mode;		/* NotifyNormal, NotifyGrab, NotifyUngrab */
+//                int detail;
+//                /*
+//                 * NotifyAncestor, NotifyVirtual, NotifyInferior,
+//                 * NotifyNonlinear,NotifyNonlinearVirtual
+//                 */
+//                Bool same_screen;	/* same screen flag */
+//                Bool focus;		/* boolean focus */
+//                unsigned int state;	/* key or button mask */
+//            } XCrossingEvent;
+//            e->xcrossing.window = 0u;
+            int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u]"
+                                       "[x = %u, y = %u][x_root = %u, y_root = %u][mode = %u][detail = %u][same_screen = %d][focus = %d][state = %u]",
+                               EnterNotify, e->xcrossing.type, e->xcrossing.serial, e->xcrossing.send_event, e->xcrossing.display, e->xcrossing.window,
+                               e->xcrossing.root, e->xcrossing.subwindow, e->xcrossing.x, e->xcrossing.y, e->xcrossing.x_root, e->xcrossing.y_root, e->xcrossing.mode, e->xcrossing.detail,
+                               e->xcrossing.same_screen, e->xcrossing.focus, e->xcrossing.state);
+            show(buffer, len);
+            break;
+        }
+        case LeaveNotify:
+        {
+            int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u]"
+                                       "[x = %u, y = %u][x_root = %u, y_root = %u][mode = %u][detail = %u][same_screen = %d][focus = %d][state = %u]",
+                               EnterNotify, e->xcrossing.type, e->xcrossing.serial, e->xcrossing.send_event, e->xcrossing.display, e->xcrossing.window,
+                               e->xcrossing.root, e->xcrossing.subwindow, e->xcrossing.x, e->xcrossing.y, e->xcrossing.x_root, e->xcrossing.y_root, e->xcrossing.mode, e->xcrossing.detail,
+                               e->xcrossing.same_screen, e->xcrossing.focus, e->xcrossing.state);
+            show(buffer, len);
+            break;
+        }
+        case FocusIn:
+        {
+//            typedef struct {
+//                int type;		/* FocusIn or FocusOut */
+//                unsigned long serial;	/* # of last request processed by server */
+//                Bool send_event;	/* true if this came from a SendEvent request */
+//                Display *display;	/* Display the event was read from */
+//                Window window;		/* window of event */
+//                int mode;		/* NotifyNormal, NotifyWhileGrabbed,
+//				   NotifyGrab, NotifyUngrab */
+//                int detail;
+//                /*
+//                 * NotifyAncestor, NotifyVirtual, NotifyInferior,
+//                 * NotifyNonlinear,NotifyNonlinearVirtual, NotifyPointer,
+//                 * NotifyPointerRoot, NotifyDetailNone
+//                 */
+//            } XFocusChangeEvent;
+            int len =  sprintf(buffer, "[FocusIn   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][mode = %u][detail = %u]",
+                               FocusIn, e->xfocus.type, e->xfocus.serial, e->xfocus.send_event, e->xfocus.display, e->xfocus.window, e->xfocus.mode, e->xfocus.detail);
+            show(buffer, len);
+            break;
+        }
+        case FocusOut:
+        {
+            int len =  sprintf(buffer, "[FocusIn   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][mode = %u][detail = %u]",
+                               FocusIn, e->xfocus.type, e->xfocus.serial, e->xfocus.send_event, e->xfocus.display, e->xfocus.window, e->xfocus.mode, e->xfocus.detail);
+            show(buffer, len);
+            break;
+        }
+        case KeymapNotify:
+        {
+            int len =  sprintf(buffer, "[KeymapNotify   = %d]", KeymapNotify);
+            show(buffer, len);
+            break;
+        }
+        case Expose:
+        {
+            int len =  sprintf(buffer, "Expose   = %d", Expose);
+            show(buffer, len);
+            break;
+        }
+        case GraphicsExpose:
+        {
+            int len =  sprintf(buffer, "GraphicsExpose   = %d", GraphicsExpose);
+            show(buffer, len);
+            break;
+        }
+        case NoExpose:
+        {
+            int len =  sprintf(buffer, "NoExpose   = %d", NoExpose);
+            show(buffer, len);
+            break;
+        }
+        case VisibilityNotify:
+        {
+            int len =  sprintf(buffer, "VisibilityNotify   = %d", VisibilityNotify);
+            show(buffer, len);
+            break;
+        }
+        case CreateNotify:
+        {
+            int len =  sprintf(buffer, "CreateNotify   = %d", CreateNotify);
+            show(buffer, len);
+            break;
+        }
+        case DestroyNotify:
+        {
+            int len =  sprintf(buffer, "DestroyNotify   = %d", DestroyNotify);
+            show(buffer, len);
+            break;
+        }
+        case UnmapNotify:
+        {
+            int len =  sprintf(buffer, "UnmapNotify   = %d", UnmapNotify);
+            show(buffer, len);
+            break;
+        }
+        case MapNotify:
+        {
+            int len =  sprintf(buffer, "MapNotify   = %d", MapNotify);
+            show(buffer, len);
+            break;
+        }
+        case MapRequest:
+        {
+            int len =  sprintf(buffer, "MapRequest   = %d", MapRequest);
+            show(buffer, len);
+            break;
+        }
+        case ReparentNotify:
+        {
+            int len =  sprintf(buffer, "ReparentNotify   = %d", ReparentNotify);
+            show(buffer, len);
+            break;
+        }
+        case ConfigureNotify:
+        {
+            int len =  sprintf(buffer, "ConfigureNotify   = %d", ConfigureNotify);
+            show(buffer, len);
+            break;
+        }
+        case ConfigureRequest:
+        {
+            int len =  sprintf(buffer, "ConfigureRequest   = %d", ConfigureRequest);
+            show(buffer, len);
+            break;
+        }
+        case GravityNotify:
+        {
+            int len =  sprintf(buffer, "GravityNotify   = %d", GravityNotify);
+            show(buffer, len);
+            break;
+        }
+        case ResizeRequest:
+        {
+            int len =  sprintf(buffer, "ResizeRequest   = %d", ResizeRequest);
+            show(buffer, len);
+            break;
+        }
+        case CirculateNotify:
+        {
+            int len =  sprintf(buffer, "CirculateNotify   = %d", CirculateNotify);
+            show(buffer, len);
+            break;
+        }
+        case CirculateRequest:
+        {
+            int len =  sprintf(buffer, "CirculateRequest   = %d", CirculateRequest);
+            show(buffer, len);
+            break;
+        }
+        case PropertyNotify:
+        {
+//            typedef struct {
+//                int type;
+//                unsigned long serial;	/* # of last request processed by server */
+//                Bool send_event;	/* true if this came from a SendEvent request */
+//                Display *display;	/* Display the event was read from */
+//                Window window;
+//                Atom atom;
+//                Time time;
+//                int state;		/* NewValue, Deleted */
+//            } XPropertyEvent;
+            int len =  sprintf(buffer, "[PropertyNotify = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][atom = %d][state = %u]", PropertyNotify, e->xproperty.type, e->xproperty.serial, e->xproperty.send_event, e->xproperty.display, e->xproperty.window, e->xproperty.atom, e->xproperty.state);
+            show(buffer, len);
+            break;
+        }
+        case SelectionClear:
+        {
+            int len =  sprintf(buffer, "SelectionClear   = %d", SelectionClear);
+            show(buffer, len);
+            break;
+        }
+        case SelectionRequest:
+        {
+            int len =  sprintf(buffer, "SelectionRequest   = %d", SelectionRequest);
+            show(buffer, len);
+            break;
+        }
+        case SelectionNotify:
+        {
+            int len =  sprintf(buffer, "SelectionNotify   = %d", SelectionNotify);
+            show(buffer, len);
+            break;
+        }
+        case ColormapNotify:
+        {
+            int len =  sprintf(buffer, "ColormapNotify   = %d", ColormapNotify);
+            show(buffer, len);
+            break;
+        }
+        case ClientMessage:
+        {
+            int len =  sprintf(buffer, "ClientMessage   = %d", ClientMessage);
+            show(buffer, len);
+            break;
+        }
+        case MappingNotify:
+        {
+            int len =  sprintf(buffer, "MappingNotify   = %d", MappingNotify);
+            show(buffer, len);
+            break;
+        }
+        case GenericEvent:
+        {
+            int len =  sprintf(buffer, "GenericEvent   = %d", GenericEvent);
+            show(buffer, len);
+            break;
+        }
+        case LASTEvent:
+        {
+            int len =  sprintf(buffer, "LASTEvent   = %d", LASTEvent);
+            show(buffer, len);
+            break;
+        }
+        default:
+        {
+            char buffer[1024] = {0};
+            int len =  sprintf(buffer, "unknow type = %u\n", e->type);
+            show(buffer, len);
+            break;
+        }
+    }
+}
+
+
+
+
+
+
+int XNextEvent( Display*	d	/* display */, XEvent*		e/* event_return */ )
+{
+    g_display_ptr = d;
+    if (!real_XNextEvent)
+    {
+        real_XNextEvent = reinterpret_cast<Hook_XNextEvent>(dlsym(RTLD_NEXT, "XNextEvent"));
+    }
+    {
+//        clock_guard  lock(g_xevent_lock);
+//        using namespace chen;
+//        ERROR_EX_LOG("[g_xevent size  = %u]", g_xevent.size());
+//        if (!g_xevent.empty())
+//        {
+//            XEvent  event = g_xevent.front();
+//            g_xevent.pop_front();
+//            ++g_new_seria;
+//            if (e->type == ButtonPress || e->type  == ButtonRelease)
+//            {
+//                event.xbutton.window = g_main_window;
+//
+//            }
+//
+//            event.xbutton.display = d;
+//            event.xbutton.serial = g_core_seria +  g_new_seria  ;
+//            show_hook_info(d, &event);
+//            memcpy(e, &event, sizeof(event));
+//            using namespace  chen;
+//            WARNING_EX_LOG( "[use xevent size = %u][type = %u][display = %p] \n", g_xevent.size(), event.type,  d );
+////            ::sleep(3);
+//            return 0;
+//        }
+    }
+    int ret = real_XNextEvent(d, e);
+    {
+//        g_core_seria = e->xbutton.serial;
+//            e->xbutton.serial = g_core_seria +  g_new_seria  ;
+//        if (e->type == ButtonPress || e->type == ButtonRelease)
+//        {
+//              e->xbutton.window = 0;
+//        }
+//        else if (e->type == MotionNotify)
+//        {
+//              e->xcrossing.window = 0;
+//        }
+//        else if (e->type ==)
+            show_hook_info(d, e);
+        using namespace  chen;
+        NORMAL_EX_LOG( "[real_XNextEvent][display = %p][ret = %u] \n", d, ret );
+//        sleep(3);
+    }
+
+    return ret;
+}
+
+
+
+int  XSelectInput( Display* display		/* display */, Window	w 	/* w */, long	event_mask	/* event_mask */ )
+{
+    g_display_ptr = display;
+    if (!real_XSelectInput)
+    {
+        real_XSelectInput = reinterpret_cast<Hook_XSelectInput>(dlsym(RTLD_NEXT, "XSelectInput"));
+    }
+
+//    g_main_window= w;
+    int size  = real_XSelectInput(display, w, event_mask);
+    using namespace  chen;
+    NORMAL_EX_LOG( "[real_XSelectInput][display = %p][window = %u][event_mask = %lu][ret = %u]\n", display, w, event_mask, size);
+//    char buffer[102400] = {0};
+//    (void)sprintf(buffer, "[real_XSelectInput][display = %p][window = %u][event_mask = %lu][ret = %u]\n", display, w, event_mask, size);
+//    (void)write(1, buffer, strlen(buffer));
+    return size;
+}
+
+
+int XPending( Display*	display	/* display */ )
+{
+    g_display_ptr = display;
+    if (!real_XPending)
+    {
+        real_XPending = reinterpret_cast < Hook_XPending>(dlsym(RTLD_NEXT, "XPending"));
+    }
+//    XPending
+    int size = real_XPending(display ) ;
+//
+//    {
+//        clock_guard  lock(g_xevent_lock);
+//        size += g_xevent.size();
+//    }
+//    char buffer[102400] = {0};
+//
+//    (void)sprintf(buffer, "[real_XPending][display = %p][size = %u] \n", display, size);
+//    (void)write(1, buffer, strlen(buffer));
+//
+//    using namespace  chen;
+//    NORMAL_EX_LOG("[real_XPending][display = %p][size = %u] \n", display, size);
+
+    return size;
+}
+#endif
+
+
 namespace chen {
 	int32_t  g_width = 150;
 	int32_t  g_height = 150;
@@ -122,6 +678,8 @@ namespace chen {
 							 														 \
 			break;																	 \
 	}
+#else
+
 #endif //#if defined(_MSC_VER)
 #define REGISTER_INPUT_DEVICE(type, handler_ptr) if (false == m_input_device.insert(std::make_pair(type, handler_ptr)).second){	 ERROR_EX_LOG("[type = %s][handler_ptr = %s]", #type, #handler_ptr);	return false;}
 
@@ -169,6 +727,162 @@ namespace chen {
         return true;
     }
 
+
+
+
+    void mouse_move(int x_cd,int y_cd)
+    {
+//        Display *display = XOpenDisplay(NULL);
+        Window fromroot, tmpwin, root;
+        int x, y, tmp;
+        unsigned int utmp;
+
+        root = DefaultRootWindow(g_display_ptr);
+
+        XQueryPointer(g_display_ptr, root, &fromroot, &tmpwin, &x, &y, &tmp, &tmp, &utmp);// receive the mouse position
+        if(g_display_ptr == NULL)
+        {
+            fprintf(stderr, "Errore nell'apertura del Display !!!\n");
+            exit(EXIT_FAILURE);
+        }
+        XWarpPointer(g_display_ptr, None, root, 0, 0, 0, 0, x_cd, y_cd); //move point to the position
+        XFlush(g_display_ptr);
+        XCloseDisplay(g_display_ptr);
+    }
+    void press_left_button()
+    {
+//        Display *display = XOpenDisplay(NULL);
+        XEvent event;
+        memset(&event,0,sizeof(XEvent));
+        event.type = ButtonPress;
+        event.xbutton.button = Button1;
+        event.xbutton.same_screen = True;
+
+
+/* get info about current pointer position */
+        XQueryPointer(g_display_ptr, RootWindow(g_display_ptr, DefaultScreen(g_display_ptr)),
+                      &event.xbutton.root, &event.xbutton.window,
+                      &event.xbutton.x_root, &event.xbutton.y_root,
+                      &event.xbutton.x, &event.xbutton.y,
+                      &event.xbutton.state);
+
+
+        event.xbutton.subwindow = event.xbutton.window;
+
+
+/* walk down through window hierachy to find youngest child */
+        while (event.xbutton.subwindow)
+        {
+            event.xbutton.window = event.xbutton.subwindow;
+            XQueryPointer(g_display_ptr, event.xbutton.window,\
+&event.xbutton.root, &event.xbutton.subwindow,\
+&event.xbutton.x_root, &event.xbutton.y_root,\
+&event.xbutton.x, &event.xbutton.y,\
+&event.xbutton.state);
+        }
+/* send ButtonPress event to youngest child */
+        if (XSendEvent(g_display_ptr, PointerWindow, True, 0xfff, &event) == 0)
+            printf("XSendEvent Failed\n");
+
+        XFlush(g_display_ptr);
+        XCloseDisplay(g_display_ptr);
+    }
+
+    void press_right_button()
+    {
+//        Display *display = XOpenDisplay(NULL);
+        XEvent event;
+        memset(&event,0,sizeof(XEvent));
+        event.type = ButtonPress;
+        event.xbutton.button = Button2;
+        event.xbutton.same_screen = True;
+
+
+/* get info about current pointer position */
+        XQueryPointer(g_display_ptr, RootWindow(g_display_ptr, DefaultScreen(g_display_ptr)),
+                      &event.xbutton.root, &event.xbutton.window,
+                      &event.xbutton.x_root, &event.xbutton.y_root,
+                      &event.xbutton.x, &event.xbutton.y,
+                      &event.xbutton.state);
+
+
+        event.xbutton.subwindow = event.xbutton.window;
+
+
+/* walk down through window hierachy to find youngest child */
+        while (event.xbutton.subwindow)
+        {
+            event.xbutton.window = event.xbutton.subwindow;
+            XQueryPointer(g_display_ptr, event.xbutton.window,\
+&event.xbutton.root, &event.xbutton.subwindow,\
+&event.xbutton.x_root, &event.xbutton.y_root,\
+&event.xbutton.x, &event.xbutton.y,\
+&event.xbutton.state);
+        }
+/* send ButtonPress event to youngest child */
+        if (XSendEvent(g_display_ptr, PointerWindow, True, 0xfff, &event) == 0)
+            printf("XSendEvent Failed\n");
+
+        XFlush(g_display_ptr);
+
+/* sleep for a little while */
+        usleep(10000);
+
+
+/* set up ButtonRelease event */
+        event.type = ButtonRelease;
+        event.xbutton.state = 0x100;
+
+
+/* send ButtonRelease event to youngest child */
+        if (XSendEvent(g_display_ptr, PointerWindow, True, 0xfff, &event) == 0)
+            printf("XSendEvent Failed\n");
+
+        XFlush(g_display_ptr);
+        XCloseDisplay(g_display_ptr);
+
+    }
+    void release_button(int Bflags)//判断释放的是鼠标的左键还是右键
+    {
+//        Display *display = XOpenDisplay(NULL);
+        XEvent event;
+        memset(&event,0,sizeof(XEvent));
+        switch(Bflags){
+            case 1:event.xbutton.button = Button1;break;
+            case 2:event.xbutton.button = Button2;break;
+        }
+        event.type = ButtonRelease;
+        event.xbutton.state = 0x100;
+
+
+/* get info about current pointer position */
+        XQueryPointer(g_display_ptr, RootWindow(g_display_ptr, DefaultScreen(g_display_ptr)),
+                      &event.xbutton.root, &event.xbutton.window,
+                      &event.xbutton.x_root, &event.xbutton.y_root,
+                      &event.xbutton.x, &event.xbutton.y,
+                      &event.xbutton.state);
+
+
+        event.xbutton.subwindow = event.xbutton.window;
+
+
+/* walk down through window hierachy to find youngest child */
+        while (event.xbutton.subwindow)
+        {
+            event.xbutton.window = event.xbutton.subwindow;
+            XQueryPointer(g_display_ptr, event.xbutton.window,\
+            &event.xbutton.root, &event.xbutton.subwindow,\
+            &event.xbutton.x_root, &event.xbutton.y_root,\
+            &event.xbutton.x, &event.xbutton.y,\
+            &event.xbutton.state);
+                    }
+/* send ButtonPress event to youngest child */
+        if (XSendEvent(g_display_ptr, PointerWindow, True, 0xfff, &event) == 0)
+            printf("XSendEvent Failed\n");
+
+        XFlush(g_display_ptr);
+        XCloseDisplay(g_display_ptr);
+    }
 ///	cinput_device   g_input_device_mgr;
 	cinput_device::cinput_device() 
 		:  m_input_device()
@@ -213,6 +927,11 @@ namespace chen {
 		m_int_point.Y = y;
 		return true;
 	}
+    bool cinput_device::set_main_window(Window window)
+    {
+        g_main_window = window;
+        return true;
+    }
 	bool cinput_device::OnMessage(const std::string & consumer_id, const webrtc::DataBuffer& Buffer)
 	{
 		//NORMAL_LOG("consumer_id = %s", consumer_id.c_str());
@@ -220,14 +939,14 @@ namespace chen {
 		const uint8* Data = Buffer.data.data();
 		uint32 Size = static_cast<uint32>(Buffer.data.size());
 
-		GET(EToStreamMsg, MsgType);
+		GET(uint8, MsgType);
 		
 		M_INPUT_DEVICE_MAP::iterator iter =  m_input_device.find(MsgType);
 		if (iter == m_input_device.end())
 		{
 			//RTC_LOG(LS_ERROR) << "input_device not find id = " << MsgType;
 			//log --->  not find type 
-			ERROR_EX_LOG("input_device msg_type = %d not find failed !!!", MsgType);
+			ERROR_EX_LOG("input_device msg_type = %u not find failed !!!", MsgType);
 			return false;
 		}
 		
@@ -521,7 +1240,26 @@ namespace chen {
 			WARNING_EX_LOG("mouse enter insert [mouse_id = %s] failed !!!", m_mouse_id.c_str());
 			return false;
 		}*/
-		return true;
+        // [EnterNotify   = 7][type = 8][serial = 778][send_event = 0][display = 0x55e2607cf330][window = 0x2e00009][root = 1029][subwindow = (nil)][x = 973, y = 521][x_root = 1068, y_root = 606][mode = 0][detail = 3][same_screen = 1][focus = 1][state = 16]
+#if defined(__unix__)
+         XEvent  xEnter;
+            xEnter.xcrossing.type = EnterNotify;
+            xEnter.xcrossing.send_event = 0;
+            xEnter.xcrossing.same_screen = 1;
+            xEnter.xcrossing.focus = 1;
+            xEnter.xcrossing.state  = 16;
+            xEnter.xcrossing.detail  = 0;
+            xEnter.xcrossing.mode = 0;
+        {
+            clock_guard lock(g_xevent_lock);
+//            g_xevent.push_back(xEnter);
+        }
+        NORMAL_EX_LOG("----------------------------------");
+
+
+#endif
+
+        return true;
 		 
 	}
 
@@ -531,7 +1269,26 @@ namespace chen {
 	bool cinput_device::OnMouseLeave(const uint8*& Data,   uint32 size)
 	{
 		// TODO@chensong 2022-01-20  OnMouseLeave 
-		std::map<std::string, std::map<uint32, cmouse_info>>::iterator iter =  m_all_consumer.find(m_mouse_id);
+#if defined(__unix__)
+        XEvent  xEnter;
+        xEnter.xcrossing.type = LeaveNotify;
+        xEnter.xcrossing.send_event = 0;
+        xEnter.xcrossing.same_screen = 1;
+        xEnter.xcrossing.focus = 1;
+        xEnter.xcrossing.state  = 16;
+        xEnter.xcrossing.detail  = 0;
+        xEnter.xcrossing.mode = 0;
+        {
+            clock_guard lock(g_xevent_lock);
+//            g_xevent.push_back(xEnter);
+        }
+
+        NORMAL_EX_LOG("----------------------------------");
+
+#endif
+
+        //
+//		std::map<std::string, std::map<uint32, cmouse_info>>::iterator iter =  m_all_consumer.find(m_mouse_id);
 		/*if (iter == m_all_consumer.end())
 		{
 			WARNING_EX_LOG("mouse leave  not find  [mouse_id = %s] failed !!!", m_mouse_id.c_str());
@@ -608,6 +1365,29 @@ namespace chen {
 //        event.data.mouse.y = PosY;
 
 //        hook_post_event(&event);
+
+//        [ButtonPress type = 4][display = 0x5602f953e330][serial = 823][send_event = 0][display = 0x5602f953e330][window = 0x4200009][root = 1029][time][x = 893, y = 71][x_root = 1059, y_root = 229][state = 16][button = 1][same_screen = 1]
+//
+//        [ButtonRelease type = 5][display = 0x5602f953e330][serial = 832][send_event = 0][display = 0x5602f953e330][window = 0x4200009][root = 1029][time][x = 893, y = 71][x_root = 1059, y_root = 229][state = 272][button = 1][same_screen = 1]
+        XEvent  xButton;
+        xButton.xbutton.type = ButtonPress;
+        xButton.xbutton.x = PosX;
+        xButton.xbutton.y = PosY;
+        xButton.xbutton.send_event = 0;
+        xButton.xbutton.same_screen = 1;
+        xButton.xbutton.button = 1;
+        xButton.xbutton.state = 16;
+//        {
+//            clock_guard lock(g_xevent_lock);
+////            g_xevent.push_back(xButton);
+//        }
+
+        xButton.xbutton.window = g_main_window;
+        if (g_main_window && g_display_ptr)
+        {
+            XSendEvent(g_display_ptr, g_main_window, True, 0xfff, &xButton);
+        }
+
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -668,13 +1448,29 @@ namespace chen {
 			// log -> error 
 			return false;
 		}
-#elif defined(__linux__)
+#elif defined(__unix__)
 //        static uiohook_event event;
 //        event.type = EVENT_MOUSE_RELEASED;
 //        event.data.mouse.button = active_type; //MOUSE_BUTTON1;
 //        event.data.mouse.x = PosX;
 //        event.data.mouse.y = PosY;
-
+        XEvent  xButton;
+        xButton.xbutton.type = ButtonRelease;
+        xButton.xbutton.x = PosX;
+        xButton.xbutton.y = PosY;
+        xButton.xbutton.send_event = 0;
+        xButton.xbutton.same_screen = 1;
+        xButton.xbutton.button = 1;
+//        xButton.xbutton.state = 16;
+        xButton.xbutton.window = g_main_window;
+        if (g_main_window && g_display_ptr)
+        {
+            XSendEvent(g_display_ptr, g_main_window, True, 0xfff, &xButton);
+        }
+//        {
+//            clock_guard lock(g_xevent_lock);
+////            g_xevent.push_back(xButton);
+//        }
 //        hook_post_event(&event);
 #else
         // 其他不支持的编译器需要自己实现这个方法
@@ -728,14 +1524,80 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
-#elif defined(__linux__)
+#elif defined(__unix__)
 //        static uiohook_event event;
 //        event.type = EVENT_MOUSE_MOVED;
 //        event.data.mouse.button = MOUSE_NOBUTTON; //MOUSE_BUTTON1;
 //        event.data.mouse.x = PosX;
 //        event.data.mouse.y = PosY;
 
+            XEvent xmouse;
+        //[MotionNotify type = 6][ display = 0x55819771e330][serial = 411][send_event = 0][display = 0x55819771e330][window = 0x4200009][root = 1029][subwindow = (nil)][x = 898, y = 56][x_root = 1102, y_root = 253][state = 16][is_hint = ][same_screen = 1]
+        //
+        //[MotionNotify type = 6][ display = 0x55819771e330][serial = 411][send_event = 0][display = 0x55819771e330][window = 0x4200009][root = 1029][subwindow = (nil)][x = 899, y = 54][x_root = 1103, y_root = 251][state = 16][is_hint = ][same_screen = 1]
+            xmouse.xmotion.type = MotionNotify;
+            xmouse.xmotion.x = PosX;
+            xmouse.xmotion.y = PosY;
+            xmouse.xmotion.x_root = DeltaX;
+            xmouse.xmotion.y_root = DeltaY;
+            xmouse.xmotion.state = 16;
+            xmouse.xmotion.send_event = 0;
+            xmouse.xmotion.same_screen = 1;
+            xmouse.xmotion.window = g_main_window;
+//        {
+////
+//
+//            XEvent  event;
+//            event.xbutton.type = ButtonPress;
+////            event.xbutton.x = x;
+////            event.xbutton.y = x;
+////            xButton.xbutton.send_event = 0;
+//            event.xbutton.same_screen = 1;
+//            event.xbutton.button = 1;
+////            xButton.xbutton.state = 0;
+
+            if (g_display_ptr && g_main_window)
+            {
+                XSendEvent(g_display_ptr, g_main_window, True, 0xfff, &xmouse);
+//                XQueryPointer(g_display_ptr, DefaultRootWindow(g_display_ptr ), &event.xbutton.root, &event.xbutton.window,
+//                              &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
+
+//                    event.xbutton.subwindow = event.xbutton.window;
+
+//                event.xbutton.x = x;
+//                event.xbutton.y = y;
+//                int revert;
+//                XGetInputFocus(g_display_ptr, &event.xbutton.window, &revert);
+//                event.xbutton.subwindow = 0;
+//
+//                event.type = KeyPress;
+//                event.xkey.state = ShiftMask;
+//                event.xkey.keycode = 1;
+//                event.xkey.same_screen = True;
+//                NORMAL_EX_LOG("XSendEvent ....");
+//                Status status =   XSendEvent(g_display_ptr, event.xbutton.window, True, 0xfff, &event);
+//                XFlush(g_display_ptr);
+//                usleep(1000);
+//                NORMAL_EX_LOG("XSendEvent [window = %u][root = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %d]", event.xbutton.window, event.xbutton.root, x, y,
+//                              event.xbutton.x_root, event.xbutton.y_root, event.xbutton.state);
+            }
+            else
+            {
+                WARNING_EX_LOG("XSendEvent g_display_ptr == %p][ g_main_window = %p]", g_display_ptr, g_main_window);
+            }
+//            if (g_display_ptr )
+//            {
+//                event.xbutton.type = KeyRelease;
+////                event.xbutton.state =  0x100;
+//                Status status =   XSendEvent(g_display_ptr, InputFocus,True, 0xfff, &event);
+//                XFlush(g_display_ptr);
+//                NORMAL_EX_LOG("XSendEvent [status = %u][x = %u, y = %u]", status, x, y);
+//            }
+//        }
+
 //        hook_post_event(&event);
+
+
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle

@@ -14,7 +14,7 @@ purpose:		protocol
 
 namespace chen {
 
-	enum  EToStreamMsg
+	enum   EToStreamMsg
 	{
 		/**********************************************************************/
 

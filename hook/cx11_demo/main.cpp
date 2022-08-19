@@ -770,7 +770,7 @@
 
 // /*
 //   * 下边是编译命令
-//   * gcc x11.c -o output -I/usr/X11R6/include -L/usr/X11R6/lib -lX11
+//   * gcc x11.c -o output -I/usr/X11R6/include -L/usr/X11R6/old_lib -lX11
 //   */
  
 // #include <X11/Xlib.h>
@@ -1078,7 +1078,7 @@ std::chrono::steady_clock::time_point cur_time_ms;
 
 /*
   * 下边是编译命令
-  * gcc x11.c -o output -I/usr/X11R6/include -L/usr/X11R6/lib -lX11
+  * gcc x11.c -o output -I/usr/X11R6/include -L/usr/X11R6/old_lib -lX11
   */
  
 // #include <X11/Xlib.h>
