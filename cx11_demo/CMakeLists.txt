@@ -21,7 +21,7 @@ INCLUDE_DIRECTORIES(
 
 
 
-#SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/linux/lib )
+#SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/linux/old_lib )
 #SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/linux)
 
 LINK_DIRECTORIES(
@@ -29,8 +29,8 @@ LINK_DIRECTORIES(
         /usr/lib/x86_64-linux-gnu
         /usr/local/lib64
         #/usr/lib64/mysql/
-        #/usr/lib/x86_64-linux-gnu
-        #${PROJECT_SOURCE_DIR}/linux/lib
+        #/usr/old_lib/x86_64-linux-gnu
+        #${PROJECT_SOURCE_DIR}/linux/old_lib
 )
 
 
@@ -93,16 +93,16 @@ set(ALL_LIB  	pthread
         xcb-composite
 
 
-#/usr/lib/x86_64-linux-gnu/libX11.so  
-#/usr/lib/x86_64-linux-gnu/libxcb.so  
-#/usr/lib/x86_64-linux-gnu/libxcb-xfixes.so  
-#/usr/lib/x86_64-linux-gnu/libxcb-randr.so 
- #/usr/lib/x86_64-linux-gnu/libxcb-shm.so  
- #/usr/lib/x86_64-linux-gnu/libxcb-xinerama.so  
- #/usr/lib/x86_64-linux-gnu/libxcb-composite.so  
+#/usr/old_lib/x86_64-linux-gnu/libX11.so
+#/usr/old_lib/x86_64-linux-gnu/libxcb.so
+#/usr/old_lib/x86_64-linux-gnu/libxcb-xfixes.so
+#/usr/old_lib/x86_64-linux-gnu/libxcb-randr.so
+ #/usr/old_lib/x86_64-linux-gnu/libxcb-shm.so
+ #/usr/old_lib/x86_64-linux-gnu/libxcb-xinerama.so
+ #/usr/old_lib/x86_64-linux-gnu/libxcb-composite.so
  -lpthread  
- #/usr/lib/x86_64-linux-gnu/libGLX.so  
- #/usr/lib/x86_64-linux-gnu/libOpenGL.so
+ #/usr/old_lib/x86_64-linux-gnu/libGLX.so
+ #/usr/old_lib/x86_64-linux-gnu/libOpenGL.so
   
 
 

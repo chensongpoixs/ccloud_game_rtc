@@ -213,6 +213,7 @@ inline std::string getWindowClass(Window win)
 
 void show_all_window()
 {
+//    XEvent
 //    std::vector<WindowInfo> window_strings;
     for (Window win : getTopLevelWindows())
     {

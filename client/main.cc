@@ -228,7 +228,7 @@ GetClientRectX(Display *dpy, int screen, Window window, struct gaRect *rect) {
 }
 
 
-int  main(int argc, char *argv[])
+int  test_main(int argc, char *argv[])
 {
 //    {
 //        Display* d = XOpenDisplay(NULL);
@@ -335,8 +335,11 @@ int  main(int argc, char *argv[])
  *
  */
 
-//__attribute__((constructor))
-//void loadMsg()
-//{
-//    test_connect_main(0, nullptr);
-//}
+__attribute__((constructor))
+void loadMsg()
+{
+    std::thread([](){
+        sleep(5);
+        test_main(0, nullptr);
+    }).detach();
+}

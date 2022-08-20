@@ -25,3 +25,7 @@
 #### inject sample 
 
 > sudo ./inject -n sample-target  sample-library.so
+ 
+targeting process "sample-target" with pid 51041
+
+"sample-library.so" successfully injected

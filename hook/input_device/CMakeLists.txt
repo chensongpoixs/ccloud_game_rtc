@@ -21,7 +21,7 @@ INCLUDE_DIRECTORIES(
 
 
 
-#SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/linux/lib )
+#SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/linux/old_lib )
 #SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/linux)
 
 LINK_DIRECTORIES(
@@ -29,8 +29,8 @@ LINK_DIRECTORIES(
         /usr/lib/x86_64-linux-gnu
         /usr/local/lib64
         #/usr/lib64/mysql/
-        #/usr/lib/x86_64-linux-gnu
-        #${PROJECT_SOURCE_DIR}/linux/lib
+        #/usr/old_lib/x86_64-linux-gnu
+        #${PROJECT_SOURCE_DIR}/linux/old_lib
 )
 
 file(GLOB ALL_CXX_SRCS

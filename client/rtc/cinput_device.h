@@ -17,6 +17,8 @@ purpose:		input_device
 #include "csingleton.h"
 #include <set>
 #include <unordered_map>
+
+#include <X11/Xlib.h>
 namespace chen {
 	 
 
@@ -34,7 +36,7 @@ namespace chen {
 	{
 	private:
 		typedef bool(cinput_device::*input_device_handler_type)(const uint8*& Data, uint32 size);
-		typedef std::map<EToStreamMsg, input_device_handler_type>			M_INPUT_DEVICE_MAP;
+		typedef std::map<uint8, input_device_handler_type>			M_INPUT_DEVICE_MAP;
 	public:
 
         explicit cinput_device();
@@ -46,6 +48,12 @@ namespace chen {
 		bool init();
 
 		bool set_point(uint32 x, uint32 y);
+        /**
+         *  set main window
+         * @param window
+         * @return
+         */
+        bool set_main_window(Window window);
 		void Destroy();
 	public:
 

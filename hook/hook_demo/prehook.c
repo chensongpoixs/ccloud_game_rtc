@@ -110,7 +110,7 @@ void show_hook_info(Display *display, const XEvent* e)
         }
         case KeyRelease:
         {
-            int len =  sprintf(buffer, "[KeyRelease  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
+            int len =  sprintf(buffer, "[KeyRelease  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
                           e->xkey.type, display, e->xkey.serial, e->xkey.send_event, e->xkey.display, e->xkey.window, e->xkey.root, e->xkey.subwindow, e->xkey.x, e->xkey.y, e->xkey.x_root, e->xkey.y_root, e->xkey.state, e->xkey.keycode, e->xkey.same_screen);
             show(buffer, len);
             break;
@@ -133,14 +133,14 @@ void show_hook_info(Display *display, const XEvent* e)
 //                unsigned int button;	/* detail */
 //                Bool same_screen;	/* same screen flag */
 //            } XButtonEvent;
-            int len =  sprintf(buffer, "[ButtonPress type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %p][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
+            int len =  sprintf(buffer, "[ButtonPress type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %u][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
                           e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
             show(buffer, len);
             break;
         }
         case ButtonRelease:
         {
-            int len =  sprintf(buffer, "[ButtonRelease type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %p][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
+            int len =  sprintf(buffer, "[ButtonRelease type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %u][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
                           e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
             show(buffer, len);
             break;
@@ -164,7 +164,7 @@ void show_hook_info(Display *display, const XEvent* e)
 //                Bool same_screen;	/* same screen flag */
 //            } XMotionEvent;
 
-            int len =  sprintf(buffer, "[MotionNotify type = %u][ display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][is_hint = %c][same_screen = %d]\n",
+            int len =  sprintf(buffer, "[MotionNotify type = %u][ display = %p][serial = %u][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][is_hint = %c][same_screen = %d]\n",
                           e->xmotion.type, display, e->xmotion.serial, e->xmotion.send_event, e->xmotion.display, e->xmotion.window, e->xmotion.root, e->xmotion.subwindow, e->xmotion.x, e->xmotion.y, e->xmotion.x_root, e->xmotion.y_root, e->xmotion.state, e->xmotion.is_hint, e->xmotion.same_screen);
 
            show(buffer, len);
@@ -193,7 +193,7 @@ void show_hook_info(Display *display, const XEvent* e)
 //                Bool focus;		/* boolean focus */
 //                unsigned int state;	/* key or button mask */
 //            } XCrossingEvent;
-            int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p]"
+            int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u]"
                                        "[x = %u, y = %u][x_root = %u, y_root = %u][mode = %u][detail = %u][same_screen = %d][focus = %d][state = %u]",
                                        EnterNotify, e->xcrossing.type, e->xcrossing.serial, e->xcrossing.send_event, e->xcrossing.display, e->xcrossing.window,
                                        e->xcrossing.root, e->xcrossing.subwindow, e->xcrossing.x, e->xcrossing.y, e->xcrossing.x_root, e->xcrossing.y_root, e->xcrossing.mode, e->xcrossing.detail,
@@ -203,7 +203,7 @@ void show_hook_info(Display *display, const XEvent* e)
         }
         case LeaveNotify:
         {
-            int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p]"
+            int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u]"
                                        "[x = %u, y = %u][x_root = %u, y_root = %u][mode = %u][detail = %u][same_screen = %d][focus = %d][state = %u]",
                                EnterNotify, e->xcrossing.type, e->xcrossing.serial, e->xcrossing.send_event, e->xcrossing.display, e->xcrossing.window,
                                e->xcrossing.root, e->xcrossing.subwindow, e->xcrossing.x, e->xcrossing.y, e->xcrossing.x_root, e->xcrossing.y_root, e->xcrossing.mode, e->xcrossing.detail,
@@ -354,7 +354,7 @@ void show_hook_info(Display *display, const XEvent* e)
 //                Time time;
 //                int state;		/* NewValue, Deleted */
 //            } XPropertyEvent;
-            int len =  sprintf(buffer, "[PropertyNotify = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %p][atom = %d][state = %u]", PropertyNotify, e->xproperty.type, e->xproperty.serial, e->xproperty.send_event, e->xproperty.display, e->xproperty.window, e->xproperty.atom, e->xproperty.state);
+            int len =  sprintf(buffer, "[PropertyNotify = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][atom = %d][state = %u]", PropertyNotify, e->xproperty.type, e->xproperty.serial, e->xproperty.send_event, e->xproperty.display, e->xproperty.window, e->xproperty.atom, e->xproperty.state);
             show(buffer, len);
             break;
         }
@@ -488,12 +488,12 @@ int XdPending( Display*	display	/* display */ )
         {
             real_XPending = dlsym(RTLD_NEXT, "XPending");
         }
-    XPending
-        int size = real_XPending(display );
-        char buffer[102400] = {0};
 
-        (void)sprintf(buffer, "[real_XPending][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
-        (void)write(1, buffer, strlen(buffer));
+        int size = real_XPending(display );
+//        char buffer[102400] = {0};
+//
+//        (void)sprintf(buffer, "[real_XPending][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
+//        (void)write(1, buffer, strlen(buffer));
 
 //    XPeekEvent
         return size;
@@ -1095,7 +1095,7 @@ XImage* XGetSubImage(Display* display, Drawable d, int x, int y, unsigned int wi
         real_XGetSubImage = dlsym(RTLD_NEXT, "XGetSubImage");
     }
 
-    XImage* size = real_XGetSubImage(display, d, x, y, width, height, plane_mask, format, desk_image, dest_image, dest_x, dest_y);
+    XImage* size = real_XGetSubImage(display, d, x, y, width, height, plane_mask, format, dest_image, dest_x, dest_y);
     char buffer[102400] = { 0 };
 
     (void)sprintf(buffer, "[real_XGetSubImage] [g_count = %lu] \n", g_count++);
@@ -2445,7 +2445,7 @@ XImage* XGetSubImage(Display* display, Drawable d, int x, int y, unsigned int wi
 //    Window		/* w */
 //);
 //
-typedef int XMaskEvent( Display*  display , long event_mask ,  XEvent* event_return  );
+typedef int (*Hook_XMaskEvent)( Display*  display , long event_mask ,  XEvent* event_return  );
 static Hook_XMaskEvent real_XMaskEvent = NULL;
 
 int XMaskEvent(Display* display, long event_mask, XEvent* event_return)
@@ -2783,13 +2783,27 @@ int XMaskEvent(Display* display, long event_mask, XEvent* event_return)
 //    long		/* event_mask */
 //);
 //
-//extern Status XSendEvent(
-//    Display*		/* display */,
-//    Window		/* w */,
-//    Bool		/* propagate */,
-//    long		/* event_mask */,
-//    XEvent*		/* event_send */
-//);
+typedef  Status (*Hook_XSendEvent)( Display* display ,  Window w, Bool propagate, long event_mask, XEvent* event_send);
+static Hook_XSendEvent real_XSendEvent = NULL;
+
+
+Status XSendEvent( Display* display ,  Window w, Bool propagate, long event_mask, XEvent* event_send)
+{
+    if (!real_XSendEvent)
+    {
+        real_XSendEvent = dlsym(RTLD_NEXT, "XSendEvent");
+    }
+    //    XGetEventData
+    Status size = real_XSendEvent(display, w, propagate, event_mask, event_send);
+    char buffer[102400] = { 0 };
+
+    (void)sprintf(buffer, "[real_XSendEvent][display = %p][event_mask = %u][g_count = %lu] \n", display, event_mask, g_count++);
+    (void)write(1, buffer, strlen(buffer));
+
+    //    XPeekEvent
+    return size;
+}
+
 //
 //extern int XSetAccessControl(
 //    Display*		/* display */,
