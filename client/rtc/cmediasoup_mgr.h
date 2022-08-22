@@ -31,16 +31,16 @@ namespace cmediasoup
 		cmediasoup_mgr();
 		~cmediasoup_mgr();
 	public:
-		bool init( );
+		bool init( uint32_t gpu_index = 0);
 
 		void startup(const char * mediasoupIp = "127.0.0.1", uint16_t mediasoupPort = 8888, const  char * roomName = "chensong", const char* clientName = "chensong"
 			, uint32_t reconnectWaittime = 5);
 
 		void destroy();
 
-		void   webrtc_video(unsigned char * rgba_ptr, int width, int height);
-		void   webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr,  int width, int height);
-		void webrtc_texture(void * texture, int width, int height);
+		void   webrtc_video(unsigned char * rgba_ptr, uint32_t fmt, int width, int height);
+		void   webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, uint32_t fmt,  int width, int height);
+		void webrtc_texture(void * texture, uint32_t fmt, int width, int height);
 		void webrtc_pause();
 		void webrtc_resume();
 		bool webrtc_video_staus() const { return m_webrtc_pause; }

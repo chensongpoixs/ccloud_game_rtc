@@ -79,7 +79,7 @@ namespace chen {
 
 
 	public:
-		bool init();
+		bool init(uint32 gpu_index);
 		void Loop(const std::string& mediasoupIp, uint16_t port, const std::string& roomName, const std::string& clientName
 			, uint32_t reconnect_waittime);
 		void stop();
@@ -90,9 +90,9 @@ namespace chen {
 		void startup_ui();
 
 		// 线程不安全的
-		bool webrtc_video(unsigned char * rgba, int32_t width, int32_t height);
-		bool webrtc_texture(void * texture, int32_t width, int32_t height);
-		bool webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, int32_t width, int32_t height);
+		bool webrtc_video(unsigned char * rgba, uint32 fmt,  int32_t width, int32_t height);
+		bool webrtc_texture(void * texture, uint32 fmt, int32_t width, int32_t height);
+		bool webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, uint32 fmt, int32_t width, int32_t height);
 		bool webrtc_video(const webrtc::VideoFrame& frame);
 		bool webrtc_run();
 
@@ -196,6 +196,7 @@ namespace chen {
 		cmediasoup::mediasoup_status_update_cb		m_mediasoup_status_callback;
 		uint32							m_websocket_timer;
 		bool							m_send_produce_video_msg;
+
 #ifdef __unix__
         clinux_capture *                m_linux_app_capture_ptr;
 #endif

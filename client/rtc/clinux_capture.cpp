@@ -248,7 +248,7 @@ namespace  chen {
             if (gi_reply)
             {
                 uint8_t *data = xcb_get_image_data(gi_reply);
-                s_client.webrtc_video(data, m_win_width, m_win_height);
+                s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
 //                    if (callback)
 //                    {
 //                        callback(data, g_win_w, g_win_h);

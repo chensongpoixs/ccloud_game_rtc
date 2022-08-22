@@ -14,6 +14,7 @@ set(CMAKE_CXX_FLAGS         "-std=c++11 -g    -fno-rtti  ")  #注意调试的话
 add_definitions(-D WEBRTC_POSIX) # -fPIC
 add_definitions(-D WEBRTC_LINUX)
 
+
 SET(WEBRTC_DIR /home/chensong/dep/webrtc)
 
 INCLUDE_DIRECTORIES(

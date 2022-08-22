@@ -21,7 +21,7 @@ namespace  chen {
 //			}
 //			return nullptr;
 //		}
-		bool ProxyVideoTrackSource::OnFrameTexture(void * texture, int32_t width, int32_t height)
+		bool ProxyVideoTrackSource::OnFrameTexture(void * texture, uint32 fmt, int32_t width, int32_t height)
 		{
 			if (!texture)
 			{
@@ -76,7 +76,7 @@ namespace  chen {
 
 			return true;
 		}
-		bool ProxyVideoTrackSource::OnFrame(unsigned char * rgba, int32_t width, int32_t height)
+		bool ProxyVideoTrackSource::OnFrame(unsigned char * rgba,  uint32 fmt, int32_t width, int32_t height)
 		{
 			if (!rgba)
 			{
@@ -143,7 +143,7 @@ namespace  chen {
 		}
 
 
-		bool ProxyVideoTrackSource::OnFrame(unsigned char * y_ptr, unsigned char *uv_ptr, int32_t width, int32_t height)
+		bool ProxyVideoTrackSource::OnFrame(unsigned char * y_ptr, unsigned char *uv_ptr, uint32 fmt,  int32_t width, int32_t height)
 		{
 			if (!y_ptr )
 			{

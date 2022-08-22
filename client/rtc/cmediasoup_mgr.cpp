@@ -12,10 +12,10 @@ namespace cmediasoup
 	cmediasoup_mgr::~cmediasoup_mgr()
 	{
 	}
-	bool cmediasoup_mgr::init( )
+	bool cmediasoup_mgr::init( uint32_t gpu_index)
 	{
 		//if (!m_stoped)
-		m_init = s_client.init( );
+		m_init = s_client.init(gpu_index );
 		return m_init;
 	}
 	void cmediasoup_mgr::startup(const char* mediasoupIp, uint16_t port
@@ -40,7 +40,7 @@ namespace cmediasoup
 		m_init  = false;
 	}
 
-	void cmediasoup_mgr::webrtc_video(unsigned char * rgba_ptr, int width, int height)
+	void cmediasoup_mgr::webrtc_video(unsigned char * rgba_ptr, uint32_t fmt, int width, int height)
 	{
 		if (!m_init)
 		{
@@ -52,9 +52,9 @@ namespace cmediasoup
 		{
 			return;
 		}
-		s_client.webrtc_video(rgba_ptr, width, height);
+		s_client.webrtc_video(rgba_ptr, fmt,  width, height);
 	}
-	void cmediasoup_mgr::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, int width, int height)
+	void cmediasoup_mgr::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, uint32_t fmt, int width, int height)
 	{
 		if (!m_init)
 		{
@@ -67,9 +67,9 @@ namespace cmediasoup
 			return;
 		}
 		NORMAL_EX_LOG("");
-		s_client.webrtc_video(y_ptr, uv_ptr, width, height);
+		s_client.webrtc_video(y_ptr, uv_ptr, fmt,  width, height);
 	}
-	void cmediasoup_mgr::webrtc_texture(void * texture, int width, int height)
+	void cmediasoup_mgr::webrtc_texture(void * texture, uint32_t fmt, int width, int height)
 	{
 		if (!m_init)
 		{
@@ -83,7 +83,7 @@ namespace cmediasoup
 		}
 		NORMAL_EX_LOG("");
 		//webrtc::VideoFrame frame;
-		s_client.webrtc_texture(texture, width, height);
+		s_client.webrtc_texture(texture, fmt,  width, height);
 	}
 	void cmediasoup_mgr::webrtc_pause()
 	{

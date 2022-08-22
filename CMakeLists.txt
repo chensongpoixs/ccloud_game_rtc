@@ -9,6 +9,8 @@ set(CMAKE_CXX_FLAGS         "-std=c++11 -g    -fno-rtti  ")  #注意调试的话
 add_definitions(-D WEBRTC_POSIX) # -fPIC
 add_definitions(-D WEBRTC_LINUX)
 
+#add_definitions(-D TEST_APP_CAPTUER)
+
 SET(WEBRTC_DIR /home/chensong/dep/webrtc)
 #if (WIN32 OR WIN64)
 #    set(HOOK_DIR "windows")

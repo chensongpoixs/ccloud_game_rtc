@@ -53,11 +53,11 @@ namespace chen {
         }
 
 
-		bool OnFrameTexture(void * texture, int32_t width, int32_t height);
+		bool OnFrameTexture(void * texture, uint32 fmt,  int32_t width, int32_t height);
 		
-        bool OnFrame(unsigned char * rgba, int32_t width, int32_t height);
+        bool OnFrame(unsigned char * rgba, uint32 fmt, int32_t width, int32_t height);
 
-		bool OnFrame(unsigned char * y_ptr, unsigned char *uv_ptr, int32_t width, int32_t height);
+		bool OnFrame(unsigned char * y_ptr, unsigned char *uv_ptr, uint32 fmt, int32_t width, int32_t height);
 		
 		bool OnFrame(const webrtc::VideoFrame & frame); 
 		

@@ -131,7 +131,7 @@ namespace chen {
         #endif
 	}
 	
-	bool cclient::init()
+	bool cclient::init(uint32 gpu_index)
 	{
 		printf("Log init ...\n");
 		if (!LOG::init(ELogStorageScreenFile, "rtc"))
@@ -904,7 +904,7 @@ namespace chen {
 		//m_status = EMediasoup_WebSocket;
 		return true;
 	}
-	bool cclient::webrtc_video(unsigned char * rgba, int32_t width, int32_t height)
+	bool cclient::webrtc_video(unsigned char * rgba,  uint32 fmt, int32_t width, int32_t height)
 	{
 		if (!m_webrtc_connect)
 		{
@@ -933,11 +933,11 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
-		return m_send_transport->webrtc_video(rgba, width, height);
+		return m_send_transport->webrtc_video(rgba,   fmt, width, height);
 		 
 		return true;
 	}
-	bool cclient::webrtc_texture(void * texture, int32_t width, int32_t height)
+	bool cclient::webrtc_texture(void * texture, uint32 fmt, int32_t width, int32_t height)
 	{
 		NORMAL_EX_LOG("");
 		if (!m_webrtc_connect)
@@ -967,9 +967,9 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
-		return m_send_transport->webrtc_texture(texture, width, height);
+		return m_send_transport->webrtc_texture(texture, fmt,  width, height);
 	}
-	bool cclient::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, int32_t width, int32_t height)
+	bool cclient::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, uint32 fmt, int32_t width, int32_t height)
 	{
 		if (!m_webrtc_connect)
 		{
@@ -999,7 +999,7 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
-		return m_send_transport->webrtc_video(y_ptr, uv_ptr, width, height);
+		return m_send_transport->webrtc_video(y_ptr, uv_ptr, fmt, width, height);
 
 		return true;
 	}
@@ -1313,9 +1313,9 @@ namespace chen {
 		m_client_protoo_msg_call.clear();
 	}
 
-	static  bool capture_callback(unsigned  char * rgba_ptr, uint32_t width, uint32_t height)
+	static  bool capture_callback(unsigned  char * rgba_ptr, uint32 fmt, uint32_t width, uint32_t height)
 	{
-		s_client.webrtc_video(rgba_ptr, width, height);
+		s_client.webrtc_video(rgba_ptr, fmt, width, height);
 	}
 
 	void cclient::_start_capture_thread()
@@ -1364,7 +1364,7 @@ namespace chen {
 				}
 				else
 				{ 
-						m_send_transport->webrtc_video(m_frame_rgba_vec[m_webrtc_frame % m_frame_rgba_vec.size()].m_rgba_ptr, m_frame_rgba_vec[m_webrtc_frame % m_frame_rgba_vec.size()].m_width, m_frame_rgba_vec[m_webrtc_frame % m_frame_rgba_vec.size()].m_height);
+						//m_send_transport->webrtc_video(m_frame_rgba_vec[m_webrtc_frame % m_frame_rgba_vec.size()].m_rgba_ptr, m_frame_rgba_vec[m_webrtc_frame % m_frame_rgba_vec.size()].m_width, m_frame_rgba_vec[m_webrtc_frame % m_frame_rgba_vec.size()].m_height);
 
 						++m_webrtc_frame;
 				}

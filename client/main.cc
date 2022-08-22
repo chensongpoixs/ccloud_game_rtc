@@ -299,7 +299,7 @@ int  test_main(int argc, char *argv[])
 //        fprintf(out_file_ptr, "[%s][%s][%d]\n", __FILE__, __FUNCTION__ , __LINE__);
 //        fflush(out_file_ptr);
 //    }
-    g_mediasoup_mgr.init();
+    g_mediasoup_mgr.init(0);
 
     //g_mediasoup_mgr.set_mediasoup_status_callback(&mediasoup_callback);
     /*
@@ -334,7 +334,7 @@ int  test_main(int argc, char *argv[])
  * library has been loaded.
  *
  */
-
+#ifdef TEST_APP_CAPTUER
 __attribute__((constructor))
 void loadMsg()
 {
@@ -343,3 +343,4 @@ void loadMsg()
         test_main(0, nullptr);
     }).detach();
 }
+#endif
