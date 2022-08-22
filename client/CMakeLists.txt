@@ -75,7 +75,7 @@ Xtst
         -lXt
         Xinerama
         xcb-composite
-        libinput_device.a
+#        libinput_device.a
         )
 
 

@@ -10,13 +10,13 @@ add_definitions(-D WEBRTC_POSIX) # -fPIC
 add_definitions(-D WEBRTC_LINUX)
 
 SET(WEBRTC_DIR /home/chensong/dep/webrtc)
-if (WIN32 OR WIN64)
-    set(HOOK_DIR "windows")
-elseif (APPLE)
-    set(HOOK_DIR "darwin")
-else()
-    set(HOOK_DIR "x11")
-endif()
+#if (WIN32 OR WIN64)
+#    set(HOOK_DIR "windows")
+#elseif (APPLE)
+#    set(HOOK_DIR "darwin")
+#else()
+#    set(HOOK_DIR "x11")
+#endif()
 
 
 
@@ -48,7 +48,7 @@ LINK_DIRECTORIES(
        /usr/local/lib 
        /usr/local/lib64
         /usr/lib/x86_64-linux-gnu
-        ${PROJECT_SOURCE_DIR}/linux/old_lib
+        ${PROJECT_SOURCE_DIR}/linux/lib
        ${WEBRTC_DIR}/lib/
        )
 add_subdirectory(hook)
