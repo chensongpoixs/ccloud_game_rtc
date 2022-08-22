@@ -2,9 +2,9 @@ project(webrtc_demo)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 MESSAGE(STATUS "#########################")
 
-set(CMAKE_C_COMPILER "/home/chensong/Work/webrtc/src/third_party/llvm-build/Release+Asserts/bin/clang")
+#set(CMAKE_C_COMPILER "/home/chensong/Work/webrtc/src/third_party/llvm-build/Release+Asserts/bin/clang")
 
-set(CMAKE_CXX_COMPILER "/home/chensong/Work/webrtc/src/third_party/llvm-build/Release+Asserts/bin/clang++")
+#set(CMAKE_CXX_COMPILER "/home/chensong/Work/webrtc/src/third_party/llvm-build/Release+Asserts/bin/clang++")
 SET(CMAKE_VERBOSE_MAKEFILE ON) 
 set(CMAKE_CXX_FLAGS         "-std=c++14 -g -fpermissive -fno-rtti -nostdinc++")  #注意调试的话,此行代码一定要添加!
 ADD_DEFINITIONS(

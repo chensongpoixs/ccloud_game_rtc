@@ -571,7 +571,7 @@ int XPending( Display*	display	/* display */ )
 //    (void)write(1, buffer, strlen(buffer));
 
     using namespace  chen;
-    NORMAL_EX_LOG("[real_XPending][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
+//    NORMAL_EX_LOG("[real_XPending][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
 
     return size;
 }
@@ -1060,7 +1060,7 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
-#elif defined(__linux__)
+#elif defined(__unix__)
 //        static uiohook_event event  ;
 //        event.type = EVENT_KEY_PRESSED;
 //        event.mask = 0X200;
@@ -1072,6 +1072,20 @@ namespace chen {
 //        event.data.keyboard.keychar = KeyCode;// VC_ESCAPE;
 //        event.data.keyboard.rawcode = KeyCode;
 //        hook_post_event(&event);
+        XEvent  Xkey;
+        Xkey.xkey.type = KeyPress;
+        Xkey.xkey.send_event = 0;
+        Xkey.xkey.same_screen = 1;
+        Xkey.xkey.keycode = KeyCode;
+        Xkey.xkey.state  = 16;
+
+        if (g_main_window && g_display_ptr)
+        {
+//            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
+            XSendEvent(g_display_ptr, g_main_window, True, KeyPress, &Xkey);
+//            XSync(g_display_ptr, true);
+            XFlush(g_display_ptr);
+        }
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -1128,7 +1142,7 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
-#elif defined(__linux__)
+#elif defined(__unix__)
 //        static uiohook_event event;
 //        event.type = EVENT_KEY_RELEASED;
 //        event.mask = 0X200;
@@ -1141,6 +1155,20 @@ namespace chen {
 //        event.data.keyboard.keychar = KeyCode;// VC_ESCAPE;
 //        event.data.keyboard.rawcode = KeyCode;
 //        hook_post_event(&event);
+        XEvent  Xkey;
+        Xkey.xkey.type = KeyRelease;
+        Xkey.xkey.send_event = 0;
+        Xkey.xkey.same_screen = 1;
+        Xkey.xkey.keycode = KeyCode;
+        Xkey.xkey.state  = 16;
+
+        if (g_main_window && g_display_ptr)
+        {
+//            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
+            XSendEvent(g_display_ptr, g_main_window, True, KeyRelease, &Xkey);
+//            XSync(g_display_ptr, true);
+            XFlush(g_display_ptr);
+        }
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -1201,7 +1229,7 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
-#elif defined(__linux__)
+#elif defined(__unix__)
 //        static uiohook_event event;
 //        event.type = EVENT_KEY_TYPED;
 //        event.mask = 0x00;
@@ -1209,6 +1237,20 @@ namespace chen {
 //        event.data.keyboard.keycode = Character;// VC_ESCAPE;
 //        event.data.keyboard.keycode = Character;
 //        hook_post_event(&event);
+        XEvent  Xkey;
+        Xkey.xkey.type = KeyPress;
+        Xkey.xkey.send_event = 0;
+        Xkey.xkey.same_screen = 1;
+        Xkey.xkey.keycode = Character;
+        Xkey.xkey.state  = 16;
+
+        if (g_main_window && g_display_ptr)
+        {
+//            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
+            XSendEvent(g_display_ptr, g_main_window, True, KeyPress, &Xkey);
+//            XSync(g_display_ptr, true);
+            XFlush(g_display_ptr);
+        }
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
@@ -1251,9 +1293,12 @@ namespace chen {
             xEnter.xcrossing.state  = 16;
             xEnter.xcrossing.detail  = 0;
             xEnter.xcrossing.mode = 0;
+        if (g_main_window && g_display_ptr)
         {
-            clock_guard lock(g_xevent_lock);
-//            g_xevent.push_back(xEnter);
+//            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
+            XSendEvent(g_display_ptr, g_main_window, True, EnterNotify, &xEnter);
+//            XSync(g_display_ptr, true);
+            XFlush(g_display_ptr);
         }
         NORMAL_EX_LOG("----------------------------------");
 
@@ -1279,10 +1324,17 @@ namespace chen {
         xEnter.xcrossing.state  = 16;
         xEnter.xcrossing.detail  = 0;
         xEnter.xcrossing.mode = 0;
+        if (g_main_window && g_display_ptr)
         {
-            clock_guard lock(g_xevent_lock);
-//            g_xevent.push_back(xEnter);
+//            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
+            XSendEvent(g_display_ptr, g_main_window, True, LeaveNotify, &xEnter);
+//            XSync(g_display_ptr, true);
+            XFlush(g_display_ptr);
         }
+//        {
+//            clock_guard lock(g_xevent_lock);
+////            g_xevent.push_back(xEnter);
+//        }
 
         NORMAL_EX_LOG("----------------------------------");
 
@@ -1375,10 +1427,11 @@ namespace chen {
         xButton.xbutton.x = PosX;
         xButton.xbutton.y = PosY;
         xButton.xbutton.send_event = 0;
-        xButton.xbutton.same_screen = 1;
-        xButton.xbutton.button = 1;
-        xButton.xbutton.state = 16;
+        xButton.xbutton.same_screen = True;
+        xButton.xbutton.button = active_type;
+        xButton.xbutton.state = 16;  // TODO@chensong 20220822  这个变量很神奇 目前只要是16 就可以哈、 新大陆你们自己玩吧
         xButton.xbutton.time = CurrentTime;
+        xButton.xbutton.window = g_main_window;
 //        {
 //            clock_guard lock(g_xevent_lock);
 ////            g_xevent.push_back(xButton);
@@ -1389,7 +1442,7 @@ namespace chen {
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
             XSendEvent(g_display_ptr, g_main_window, True, ButtonPress, &xButton);
-            XSync(g_display_ptr, true);
+//            XSync(g_display_ptr, true);
             XFlush(g_display_ptr);
         }
 
@@ -1463,17 +1516,17 @@ namespace chen {
         xButton.xbutton.type = ButtonRelease;
         xButton.xbutton.x = PosX;
         xButton.xbutton.y = PosY;
-        xButton.xbutton.send_event = 0;
-        xButton.xbutton.same_screen = 1;
-        xButton.xbutton.button = 1;
+//        xButton.xbutton.send_event = 0;
+//        xButton.xbutton.same_screen = True;
+        xButton.xbutton.button = active_type;
         xButton.xbutton.time = CurrentTime;
-//        xButton.xbutton.state = 16;
+        xButton.xbutton.state = 16;
         xButton.xbutton.window = g_main_window;
         if (g_main_window && g_display_ptr)
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, False, CurrentTime);
             XSendEvent(g_display_ptr, g_main_window, True, ButtonRelease, &xButton);
-            XSync(g_display_ptr, true);
+//            XSync(g_display_ptr, true);
             XFlush(g_display_ptr);
         }
 //        {
@@ -1547,13 +1600,13 @@ namespace chen {
             xmouse.xmotion.type = MotionNotify;
             xmouse.xmotion.x = PosX;
             xmouse.xmotion.y = PosY;
-            xmouse.xmotion.x_root = DeltaX;
-            xmouse.xmotion.y_root = DeltaY;
-            xmouse.xmotion.state = 16;
-            xmouse.xmotion.send_event = 0;
-            xmouse.xmotion.same_screen = 1;
+//            xmouse.xmotion.x_root = DeltaX;
+//            xmouse.xmotion.y_root = DeltaY;
+//            xmouse.xmotion.state = 16;
+//            xmouse.xmotion.send_event = 0;
+//            xmouse.xmotion.same_screen = 1;
             xmouse.xmotion.window = g_main_window;
-            xmouse.xmotion.time = CurrentTime;
+//            xmouse.xmotion.time = CurrentTime;
 //        {
 ////
 //
@@ -1569,8 +1622,8 @@ namespace chen {
             if (g_display_ptr && g_main_window)
             {
 //                XTestFakeMotionEvent(g_display_ptr, -1, PosX, PosY, CurrentTime);
-                XSendEvent(g_display_ptr, g_main_window, True, MotionNotify, &xmouse);
-                XSync(g_display_ptr, true);
+                XSendEvent(g_display_ptr, g_main_window, False, MotionNotify, &xmouse);
+//                XSync(g_display_ptr, true);
                 XFlush(g_display_ptr);
 //                XQueryPointer(g_display_ptr, DefaultRootWindow(g_display_ptr ), &event.xbutton.root, &event.xbutton.window,
 //                              &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
@@ -1722,13 +1775,23 @@ namespace chen {
 			return false;
 		}
 #elif defined(__linux__)
-//        static uiohook_event event;
-//        event.type = EVENT_MOUSE_WHEEL;
-//        event.data.wheel.x = PosX;
-//        event.data.wheel.y = PosY;
-//        event.data.wheel.amount = Delta;
-//        event.data.wheel.rotation = Delta;
-//        hook_post_event(&event);
+        XEvent  xButton;
+        xButton.xbutton.type = ButtonPress;
+        xButton.xbutton.x = PosX;
+        xButton.xbutton.y = PosY;
+        xButton.xbutton.send_event = 0;
+        xButton.xbutton.same_screen = 1;
+        xButton.xbutton.button = Delta > 0 ? Button4 : Button5;
+        xButton.xbutton.time = CurrentTime;
+//        xButton.xbutton.state = 16;
+        xButton.xbutton.window = g_main_window;
+        if (g_main_window && g_display_ptr)
+        {
+//            XTestFakeButtonEvent(g_display_ptr, -1, False, CurrentTime);
+            XSendEvent(g_display_ptr, g_main_window, True, ButtonRelease, &xButton);
+//            XSync(g_display_ptr, true);
+            XFlush(g_display_ptr);
+        }
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle

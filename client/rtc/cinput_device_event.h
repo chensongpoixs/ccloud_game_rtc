@@ -13,6 +13,9 @@ purpose:		input_device_event
 #include "api/data_channel_interface.h"
 #include <map>
 #include "cprotocol.h"
+#if defined(__unix__)
+#include <X11/X.h>
+#endif
 //#include "cinput_device_hook.h"
 namespace chen {
 
@@ -414,38 +417,39 @@ namespace chen {
 			}
 			break;
 			}
-#elif defined(__linux__)
+#elif defined(__unix__)
             switch (Button)
             {
                 case 0:
                 {
-                    OutButton = 1; //MOUSE_BUTTON1; //Event ==EventType::MOUSE_DOWN  ?   WM_LBUTTONDOWN : WM_LBUTTONUP; // EMouseButtons::Left;
+                    OutButton = Button1; //MOUSE_BUTTON1; //Event ==EventType::MOUSE_DOWN  ?   WM_LBUTTONDOWN : WM_LBUTTONUP; // EMouseButtons::Left;
                 }
                     break;
                 case 1:
                 {
-                    OutButton = 3; //MOUSE_BUTTON3;// Event ==EventType::MOUSE_DOWN  ?    WM_MBUTTONDOWN : WM_MBUTTONUP;  ; // EMouseButtons::Middle;
+                    OutButton = Button2; //MOUSE_BUTTON3;// Event ==EventType::MOUSE_DOWN  ?    WM_MBUTTONDOWN : WM_MBUTTONUP;  ; // EMouseButtons::Middle;
                 }
                     break;
                 case 2:
                 {
-                    OutButton = 2; //MOUSE_BUTTON2; // Event ==EventType::MOUSE_DOWN  ? WM_RBUTTONDOWN: WM_RBUTTONUP ; // EMouseButtons::Right;
+                    OutButton = Button3; //MOUSE_BUTTON2; // Event ==EventType::MOUSE_DOWN  ? WM_RBUTTONDOWN: WM_RBUTTONUP ; // EMouseButtons::Right;
                 }
                     break;
-                case 3:
-                {
-                    //log error --->
-                    //OutButton = EMouseButtons::Thumb01;
-                }
+//                case 3:
+//                {
+//                    //log error --->
+//                    //OutButton = EMouseButtons::Thumb01;
+//                }
                     break;
-                case 4:
-                {
-                    //log error --->
-                    //	OutButton = EMouseButtons::Thumb02;
-                }
-                    break;
+//                case 4:
+//                {
+//                    //log error --->
+//                    //	OutButton = EMouseButtons::Thumb02;
+//                }
+//                    break;
                 default:
                 {
+
                     // log error --->
                     //UE_LOG(PixelStreamerInputDevice, Error, TEXT("Unknown Pixel Streaming mouse click with button %d and word 0x%016llx"), Button, Data.Word);
                 }
