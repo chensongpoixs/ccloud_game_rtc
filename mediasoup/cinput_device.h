@@ -51,7 +51,7 @@ namespace chen {
 		bool OnMessage(const std::string & consumer_id, const webrtc::DataBuffer& Buffer);
 	public:
 		
-		/*
+		/**
 		* 控制信息
 		*/
 		bool OnRequestQualityControl(const uint8*& Data,   uint32 size);

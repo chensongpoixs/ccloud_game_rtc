@@ -19,7 +19,7 @@ purpose:		input_device
 #include <WinUser.h>
 #include <UserEnv.h>
 #include <mutex>
-#include "detours.h"
+//#include "detours.h"
 //void CallMessage(HWND hwnd, int nMsgId, int wParam, int lParam)
 //
 //{
@@ -188,7 +188,7 @@ namespace chen {
 #endif //#if defined(_MSC_VER)
 	//static bool g_move_init = false;
 	///////////////////////////////////////////////////////////////////////////////
-	static HMODULE user32dll = NULL;
+	/*static HMODULE user32dll = NULL;
 	typedef UINT(WINAPI* PFN_GetRawInputData)(HRAWINPUT, UINT, LPVOID, PUINT, UINT);
 	PFN_GetRawInputData RealGetRawInputData = NULL;
 	/// <summary>
@@ -215,7 +215,7 @@ namespace chen {
 	PFN_UnregisterClassA RealUnregisterClassA;
 
 	typedef BOOL (WINAPI* PFN_UnregisterClassW)(_In_ LPCWSTR lpClassName, _In_opt_ HINSTANCE hInstance);
-	PFN_UnregisterClassW RealUnregisterClassW;
+	PFN_UnregisterClassW RealUnregisterClassW;*/
 
 	///////////////////////////////////////////////////////////////////////////////
 	 
@@ -245,145 +245,145 @@ namespace chen {
 //		}																																\
 //	}
 
-	static UINT WINAPI hook_get_raw_input_data(_In_ HRAWINPUT hRawInput, _In_ UINT uiCommand, _Out_writes_bytes_to_opt_(*pcbSize, return) LPVOID pData, _Inout_ PUINT pcbSize, _In_ UINT cbSizeHeader)
-	{ 
-		UINT ret = RealGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
-		  
-		{ 
-			clock_guard lock(g_mutex);
-			if (  uiCommand == RID_INPUT /*&& (ret != 48 && ret != 0) && g_hrawinput.size() > g_read_index*/ )
-			{ 
-				std::map<uint64, RAWINPUT>::iterator iter = g_hrawinput.find((uint64)hRawInput);
-				if (iter != g_hrawinput.end())
-				{
-					DEBUG_LOG("[g_hrawinput.size() = %u][hRawInput = %u][uiCommand = %u][ret = %u][cbSizeHeader = %u]", g_hrawinput.size(), hRawInput, uiCommand, ret, cbSizeHeader);
+	//static UINT WINAPI hook_get_raw_input_data(_In_ HRAWINPUT hRawInput, _In_ UINT uiCommand, _Out_writes_bytes_to_opt_(*pcbSize, return) LPVOID pData, _Inout_ PUINT pcbSize, _In_ UINT cbSizeHeader)
+	//{ 
+	//	UINT ret = RealGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+	//	  
+	//	{ 
+	//		clock_guard lock(g_mutex);
+	//		if (  uiCommand == RID_INPUT /*&& (ret != 48 && ret != 0) && g_hrawinput.size() > g_read_index*/ )
+	//		{ 
+	//			std::map<uint64, RAWINPUT>::iterator iter = g_hrawinput.find((uint64)hRawInput);
+	//			if (iter != g_hrawinput.end())
+	//			{
+	//				DEBUG_LOG("[g_hrawinput.size() = %u][hRawInput = %u][uiCommand = %u][ret = %u][cbSizeHeader = %u]", g_hrawinput.size(), hRawInput, uiCommand, ret, cbSizeHeader);
 
-					//DEBUG_LOG("find [hRawInput = %u]", hRawInput);
-					ret = iter->second.header.dwSize;
-					if (pcbSize)
-					{
-						*pcbSize = ret;
-					}
-					if (pData)
-					{
-						memcpy(pData, &iter->second, ret);
-					}
-					
-				}
-				else
-				{
-					DEBUG_LOG("not find hRawInput = %u", hRawInput);
-				}  
-			}
-		}
-		
-		if (false)
-		{
-			RAWINPUT* temp_input = (RAWINPUT*)pData;
-			DEBUG_LOG("[g_hrawinput.size() = %u][g_read_index = %u][uiCommand = %u][ret = %u][cbSizeHeader = %u]", g_hrawinput.size(), g_read_index, uiCommand, ret, cbSizeHeader);
-			DEBUG_LOG("[temp_input->header.dwType = %u]", temp_input->header.dwType);
-			DEBUG_LOG("[temp_input->data.mouse.lLastX = %u][temp_input->data.mouse.lLastY = %u]", temp_input->data.mouse.lLastX, temp_input->data.mouse.lLastY);
-		}
-		return ret;
-	}
-
-
-	static BOOL WINAPI hook_get_cursor_pos (_Out_ LPPOINT lpPoint)
-	{
-		if (lpPoint)
-		{
-			lpPoint->x = g_width;
-			lpPoint->y = g_height;
-			return 1;
-		}
-		return RealGetCursorPos(lpPoint);;
-	}
-	static BOOL WINAPI hook_set_cursor_pos(_In_ int X, _In_ int Y)
-	{
-		/*if (lpPoint)
-		{
-			lpPoint->x = g_width;
-			lpPoint->y = g_height;
-			return 1;
-		}*/
-		return RealSetCursorPos(X, Y);
-	}
-
-	static ATOM  hook_RegisterClassA(_In_ CONST WNDCLASSA* lpWndClass)
-	{
-		if (lpWndClass && lpWndClass->lpfnWndProc)
-		{
-			NORMAL_EX_LOG("add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
-			g_wnd_classA[lpWndClass] = lpWndClass;
-		}
-		else if(lpWndClass)
-		{
-			NORMAL_EX_LOG("not add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
-		}
-		return RegisterClassA(lpWndClass);
-	}
+	//				//DEBUG_LOG("find [hRawInput = %u]", hRawInput);
+	//				ret = iter->second.header.dwSize;
+	//				if (pcbSize)
+	//				{
+	//					*pcbSize = ret;
+	//				}
+	//				if (pData)
+	//				{
+	//					memcpy(pData, &iter->second, ret);
+	//				}
+	//				
+	//			}
+	//			else
+	//			{
+	//				DEBUG_LOG("not find hRawInput = %u", hRawInput);
+	//			}  
+	//		}
+	//	}
+	//	
+	//	if (false)
+	//	{
+	//		RAWINPUT* temp_input = (RAWINPUT*)pData;
+	//		DEBUG_LOG("[g_hrawinput.size() = %u][g_read_index = %u][uiCommand = %u][ret = %u][cbSizeHeader = %u]", g_hrawinput.size(), g_read_index, uiCommand, ret, cbSizeHeader);
+	//		DEBUG_LOG("[temp_input->header.dwType = %u]", temp_input->header.dwType);
+	//		DEBUG_LOG("[temp_input->data.mouse.lLastX = %u][temp_input->data.mouse.lLastY = %u]", temp_input->data.mouse.lLastX, temp_input->data.mouse.lLastY);
+	//	}
+	//	return ret;
+	//}
 
 
-	static ATOM  hook_RegisterClassW(_In_ CONST WNDCLASSW* lpWndClass)
-	{
-		if (lpWndClass && lpWndClass->lpfnWndProc)
-		{
-			NORMAL_EX_LOG("add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
-			g_wnd_classW[lpWndClass] = lpWndClass;
-		}
-		else if (lpWndClass)
-		{
-			NORMAL_EX_LOG("not add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
-		}
-		return RegisterClassW(lpWndClass);
-	}
+	//static BOOL WINAPI hook_get_cursor_pos (_Out_ LPPOINT lpPoint)
+	//{
+	//	if (lpPoint)
+	//	{
+	//		lpPoint->x = g_width;
+	//		lpPoint->y = g_height;
+	//		return 1;
+	//	}
+	//	return RealGetCursorPos(lpPoint);;
+	//}
+	//static BOOL WINAPI hook_set_cursor_pos(_In_ int X, _In_ int Y)
+	//{
+	//	/*if (lpPoint)
+	//	{
+	//		lpPoint->x = g_width;
+	//		lpPoint->y = g_height;
+	//		return 1;
+	//	}*/
+	//	return RealSetCursorPos(X, Y);
+	//}
+
+	//static ATOM  hook_RegisterClassA(_In_ CONST WNDCLASSA* lpWndClass)
+	//{
+	//	if (lpWndClass && lpWndClass->lpfnWndProc)
+	//	{
+	//		NORMAL_EX_LOG("add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
+	//		g_wnd_classA[lpWndClass] = lpWndClass;
+	//	}
+	//	else if(lpWndClass)
+	//	{
+	//		NORMAL_EX_LOG("not add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
+	//	}
+	//	return RegisterClassA(lpWndClass);
+	//}
 
 
-	static BOOL hook_UnregisterClassA(_In_ LPCSTR lpClassName, _In_opt_ HINSTANCE hInstance)
-	{
+	//static ATOM  hook_RegisterClassW(_In_ CONST WNDCLASSW* lpWndClass)
+	//{
+	//	if (lpWndClass && lpWndClass->lpfnWndProc)
+	//	{
+	//		NORMAL_EX_LOG("add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
+	//		g_wnd_classW[lpWndClass] = lpWndClass;
+	//	}
+	//	else if (lpWndClass)
+	//	{
+	//		NORMAL_EX_LOG("not add wnd [lpszClassName = %s][lpszMenuName = %s]", lpWndClass->lpszClassName, lpWndClass->lpszMenuName);
+	//	}
+	//	return RegisterClassW(lpWndClass);
+	//}
 
-		return UnregisterClassA(lpClassName, hInstance);
-	}
+
+	//static BOOL hook_UnregisterClassA(_In_ LPCSTR lpClassName, _In_opt_ HINSTANCE hInstance)
+	//{
+
+	//	return UnregisterClassA(lpClassName, hInstance);
+	//}
 
 
-	static BOOL hook_UnregisterClassW(_In_ LPCWSTR lpClassName, _In_opt_ HINSTANCE hInstance)
-	{
-		return UnregisterClassW(lpClassName, hInstance);
-	}
+	//static BOOL hook_UnregisterClassW(_In_ LPCWSTR lpClassName, _In_opt_ HINSTANCE hInstance)
+	//{
+	//	return UnregisterClassW(lpClassName, hInstance);
+	//}
 
-	static inline HMODULE get_system_module(const char* system_path, const char* module)
-	{
-		char base_path[MAX_PATH];
+	//static inline HMODULE get_system_module(const char* system_path, const char* module)
+	//{
+	//	char base_path[MAX_PATH];
 
-		strcpy(base_path, system_path);
-		strcat(base_path, "\\");
-		strcat(base_path, module);
-		return GetModuleHandleA(base_path);
-	}
+	//	strcpy(base_path, system_path);
+	//	strcat(base_path, "\\");
+	//	strcat(base_path, module);
+	//	return GetModuleHandleA(base_path);
+	//}
 	bool cinput_device::init()
 	{
 		//g_hrawinput.resize(RAW_INPUT_SIZE);
 		 // win
-		char system_path[MAX_PATH] = {0};
+		//char system_path[MAX_PATH] = {0};
 
-		UINT ret = GetSystemDirectoryA(system_path, MAX_PATH);
-		if (!ret)
-		{
-			ERROR_EX_LOG("Failed to get windows system path: %lu\n", GetLastError());
-			//return false;
-		}
-		SYSTEM_LOG("[system_path = %s] ok ", system_path);
-		// hook mouse move  GetRawInputData
-		user32dll = get_system_module(system_path, "user32.dll");
-		if (!user32dll)
-		{
-			WARNING_EX_LOG(" REGISTER mouse  failed !!!");
-			//return false;
-		}
-		SYSTEM_LOG("REGISTER  mouse ok !!!");
-		void* get_raw_input_data_proc = GetProcAddress(user32dll, "GetRawInputData");
-		void* get_cursor_pos_proc = GetProcAddress(user32dll, "GetCursorPos");
-		void* set_cursor_pos_proc = GetProcAddress(user32dll, "SetCursorPos");
+		//UINT ret = GetSystemDirectoryA(system_path, MAX_PATH);
+		//if (!ret)
+		//{
+		//	ERROR_EX_LOG("Failed to get windows system path: %lu\n", GetLastError());
+		//	//return false;
+		//}
+		//SYSTEM_LOG("[system_path = %s] ok ", system_path);
+		//// hook mouse move  GetRawInputData
+		//user32dll = get_system_module(system_path, "user32.dll");
+		//if (!user32dll)
+		//{
+		//	WARNING_EX_LOG(" REGISTER mouse  failed !!!");
+		//	//return false;
+		//}
+		//SYSTEM_LOG("REGISTER  mouse ok !!!");
+		//void* get_raw_input_data_proc = GetProcAddress(user32dll, "GetRawInputData");
+		//void* get_cursor_pos_proc = GetProcAddress(user32dll, "GetCursorPos");
+		//void* set_cursor_pos_proc = GetProcAddress(user32dll, "SetCursorPos");
 		/// <summary>
 		/// ///////////////////
 		/// </summary>
@@ -397,83 +397,83 @@ namespace chen {
 			ERROR_EX_LOG("seatch mouse table not find GetRawInputData !!!");
 		}
 		else*/
-		{
-			SYSTEM_LOG("    input device  begin ... ");
-			DetourTransactionBegin();
+		//{
+		//	SYSTEM_LOG("    input device  begin ... ");
+		//	DetourTransactionBegin();
 
-			
-			if (get_raw_input_data_proc)
-			{
-				RealGetRawInputData = (PFN_GetRawInputData)get_raw_input_data_proc;
-				DetourAttach((PVOID*)&RealGetRawInputData,
-					hook_get_raw_input_data);
-			}
-			if (get_cursor_pos_proc)
-			{
-				RealGetCursorPos = (PFN_GetCursorPos)get_cursor_pos_proc;
-				DetourAttach((PVOID*)&RealGetCursorPos,
-					hook_get_cursor_pos);
-			}
-			if (set_cursor_pos_proc)
-			{
-				RealSetCursorPos = (PFN_SetCursorPos)set_cursor_pos_proc;
-				DetourAttach((PVOID*)&RealSetCursorPos,
-					hook_set_cursor_pos);
-			}
+		//	
+		//	if (get_raw_input_data_proc)
+		//	{
+		//		RealGetRawInputData = (PFN_GetRawInputData)get_raw_input_data_proc;
+		//		DetourAttach((PVOID*)&RealGetRawInputData,
+		//			hook_get_raw_input_data);
+		//	}
+		//	if (get_cursor_pos_proc)
+		//	{
+		//		RealGetCursorPos = (PFN_GetCursorPos)get_cursor_pos_proc;
+		//		DetourAttach((PVOID*)&RealGetCursorPos,
+		//			hook_get_cursor_pos);
+		//	}
+		//	if (set_cursor_pos_proc)
+		//	{
+		//		RealSetCursorPos = (PFN_SetCursorPos)set_cursor_pos_proc;
+		//		DetourAttach((PVOID*)&RealSetCursorPos,
+		//			hook_set_cursor_pos);
+		//	}
 
 
-			/*if (register_class_a_proc)
-			{
-				RealRegisterClassA = (PFN_RegisterClassA)register_class_a_proc;
-				DetourAttach((PVOID*)&RealRegisterClassA,
-					hook_RegisterClassA);
-			}
+		//	/*if (register_class_a_proc)
+		//	{
+		//		RealRegisterClassA = (PFN_RegisterClassA)register_class_a_proc;
+		//		DetourAttach((PVOID*)&RealRegisterClassA,
+		//			hook_RegisterClassA);
+		//	}
 
-			if (register_class_w_proc)
-			{
-				RealRegisterClassW = (PFN_RegisterClassW)register_class_w_proc;
-				DetourAttach((PVOID*)&RealRegisterClassW,
-					hook_RegisterClassW);
-			}*/
+		//	if (register_class_w_proc)
+		//	{
+		//		RealRegisterClassW = (PFN_RegisterClassW)register_class_w_proc;
+		//		DetourAttach((PVOID*)&RealRegisterClassW,
+		//			hook_RegisterClassW);
+		//	}*/
 
-			SYSTEM_LOG("   input end  ... ");
-			const LONG error = DetourTransactionCommit();
-			const bool success = error == NO_ERROR;
-			if (success)
-			{
-				NORMAL_EX_LOG("  input device");
-				if (get_raw_input_data_proc)
-				{
-					NORMAL_EX_LOG("  input device");
-				}
-				if (get_cursor_pos_proc)
-				{
-					NORMAL_EX_LOG("  input device");
-				}
-				if (set_cursor_pos_proc)
-				{
-					NORMAL_EX_LOG("  input device");
-				}
-				/*if (register_class_a_proc)
-				{
-					NORMAL_EX_LOG(" input device");
-				}
-				if (register_class_w_proc)
-				{
-					NORMAL_EX_LOG(" input device");
-				}*/
-				NORMAL_EX_LOG("  input device ");
-			}
-			else
-			{
-				RealGetRawInputData = NULL;
-				RealGetCursorPos = NULL;
-				RealSetCursorPos = NULL;
-				/*RealRegisterClassA = NULL;
-				RealRegisterClassW = NULL;*/
-				ERROR_EX_LOG("Failed to attach  mouse  : %ld", error);
-			}
-		}
+		//	SYSTEM_LOG("   input end  ... ");
+		//	const LONG error = DetourTransactionCommit();
+		//	const bool success = error == NO_ERROR;
+		//	if (success)
+		//	{
+		//		NORMAL_EX_LOG("  input device");
+		//		if (get_raw_input_data_proc)
+		//		{
+		//			NORMAL_EX_LOG("  input device");
+		//		}
+		//		if (get_cursor_pos_proc)
+		//		{
+		//			NORMAL_EX_LOG("  input device");
+		//		}
+		//		if (set_cursor_pos_proc)
+		//		{
+		//			NORMAL_EX_LOG("  input device");
+		//		}
+		//		/*if (register_class_a_proc)
+		//		{
+		//			NORMAL_EX_LOG(" input device");
+		//		}
+		//		if (register_class_w_proc)
+		//		{
+		//			NORMAL_EX_LOG(" input device");
+		//		}*/
+		//		NORMAL_EX_LOG("  input device ");
+		//	}
+		//	else
+		//	{
+		//		RealGetRawInputData = NULL;
+		//		RealGetCursorPos = NULL;
+		//		RealSetCursorPos = NULL;
+		//		/*RealRegisterClassA = NULL;
+		//		RealRegisterClassW = NULL;*/
+		//		ERROR_EX_LOG("Failed to attach  mouse  : %ld", error);
+		//	}
+		//}
 
 		
 

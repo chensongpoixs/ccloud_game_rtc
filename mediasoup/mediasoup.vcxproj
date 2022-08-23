@@ -42,7 +42,6 @@
     <ClInclude Include="cproducer.h" />
     <ClInclude Include="cprotocol.h" />
     <ClInclude Include="crecv_transport.h" />
-    <ClInclude Include="crtc_mgr.h" />
     <ClInclude Include="csend_transport.h" />
     <ClInclude Include="csession_description.h" />
     <ClInclude Include="csingleton.h" />
@@ -98,7 +97,6 @@
     <ClCompile Include="cosd_util.cpp" />
     <ClCompile Include="cproducer.cpp" />
     <ClCompile Include="crecv_transport.cpp" />
-    <ClCompile Include="crtc_mgr.cpp" />
     <ClCompile Include="csend_transport.cpp" />
     <ClCompile Include="csession_description.cpp" />
     <ClCompile Include="ctime_api.cpp" />
@@ -142,7 +140,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{DBAF2E5E-C6B3-444F-9FAE-5EF6CA95A9FA}</ProjectGuid>
     <RootNamespace>mediasoup</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -226,7 +224,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>C:\Work\mediaserver\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvcuvid.lib;C:\Work\mediaserver\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvencodeapi.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cuda.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudadevrt.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudart.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudart_static.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\OpenCL.lib;C:\Work\mediaserver\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\lib\detours.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>F:\Work\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvencodeapi.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -263,7 +261,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>C:\Work\mediaserver\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvcuvid.lib;C:\Work\mediaserver\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvencodeapi.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cuda.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudadevrt.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudart.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudart_static.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\OpenCL.lib;C:\Work\mediaserver\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\lib\detours.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>F:\Work\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvencodeapi.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
