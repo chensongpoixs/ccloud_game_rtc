@@ -21,6 +21,11 @@ namespace cmediasoup
 	public:
 		cmediasoup_mgr();
 		~cmediasoup_mgr();
+
+	public:
+		static bool global_init();
+		static void global_destroy();
+
 	public:
 		bool init( uint32_t gpu_index);
 
@@ -65,6 +70,7 @@ namespace cmediasoup
 		std::string			m_room_name;
 		std::string			m_client_name;
 		uint32_t			m_reconnect_wait;
+		void*				m_client_ptr;
 	};
 }
 #endif // C_MEDIASOUP_H

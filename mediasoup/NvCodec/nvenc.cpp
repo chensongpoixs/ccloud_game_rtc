@@ -133,7 +133,7 @@ static void* nvenc_create()
 	SYSTEM_LOG(" start  gpu info [g_gpu_index = %u] ....", g_gpu_index);
 
 
-	hr = enc->factory->EnumAdapters(g_gpu_index, &enc->adapter);
+	/*hr = enc->factory->EnumAdapters(g_gpu_index, &enc->adapter);
 	if (FAILED(hr)) 
 	{
 		WARNING_EX_LOG("[g_gpu_index = %u] enumadapters failed !!! ", g_gpu_index);
@@ -161,9 +161,12 @@ static void* nvenc_create()
 		else
 		{
 			WARNING_EX_LOG("[g_gpu_index = %u]  not NVIDIA  [desc = %s] failed !!! ", g_gpu_index, desc);
+			enc->adapter->Release();
+			enc->adapter = nullptr;
+			goto gpuadapter;
 		}
-	}
-gpuadapter:
+	}*/
+//gpuadapter:
 	NORMAL_EX_LOG("gpuadapter");
 	for (int gpuIndex = 0; gpuIndex <= 5; gpuIndex++) 
 	{

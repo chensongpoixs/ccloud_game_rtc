@@ -7,7 +7,7 @@ namespace chen {
 
 
 
-    DesktopCapture::DesktopCapture() : dc_(nullptr), start_flag_(false) {}
+    DesktopCapture::DesktopCapture() : dc_(nullptr), start_flag_(false), m_client_ptr(NULL){}
 
     DesktopCapture::~DesktopCapture() {
         Destory();
@@ -36,15 +36,17 @@ namespace chen {
     bool DesktopCapture::Init(size_t target_fps, size_t capture_screen_index)
     {
         // 窗口
-        /*dc_ = webrtc::DesktopCapturer::CreateWindowCapturer(
-            webrtc::DesktopCaptureOptions::CreateDefault());*/
+        dc_ = webrtc::DesktopCapturer::CreateWindowCapturer(
+            webrtc::DesktopCaptureOptions::CreateDefault());
             //桌面
-        webrtc::DesktopCaptureOptions result;
+         webrtc::DesktopCaptureOptions result;
         result.set_allow_directx_capturer(true);
-        dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(result);
+        dc_ = webrtc::DesktopCapturer::CreateScreenCapturer(result); 
 
         if (!dc_)
+        {
             return false;
+        }
 
         webrtc::DesktopCapturer::SourceList sources;
         dc_->GetSourceList(&sources);
@@ -100,11 +102,11 @@ namespace chen {
             i420_buffer_ = webrtc::I420Buffer::Create(width, height);
         }
 		memcpy(i420_buffer_->MutableDataY(), frame->data(), width * height * 4);
-      /*  libyuv::ConvertToI420(frame->data(), 0, i420_buffer_->MutableDataY(),
+       /*libyuv::ConvertToI420(frame->data(), 0, i420_buffer_->MutableDataY(),
             i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
             i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
             i420_buffer_->StrideV(), 0, 0, width, height, width,
-            height, libyuv::kRotate0, libyuv::FOURCC_ARGB);*/
+            height, libyuv::kRotate0, libyuv::FOURCC_ARGB); */
 
 
         // seting 马流的信息
@@ -117,7 +119,11 @@ namespace chen {
             .set_rotation(webrtc::kVideoRotation_0)
             .build();
        // captureFrame.set_ntp_time_ms(0);
-        s_client.webrtc_video(captureFrame);
+        {
+            clock_guard lock(m_lock);
+            m_client_ptr->webrtc_video(captureFrame);
+        }
+       
        // DesktopCaptureSource::OnFrame(captureFrame);
         // rtc media info 
        /* DesktopCaptureSource::OnFrame(
@@ -149,6 +155,12 @@ namespace chen {
         if (capture_thread_ && capture_thread_->joinable()) {
             capture_thread_->join();
         }
+    }
+
+    void DesktopCapture::set_clinet_ptr(cclient* ptr)
+    {
+        clock_guard lock(m_lock);
+        m_client_ptr = ptr;
     }
   
 }

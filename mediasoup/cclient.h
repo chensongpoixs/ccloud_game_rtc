@@ -9,10 +9,10 @@
 //#include "csend_transport.h"
 //#include "crecv_transport.h"
 #include "csingleton.h"
-#include "cdesktop_capture.h"
+//#include "cdesktop_capture.h"
 #include "cmediasoup_mgr.h"
 namespace chen {
-
+	class DesktopCapture;
 	class csend_transport;
 	class crecv_transport;
 	enum EMediasoup_Type
@@ -190,13 +190,13 @@ namespace chen {
 		std::thread						m_osg_copy_thread;
 
 
-		DesktopCapture*					m_desktop_capture_ptr;
+		std::shared_ptr<DesktopCapture> 		m_desktop_capture_ptr;
 
 		cmediasoup::mediasoup_status_update_cb		m_mediasoup_status_callback;
 		uint32							m_websocket_timer;
 		bool							m_send_produce_video_msg;
 	};
-#define  s_client chen::csingleton<chen::cclient>::get_instance()
+//#define  s_client chen::csingleton<chen::cclient>::get_instance()
 }
 
 #endif // !_C_CLIENT_H_

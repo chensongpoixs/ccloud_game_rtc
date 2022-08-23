@@ -14,6 +14,7 @@
 #include "cinput_device.h"
 #include "NvCodec/nvenc.h"
 #include "build_version.h"
+#include "cdesktop_capture.h"
 namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
@@ -85,7 +86,8 @@ namespace chen {
 		, m_ui_type(EUI_None)
 		, m_mediasoup_status_callback(nullptr)
 		, m_websocket_timer(0)
-		, m_send_produce_video_msg(false){}
+		, m_send_produce_video_msg(false)
+		, m_desktop_capture_ptr(NULL){}
 	cclient::~cclient(){}
 
 	static void show_work_dir()
@@ -113,58 +115,11 @@ namespace chen {
 		}
 	}
 	
-	static void check_file(const char* file_name)
-	{
-
-		if (::_access(file_name, 0) != 0)
-		{
-			FILE* fp = ::fopen(file_name, "wb+");
-			if (!fp)
-			{
-				// return;
-				return;
-			}
-			::fclose(fp);
-			fp = NULL;
-		}
-	}
+	
 	bool cclient::init(uint32 gpu_index)
 	{
 		
-		printf("Log init ...\n");
-		if (!LOG::init(ELogStorageScreenFile))
-		{
-			std::cerr << " log init failed !!!";
-			return false;
-		}
-		show_work_dir();
-		SYSTEM_LOG("git:branch:%s", BUILD_GIT_BRANCH_NAME);
-		SYSTEM_LOG("git:version:%u", BUILD_GIT_REVERSION);
-		SYSTEM_LOG("git:branch_hash:%s", BUILD_GIT_HASH);
-		SYSTEM_LOG("git:BUILD_TIME:%s", BUILD_TIME);
-		SYSTEM_LOG("Log init ...\n");
-		g_gpu_index = gpu_index;
-		SYSTEM_LOG("gpu index = %u", g_gpu_index);
-		static const   char* config_file = "client.cfg";
-		check_file(config_file);
-		bool init = g_cfg.init(config_file);
-		if (!init)
-		{
-			//	//RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
-			ERROR_EX_LOG("config init failed !!! config_name = %s", config_file);
-			return false;
-		}
-		SYSTEM_LOG("config init ok !!!");
-		// set log level
-		LOG::set_level( static_cast<ELogLevelType>(g_cfg.get_uint32(ECI_LogLevel)));
-
-		SYSTEM_LOG("set level = %u", g_cfg.get_uint32(ECI_LogLevel));
 		
-		if (!s_input_device.init())
-		{
-			ERROR_EX_LOG("init input_device mouble !!!  ");
-			return false;
-		}
 		//一上来就推流
 		m_produce_consumer = true;
 		SYSTEM_LOG("input device  init ok !!!");
@@ -196,7 +151,8 @@ namespace chen {
 		//SYSTEM_LOG("osg video capturer thread ok !!!");
 		if (g_cfg.get_int32(ECI_DesktopCapture))
 		{
-			m_desktop_capture_ptr = DesktopCapture::Create(60, 0);
+			m_desktop_capture_ptr.reset( DesktopCapture::Create(60, 0));
+			m_desktop_capture_ptr->set_clinet_ptr(this);
 			SYSTEM_LOG("desktop create fps ok !!!");
 		}
 		else
@@ -205,7 +161,7 @@ namespace chen {
 		}
 		
 		
-		mediasoupclient::Initialize();
+		
 		return true;
 	}
 	void cclient::stop()
@@ -584,6 +540,7 @@ namespace chen {
 		m_mediasoup_status_callback = nullptr;
 		if (m_desktop_capture_ptr)
 		{
+			m_desktop_capture_ptr->set_clinet_ptr(NULL);
 			m_desktop_capture_ptr->StopCapture();
 			m_desktop_capture_ptr = nullptr;
 		 }
@@ -623,9 +580,7 @@ namespace chen {
 		m_peer_map.clear();
 		_clear_register();
 		m_produce_consumer = true;
-		mediasoupclient::Cleanup();
-		SYSTEM_LOG("mediasoup destroy ok !!!");
-		LOG::destroy();
+		
 	  
 	}
 	bool cclient::_load(nlohmann::json routerRtpCapabilities)

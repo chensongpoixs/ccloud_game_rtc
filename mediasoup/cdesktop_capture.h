@@ -6,16 +6,20 @@
 #include "modules/desktop_capture/desktop_capturer.h"
 #include "modules/desktop_capture/desktop_frame.h"
 #include "api/video/i420_buffer.h"
-
+#include "cclient.h"
 
 #include <thread>
 #include <atomic>
+#include <mutex>
 namespace chen {
 
 
     class DesktopCapture  :
         public webrtc::DesktopCapturer::Callback,
         public rtc::VideoSinkInterface<webrtc::VideoFrame> {
+    private:
+        typedef std::mutex                      clock_type;
+        typedef std::lock_guard<clock_type>     clock_guard;
     public:
         static DesktopCapture* Create(size_t target_fps, size_t capture_screen_index);
 
@@ -26,6 +30,7 @@ namespace chen {
         void StartCapture();
         void StopCapture();
 
+        void set_clinet_ptr(cclient* ptr);
     private:
         DesktopCapture();
 
@@ -47,6 +52,8 @@ namespace chen {
         std::atomic_bool start_flag_;
 
         rtc::scoped_refptr<webrtc::I420Buffer> i420_buffer_;
+        clock_type              m_lock;
+        cclient* m_client_ptr;
     };
 
 }
