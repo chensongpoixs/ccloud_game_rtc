@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="casync_log.cpp" />
+    <ClCompile Include="cbase64.cpp" />
+    <ClCompile Include="ccfg.cpp" />
+    <ClCompile Include="cclient.cpp" />
+    <ClCompile Include="cconfig.cpp" />
+    <ClCompile Include="cdevice.cpp" />
+    <ClCompile Include="cint2str.cpp" />
+    <ClCompile Include="clog.cpp" />
+    <ClCompile Include="cnet_types.cpp" />
+    <ClCompile Include="crecv_transport.cpp" />
+    <ClCompile Include="csend_transport.cpp" />
+    <ClCompile Include="csession_description.cpp" />
+    <ClCompile Include="ctime_api.cpp" />
+    <ClCompile Include="ctransport.cpp" />
+    <ClCompile Include="cwebscoket_connection.cpp" />
+    <ClCompile Include="cwebsocket_mgr.cpp" />
+    <ClCompile Include="cwebsocket_protoo.cpp" />
+    <ClCompile Include="cwebsocket_session.cpp" />
+    <ClCompile Include="grammar.cpp" />
+    <ClCompile Include="mediasoupclient.cpp" />
+    <ClCompile Include="ortc.cpp" />
+    <ClCompile Include="parser.cpp" />
+    <ClCompile Include="scalabilityMode.cpp" />
+    <ClCompile Include="writer.cpp" />
+    <ClCompile Include="wsclient.cpp" />
+    <ClCompile Include="sdp\MediaSection.cpp">
+      <Filter>sdp</Filter>
+    </ClCompile>
+    <ClCompile Include="sdp\RemoteSdp.cpp">
+      <Filter>sdp</Filter>
+    </ClCompile>
+    <ClCompile Include="sdp\Utils.cpp">
+      <Filter>sdp</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="build_version.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="build_version.h" />
+    <ClInclude Include="cassertion_macros.h" />
+    <ClInclude Include="casync_log.h" />
+    <ClInclude Include="cbase64.h" />
+    <ClInclude Include="ccfg.h" />
+    <ClInclude Include="cclient.h" />
+    <ClInclude Include="cconfig.h" />
+    <ClInclude Include="cdevice.h" />
+    <ClInclude Include="cint2str.h" />
+    <ClInclude Include="clog.h" />
+    <ClInclude Include="clog_define.h" />
+    <ClInclude Include="cnet_types.h" />
+    <ClInclude Include="cprotocol.h" />
+    <ClInclude Include="crecv_transport.h" />
+    <ClInclude Include="csend_transport.h" />
+    <ClInclude Include="csession_description.h" />
+    <ClInclude Include="csingleton.h" />
+    <ClInclude Include="ctime_api.h" />
+    <ClInclude Include="ctime_const.h" />
+    <ClInclude Include="ctransport.h" />
+    <ClInclude Include="cwebscoket_connection.h" />
+    <ClInclude Include="cwebsocket_mgr.h" />
+    <ClInclude Include="cwebsocket_protoo.h" />
+    <ClInclude Include="cwebsocket_session.h" />
+    <ClInclude Include="json.hpp" />
+    <ClInclude Include="mediasoupclient.hpp" />
+    <ClInclude Include="ortc.hpp" />
+    <ClInclude Include="scalabilityMode.hpp" />
+    <ClInclude Include="sdptransform.hpp" />
+    <ClInclude Include="Utils.hpp" />
+    <ClInclude Include="wsclient.h" />
+    <ClInclude Include="sdp\MediaSection.hpp">
+      <Filter>sdp</Filter>
+    </ClInclude>
+    <ClInclude Include="sdp\RemoteSdp.hpp">
+      <Filter>sdp</Filter>
+    </ClInclude>
+    <ClInclude Include="sdp\Utils.hpp">
+      <Filter>sdp</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="sdp">
+      <UniqueIdentifier>{58ab6d45-10cb-4434-b327-096498d78826}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

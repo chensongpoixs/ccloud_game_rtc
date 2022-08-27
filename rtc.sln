@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.1525
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mediasoup", "mediasoup\mediasoup.vcxproj", "{DBAF2E5E-C6B3-444F-9FAE-5EF6CA95A9FA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtc_player", "rtc_player\rtc_player.vcxproj", "{F1C87349-69FD-4006-B845-CD4AD710D11F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{DBAF2E5E-C6B3-444F-9FAE-5EF6CA95A9FA}.Release|x64.Build.0 = Release|x64
 		{DBAF2E5E-C6B3-444F-9FAE-5EF6CA95A9FA}.Release|x86.ActiveCfg = Release|Win32
 		{DBAF2E5E-C6B3-444F-9FAE-5EF6CA95A9FA}.Release|x86.Build.0 = Release|Win32
+		{F1C87349-69FD-4006-B845-CD4AD710D11F}.Debug|x64.ActiveCfg = Debug|x64
+		{F1C87349-69FD-4006-B845-CD4AD710D11F}.Debug|x64.Build.0 = Debug|x64
+		{F1C87349-69FD-4006-B845-CD4AD710D11F}.Debug|x86.ActiveCfg = Debug|Win32
+		{F1C87349-69FD-4006-B845-CD4AD710D11F}.Debug|x86.Build.0 = Debug|Win32
+		{F1C87349-69FD-4006-B845-CD4AD710D11F}.Release|x64.ActiveCfg = Release|x64
+		{F1C87349-69FD-4006-B845-CD4AD710D11F}.Release|x64.Build.0 = Release|x64
+		{F1C87349-69FD-4006-B845-CD4AD710D11F}.Release|x86.ActiveCfg = Release|Win32
+		{F1C87349-69FD-4006-B845-CD4AD710D11F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
