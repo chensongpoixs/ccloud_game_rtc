@@ -141,151 +141,151 @@
 //    return true;
 //}
 //
+
+int main(int argc, char *argv[])
+{
+    Display* display = XOpenDisplay(  NULL  );
+    if (!display)
+    {
+        printf( "Unable to open display\n");
+        return NULL;
+    }
+
+
+    int event_base, error_base, major_version, minor_version;
+    if (XCompositeQueryExtension(display, &event_base, &error_base) &&
+        XCompositeQueryVersion(display, &major_version, &minor_version) &&
+        // XCompositeNameWindowPixmap() requires version 0.2
+        (major_version > 0 || minor_version >= 2))
+    {
+
+    }
+    else
+    {
+        printf( "Xcomposite extension not available or too old.\n");
+    }
+
+
+    // all window info
+//     Display* const display_ptr = display;
 //
-//int main(int argc, char *argv[])
-//{
-//    Display* display = XOpenDisplay(  NULL  );
-//    if (!display)
+//    int failed_screens = 0;
+//    const int num_screens = XScreenCount(display);
+//    for (int screen = 0; screen < num_screens; ++screen)
 //    {
-//        printf( "Unable to open display\n");
-//        return NULL;
-//    }
+//         Window root_window = XRootWindow(display, screen);
+//         Window parent;
+//         Window* children;
+//        unsigned int num_children;
+//        {
+////            XErrorTrap error_trap(display);
 //
+//            original_error_handler_ = XSetErrorHandler(&XServerErrorHandler);
+//            g_xserver_error_trap_enabled = true;
+//            g_last_xserver_error_code = 0;
+//            if (XQueryTree(display, root_window, &root_window, &parent, &children,
+//                           &num_children) == 0 ||
+//                    getLastErrorAndDisable() != 0)
+//            {
+//                failed_screens++;
+//               printf("Failed to query for child windows for screen = %u\n" , screen);
+//                continue;
+//            }
+//        }
 //
-//    int event_base, error_base, major_version, minor_version;
-//    if (XCompositeQueryExtension(display, &event_base, &error_base) &&
-//        XCompositeQueryVersion(display, &major_version, &minor_version) &&
-//        // XCompositeNameWindowPixmap() requires version 0.2
-//        (major_version > 0 || minor_version >= 2))
-//    {
+////        DeferXFree free_children(children);
 //
-//    }
-//    else
-//    {
-//        printf( "Xcomposite extension not available or too old.\n");
-//    }
-//
-//
-//    // all window info
-////     Display* const display_ptr = display;
-////
-////    int failed_screens = 0;
-////    const int num_screens = XScreenCount(display);
-////    for (int screen = 0; screen < num_screens; ++screen)
-////    {
-////         Window root_window = XRootWindow(display, screen);
-////         Window parent;
-////         Window* children;
-////        unsigned int num_children;
-////        {
-//////            XErrorTrap error_trap(display);
-////
-////            original_error_handler_ = XSetErrorHandler(&XServerErrorHandler);
-////            g_xserver_error_trap_enabled = true;
-////            g_last_xserver_error_code = 0;
-////            if (XQueryTree(display, root_window, &root_window, &parent, &children,
-////                           &num_children) == 0 ||
-////                    getLastErrorAndDisable() != 0)
-////            {
-////                failed_screens++;
-////               printf("Failed to query for child windows for screen = %u\n" , screen);
-////                continue;
-////            }
-////        }
-////
-//////        DeferXFree free_children(children);
-////
-////        for (unsigned int i = 0; i < num_children; ++i)
-////        {
-////            // Iterates in reverse order to return windows from front to back.
-////             Window app_window = GetApplicationWindow(cache, children[num_children - 1 - i]);
-////            if (app_window && !IsDesktopElement(cache, app_window))
-////            {
-////                if (!on_window(app_window))
-////                {
-////                    XFree(children);
-////                    return true;
-////                }
-////            }
-////        }
-////        XFree(children);
-////    }
-////
-////    return failed_screens < num_screens;
-//
-//
-//    //////////////////////////////// capture init /////////////////////////////////
-//
-//    XWindowAttributes attributes;
-//    int window = 0;
-//    if (!GetWindowRect(display, window,   &attributes))
-//    {
-//        return false;
-//    }
-//
-//
-//    Visual* default_visual = attributes.visual;
-//    int default_depth = attributes.depth;
-//
-//    int major, minor;
-//    Bool have_pixmaps;
-//    if (!XShmQueryVersion(display, &major, &minor, &have_pixmaps))
-//    {
-//        // Shared memory not supported. CaptureRect will use the XImage API instead.
-//        return;
-//    }
-//
-//    bool using_shm = false;
-//    shm_segment_info_ = new XShmSegmentInfo;
-//    shm_segment_info_->shmid = -1;
-//    shm_segment_info_->shmaddr = nullptr;
-//    shm_segment_info_->readOnly = False;
-//    x_shm_image_ = XShmCreateImage(display_, default_visual, default_depth,
-//                                   ZPixmap, 0, shm_segment_info_,
-//                                   window_rect_.width(), window_rect_.height());
-//    if (x_shm_image_) {
-//        shm_segment_info_->shmid =
-//                shmget(IPC_PRIVATE, x_shm_image_->bytes_per_line * x_shm_image_->height,
-//                       IPC_CREAT | 0600);
-//        if (shm_segment_info_->shmid != -1) {
-//            void* shmat_result = shmat(shm_segment_info_->shmid, 0, 0);
-//            if (shmat_result != reinterpret_cast<void*>(-1)) {
-//                shm_segment_info_->shmaddr = reinterpret_cast<char*>(shmat_result);
-//                x_shm_image_->data = shm_segment_info_->shmaddr;
-//
-//                XErrorTrap error_trap(display_);
-//                using_shm = XShmAttach(display_, shm_segment_info_);
-//                XSync(display_, False);
-//                if (error_trap.GetLastErrorAndDisable() != 0)
-//                    using_shm = false;
-//                if (using_shm) {
-//                    RTC_LOG(LS_VERBOSE)
-//                            << "Using X shared memory segment " << shm_segment_info_->shmid;
+//        for (unsigned int i = 0; i < num_children; ++i)
+//        {
+//            // Iterates in reverse order to return windows from front to back.
+//             Window app_window = GetApplicationWindow(cache, children[num_children - 1 - i]);
+//            if (app_window && !IsDesktopElement(cache, app_window))
+//            {
+//                if (!on_window(app_window))
+//                {
+//                    XFree(children);
+//                    return true;
 //                }
 //            }
-//        } else {
-//            RTC_LOG(LS_WARNING) << "Failed to get shared memory segment. "
-//                                   "Performance may be degraded.";
 //        }
+//        XFree(children);
 //    }
 //
-//    if (!using_shm) {
-//        RTC_LOG(LS_WARNING)
-//                << "Not using shared memory. Performance may be degraded.";
-//        ReleaseSharedMemorySegment();
-//        return;
-//    }
-//
-//    if (have_pixmaps)
-//        have_pixmaps = InitPixmaps(default_depth);
-//
-//    shmctl(shm_segment_info_->shmid, IPC_RMID, 0);
-//    shm_segment_info_->shmid = -1;
-//
-//    RTC_LOG(LS_VERBOSE) << "Using X shared memory extension v" << major << "."
-//                        << minor << " with" << (have_pixmaps ? "" : "out")
-//                        << " pixmaps.";
-//
-//
-//    return 0;
-//}
+//    return failed_screens < num_screens;
+
+
+    //////////////////////////////// capture init /////////////////////////////////
+
+    XWindowAttributes attributes;
+    int window = 0;
+    if (!GetWindowRect(display, window,   &attributes))
+    {
+        return false;
+    }
+
+
+    Visual* default_visual = attributes.visual;
+    int default_depth = attributes.depth;
+
+    int major, minor;
+    Bool have_pixmaps;
+    if (!XShmQueryVersion(display, &major, &minor, &have_pixmaps))
+    {
+        // Shared memory not supported. CaptureRect will use the XImage API instead.
+        return;
+    }
+
+    bool using_shm = false;
+    shm_segment_info_ = new XShmSegmentInfo;
+    shm_segment_info_->shmid = -1;
+    shm_segment_info_->shmaddr = nullptr;
+    shm_segment_info_->readOnly = False;
+    x_shm_image_ = XShmCreateImage(display_, default_visual, default_depth,
+                                   ZPixmap, 0, shm_segment_info_,
+                                   window_rect_.width(), window_rect_.height());
+    if (x_shm_image_) {
+        shm_segment_info_->shmid =
+                shmget(IPC_PRIVATE, x_shm_image_->bytes_per_line * x_shm_image_->height,
+                       IPC_CREAT | 0600);
+        if (shm_segment_info_->shmid != -1) {
+            void* shmat_result = shmat(shm_segment_info_->shmid, 0, 0);
+            if (shmat_result != reinterpret_cast<void*>(-1)) {
+                shm_segment_info_->shmaddr = reinterpret_cast<char*>(shmat_result);
+                x_shm_image_->data = shm_segment_info_->shmaddr;
+
+                XErrorTrap error_trap(display_);
+                using_shm = XShmAttach(display_, shm_segment_info_);
+                XSync(display_, False);
+                if (error_trap.GetLastErrorAndDisable() != 0)
+                    using_shm = false;
+                if (using_shm) {
+                    RTC_LOG(LS_VERBOSE)
+                            << "Using X shared memory segment " << shm_segment_info_->shmid;
+                }
+            }
+        } else {
+            RTC_LOG(LS_WARNING) << "Failed to get shared memory segment. "
+                                   "Performance may be degraded.";
+        }
+    }
+
+    if (!using_shm) {
+        RTC_LOG(LS_WARNING)
+                << "Not using shared memory. Performance may be degraded.";
+        ReleaseSharedMemorySegment();
+        return;
+    }
+
+    if (have_pixmaps)
+        have_pixmaps = InitPixmaps(default_depth);
+
+    shmctl(shm_segment_info_->shmid, IPC_RMID, 0);
+    shm_segment_info_->shmid = -1;
+
+    RTC_LOG(LS_VERBOSE) << "Using X shared memory extension v" << major << "."
+                        << minor << " with" << (have_pixmaps ? "" : "out")
+                        << " pixmaps.";
+
+
+    return 0;
+}

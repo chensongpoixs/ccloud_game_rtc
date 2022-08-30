@@ -1017,7 +1017,7 @@ int main(int argc, char **argv) {
     FILE *out_file_ptr = fopen("./chensong.yuv", "wb+");
 
 
-std::chrono::steady_clock::time_point cur_time_ms;
+        std::chrono::steady_clock::time_point cur_time_ms;
         std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
         std::chrono::steady_clock::duration dur;
         std::chrono::milliseconds ms;
@@ -1051,7 +1051,7 @@ std::chrono::steady_clock::time_point cur_time_ms;
                 dur = cur_time_ms - pre_time;
                 ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
                 elapse = static_cast<uint32_t>(ms.count());
-                printf("get [frame_count = %u] image ms = %u\n", ++frame_count, elapse);
+                printf("get [width = %u][height = %u][frame_count = %u] image ms = %u\n",   win_w, win_h,   ++frame_count, elapse);
            fwrite(data, data_len, 1, out_file_ptr);
            fflush(out_file_ptr);
            

@@ -134,26 +134,26 @@ namespace chen {
 	bool cclient::init(uint32 gpu_index)
 	{
 		printf("Log init ...\n");
-		if (!LOG::init(ELogStorageScreenFile, "rtc"))
-		{
-			std::cerr << " log init failed !!!";
-			return false;
-		}
+//		if (!LOG::init(ELogStorageScreenFile, "rtc"))
+//		{
+//			std::cerr << " log init failed !!!";
+//			return false;
+//		}
 		show_work_dir();
-		SYSTEM_LOG("Log init ...\n");
-		static const   char* config_file = "cloud_client.cfg";
-		bool init = g_cfg.init(config_file);
-		if (!init)
-		{
-			//	//RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
-			ERROR_EX_LOG("config init failed !!! config_name = %s", config_file);
-			return false;
-		}
-		SYSTEM_LOG("config init ok !!!");
-		// set log level
-		LOG::set_level( static_cast<ELogLevelType>(g_cfg.get_uint32(ECI_LogLevel)));
-
-		SYSTEM_LOG("set level = %u", g_cfg.get_uint32(ECI_LogLevel));
+//		SYSTEM_LOG("Log init ...\n");
+//		static const   char* config_file = "cloud_client.cfg";
+//		bool init = g_cfg.init(config_file);
+//		if (!init)
+//		{
+//			//	//RTC_LOG(LS_ERROR) << "config init failed !!!" << config_name;
+//			ERROR_EX_LOG("config init failed !!! config_name = %s", config_file);
+//			return false;
+//		}
+//		SYSTEM_LOG("config init ok !!!");
+//		// set log level
+//		LOG::set_level( static_cast<ELogLevelType>(g_cfg.get_uint32(ECI_LogLevel)));
+//
+//		SYSTEM_LOG("set level = %u", g_cfg.get_uint32(ECI_LogLevel));
 		
 		if (!s_input_device.init())
 		{
@@ -667,7 +667,7 @@ namespace chen {
 		m_produce_consumer = true;
 		mediasoupclient::Cleanup();
 		SYSTEM_LOG("mediasoup destroy ok !!!");
-		LOG::destroy();
+//		LOG::destroy();
 	  
 	}
 	bool cclient::_load(nlohmann::json routerRtpCapabilities)

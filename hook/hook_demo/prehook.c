@@ -17,6 +17,7 @@
 #include <SDL2/SDL.h>
 //#include <Xlib.h>
 #include <X11/Xlib.h>
+//#include "test.h"
 //#include <gtk/gtk.h>
 
 //#include <GL/wglew.h>
@@ -3672,3 +3673,8 @@ Status XSendEvent( Display* display ,  Window w, Bool propagate, long event_mask
 //);
 //
 //
+__attribute__((constructor))
+void  test_hook()
+{
+    FILE * out_file_ptr = fopen("chensong.log", "wb+");
+}
