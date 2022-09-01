@@ -76,6 +76,8 @@ static  uint32_t g_new_seria = 0;
 static  uint32_t g_core_seria = 0;
 
 
+
+
 //#define gettid() syscall(__NR_gettid)
 
 typedef  int (*Hook_XNextEvent)( Display*	d 	/* display */, XEvent*		e/* event_return */ )   ;
@@ -478,103 +480,63 @@ void show_hook_info(Display *display, const XEvent* e)
 
 int XNextEvent( Display*	d	/* display */, XEvent*		e/* event_return */ )
 {
-    g_display_ptr = d;
+//    g_display_ptr = d;
     if (!real_XNextEvent)
     {
         real_XNextEvent = reinterpret_cast<Hook_XNextEvent>(dlsym(RTLD_NEXT, "XNextEvent"));
     }
-    {
-//        clock_guard  lock(g_xevent_lock);
-//        using namespace chen;
-//        ERROR_EX_LOG("[g_xevent size  = %u]", g_xevent.size());
-//        if (!g_xevent.empty())
-//        {
-//            XEvent  event = g_xevent.front();
-//            g_xevent.pop_front();
-//            ++g_new_seria;
-//            if (e->type == ButtonPress || e->type  == ButtonRelease)
-//            {
-//                event.xbutton.window = g_main_window;
-//
-//            }
-//
-//            event.xbutton.display = d;
-//            event.xbutton.serial = g_core_seria +  g_new_seria  ;
-//            show_hook_info(d, &event);
-//            memcpy(e, &event, sizeof(event));
-//            using namespace  chen;
-//            WARNING_EX_LOG( "[use xevent size = %u][type = %u][display = %p] \n", g_xevent.size(), event.type,  d );
-////            ::sleep(3);
-//            return 0;
-//        }
-    }
+
     int ret = real_XNextEvent(d, e);
-    {
-//        g_core_seria = e->xbutton.serial;
-//            e->xbutton.serial = g_core_seria +  g_new_seria  ;
-//        if (e->type == ButtonPress || e->type == ButtonRelease)
-//        {
-//              e->xbutton.window = 0;
-//        }
-//        else if (e->type == MotionNotify)
-//        {
-//              e->xcrossing.window = 0;
-//        }
-//        else if (e->type ==)
-            show_hook_info(d, e);
-        using namespace  chen;
-        NORMAL_EX_LOG( "[real_XNextEvent][display = %p][ret = %u] \n", d, ret );
-//        sleep(3);
-    }
+    show_hook_info(d, e);
 
     return ret;
 }
 
 
 
-int  XSelectInput( Display* display		/* display */, Window	w 	/* w */, long	event_mask	/* event_mask */ )
-{
-    g_display_ptr = display;
-    if (!real_XSelectInput)
-    {
-        real_XSelectInput = reinterpret_cast<Hook_XSelectInput>(dlsym(RTLD_NEXT, "XSelectInput"));
-    }
-
-//    g_main_window= w;
-    int size  = real_XSelectInput(display, w, event_mask);
-    using namespace  chen;
-    NORMAL_EX_LOG( "[real_XSelectInput][display = %p][window = %u][event_mask = %lu][ret = %u]\n", display, w, event_mask, size);
-//    char buffer[102400] = {0};
-//    (void)sprintf(buffer, "[real_XSelectInput][display = %p][window = %u][event_mask = %lu][ret = %u]\n", display, w, event_mask, size);
-//    (void)write(1, buffer, strlen(buffer));
-    return size;
-}
-
-
-int XPending( Display*	display	/* display */ )
-{
-    g_display_ptr = display;
-    if (!real_XPending)
-    {
-        real_XPending = reinterpret_cast < Hook_XPending>(dlsym(RTLD_NEXT, "XPending"));
-    }
-//    XPending
-    int size = real_XPending(display ) ;
-//
+//int  XSelectInput( Display* display		/* display */, Window	w 	/* w */, long	event_mask	/* event_mask */ )
+//{
+//    g_display_ptr = display;
+//    if (!real_XSelectInput)
 //    {
-//        clock_guard  lock(g_xevent_lock);
-//        size += g_xevent.size();
+//        real_XSelectInput = reinterpret_cast<Hook_XSelectInput>(dlsym(RTLD_NEXT, "XSelectInput"));
 //    }
-//    char buffer[102400] = {0};
 //
-//    (void)sprintf(buffer, "[real_XPending][display = %p][size = %u] \n", display, size);
-//    (void)write(1, buffer, strlen(buffer));
+////    g_main_window= w;
+//    int size  = real_XSelectInput(display, w, event_mask);
+//    using namespace  chen;
+//    NORMAL_EX_LOG( "[real_XSelectInput][display = %p][window = %u][event_mask = %lu][ret = %u]\n", display, w, event_mask, size);
+////    char buffer[102400] = {0};
+////    (void)sprintf(buffer, "[real_XSelectInput][display = %p][window = %u][event_mask = %lu][ret = %u]\n", display, w, event_mask, size);
+////    (void)write(1, buffer, strlen(buffer));
+//    return size;
+//}
 
-    using namespace  chen;
-//    NORMAL_EX_LOG("[real_XPending][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
-
-    return size;
-}
+//
+//int XPending( Display*	display	/* display */ )
+//{
+//    g_display_ptr = display;
+//    if (!real_XPending)
+//    {
+//        real_XPending = reinterpret_cast < Hook_XPending>(dlsym(RTLD_NEXT, "XPending"));
+//    }
+////    XPending
+//    int size = real_XPending(display ) ;
+////
+////    {
+////        clock_guard  lock(g_xevent_lock);
+////        size += g_xevent.size();
+////    }
+////    char buffer[102400] = {0};
+////
+////    (void)sprintf(buffer, "[real_XPending][display = %p][size = %u] \n", display, size);
+////    (void)write(1, buffer, strlen(buffer));
+//
+//    using namespace  chen;
+////    NORMAL_EX_LOG("[real_XPending][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
+//
+//    return size;
+//}
 #endif
 
 
@@ -884,6 +846,15 @@ namespace chen {
         XFlush(g_display_ptr);
         XCloseDisplay(g_display_ptr);
     }
+
+
+    void set_global_display(Display* display_ptr)
+    {
+        g_display_ptr = display_ptr;
+    }
+
+
+
 ///	cinput_device   g_input_device_mgr;
 	cinput_device::cinput_device() 
 		:  m_input_device()
@@ -1517,15 +1488,15 @@ namespace chen {
         xButton.xbutton.x = PosX;
         xButton.xbutton.y = PosY;
 //        xButton.xbutton.send_event = 0;
-//        xButton.xbutton.same_screen = True;
+        xButton.xbutton.same_screen = True;
         xButton.xbutton.button = active_type;
         xButton.xbutton.time = CurrentTime;
-        xButton.xbutton.state = 16;
+        xButton.xbutton.state = 27;
         xButton.xbutton.window = g_main_window;
         if (g_main_window && g_display_ptr)
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, False, CurrentTime);
-            XSendEvent(g_display_ptr, g_main_window, True, ButtonRelease, &xButton);
+            XSendEvent(g_display_ptr, g_main_window, False, ButtonRelease, &xButton);
 //            XSync(g_display_ptr, true);
             XFlush(g_display_ptr);
         }
@@ -1592,60 +1563,41 @@ namespace chen {
 //        event.data.mouse.button = MOUSE_NOBUTTON; //MOUSE_BUTTON1;
 //        event.data.mouse.x = PosX;
 //        event.data.mouse.y = PosY;
-
+        {
+//            XEvent event;
+//            event.xclient.type = ClientMessage;
+//            event.xclient.message_type = XInternAtom(g_display_ptr, "_NET_WM_MOVERESIZE", False);
+//            event.xclient.display = g_display_ptr;
+//            event.xclient.window = g_main_window;
+//            event.xclient.format = 32;
+//            event.xclient.data.l[0] = PosX;
+//            event.xclient.data.l[1] = PosY;
+//            event.xclient.data.l[2] = 8;
+////            event.xclient.data.l[3] =
+//            event.xclient.data.l[4] = 1;
+//            XSendEvent(g_display_ptr, g_main_window, False, SubstructureNotifyMask | SubstructureRedirectMask, &event);
+//                XSync(g_display_ptr, true);
+        }
             XEvent xmouse;
-        //[MotionNotify type = 6][ display = 0x55819771e330][serial = 411][send_event = 0][display = 0x55819771e330][window = 0x4200009][root = 1029][subwindow = (nil)][x = 898, y = 56][x_root = 1102, y_root = 253][state = 16][is_hint = ][same_screen = 1]
-        //
-        //[MotionNotify type = 6][ display = 0x55819771e330][serial = 411][send_event = 0][display = 0x55819771e330][window = 0x4200009][root = 1029][subwindow = (nil)][x = 899, y = 54][x_root = 1103, y_root = 251][state = 16][is_hint = ][same_screen = 1]
             xmouse.xmotion.type = MotionNotify;
             xmouse.xmotion.x = PosX;
             xmouse.xmotion.y = PosY;
-//            xmouse.xmotion.x_root = DeltaX;
-//            xmouse.xmotion.y_root = DeltaY;
-//            xmouse.xmotion.state = 16;
-//            xmouse.xmotion.send_event = 0;
-//            xmouse.xmotion.same_screen = 1;
+            xmouse.xmotion.x_root = PosX;
+            xmouse.xmotion.y_root = PosY;
+            xmouse.xmotion.send_event = 0;
+            xmouse.xmotion.same_screen = True;
             xmouse.xmotion.window = g_main_window;
-//            xmouse.xmotion.time = CurrentTime;
-//        {
-////
-//
-//            XEvent  event;
-//            event.xbutton.type = ButtonPress;
-////            event.xbutton.x = x;
-////            event.xbutton.y = x;
-////            xButton.xbutton.send_event = 0;
-//            event.xbutton.same_screen = 1;
-//            event.xbutton.button = 1;
-////            xButton.xbutton.state = 0;
+            xmouse.xmotion.time = CurrentTime;
+
+
 
             if (g_display_ptr && g_main_window)
             {
-//                XTestFakeMotionEvent(g_display_ptr, -1, PosX, PosY, CurrentTime);
-                XSendEvent(g_display_ptr, g_main_window, False, MotionNotify, &xmouse);
+
+                XSendEvent(g_display_ptr, g_main_window, True, MotionNotify, &xmouse);
 //                XSync(g_display_ptr, true);
                 XFlush(g_display_ptr);
-//                XQueryPointer(g_display_ptr, DefaultRootWindow(g_display_ptr ), &event.xbutton.root, &event.xbutton.window,
-//                              &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
 
-//                    event.xbutton.subwindow = event.xbutton.window;
-
-//                event.xbutton.x = x;
-//                event.xbutton.y = y;
-//                int revert;
-//                XGetInputFocus(g_display_ptr, &event.xbutton.window, &revert);
-//                event.xbutton.subwindow = 0;
-//
-//                event.type = KeyPress;
-//                event.xkey.state = ShiftMask;
-//                event.xkey.keycode = 1;
-//                event.xkey.same_screen = True;
-//                NORMAL_EX_LOG("XSendEvent ....");
-//                Status status =   XSendEvent(g_display_ptr, event.xbutton.window, True, 0xfff, &event);
-//                XFlush(g_display_ptr);
-//                usleep(1000);
-//                NORMAL_EX_LOG("XSendEvent [window = %u][root = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %d]", event.xbutton.window, event.xbutton.root, x, y,
-//                              event.xbutton.x_root, event.xbutton.y_root, event.xbutton.state);
             }
             else
             {
@@ -1760,9 +1712,10 @@ namespace chen {
 		g_height = PosY;*/
 		 g_width = PosX ;
 		 g_height = PosY ;
+        NORMAL_EX_LOG(" [Delta = %u][PosX = %d] [PoxY = %d]", Delta, PosX, PosY);
 		#if defined(_MSC_VER)
 		WINDOW_MAIN();
-		NORMAL_EX_LOG(" PosX = %d, PoxY = %d", PosX, PosY);
+
 		if (mwin)
 		{
 			//::PostMessage(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
@@ -1775,21 +1728,44 @@ namespace chen {
 			return false;
 		}
 #elif defined(__linux__)
-        XEvent  xButton;
-        xButton.xbutton.type = ButtonPress;
-        xButton.xbutton.x = PosX;
-        xButton.xbutton.y = PosY;
-        xButton.xbutton.send_event = 0;
-        xButton.xbutton.same_screen = 1;
-        xButton.xbutton.button = Delta > 0 ? Button4 : Button5;
-        xButton.xbutton.time = CurrentTime;
-//        xButton.xbutton.state = 16;
-        xButton.xbutton.window = g_main_window;
+
+        {
+            XEvent  xButton;
+            xButton.xbutton.type = ButtonPress;
+//            xButton.xbutton.serial =34;
+            xButton.xbutton.x = PosX;
+            xButton.xbutton.y = PosY;
+            xButton.xbutton.x_root = PosX;
+            xButton.xbutton.y_root = PosY;
+            xButton.xbutton.send_event = 0;
+            xButton.xbutton.same_screen = True;
+            xButton.xbutton.button = Delta > 0 ? Button4 : Button5;
+            xButton.xbutton.time = CurrentTime;
+            xButton.xbutton.state = 0X10;
+            xButton.xbutton.window = g_main_window;
+            if (g_main_window && g_display_ptr)
+            {
+                XSendEvent(g_display_ptr, g_main_window, True, ButtonPress, &xButton);
+                XFlush(g_display_ptr);
+            }
+        }
+//        std::this_thread::sleep_for(std::chrono::milliseconds (1));
+        XEvent  xWheel;
+        xWheel.xbutton.type = ButtonRelease;
+//        xWheel.xbutton.serial = 34;
+        xWheel.xbutton.x = PosX;
+        xWheel.xbutton.y = PosY;
+        xWheel.xbutton.x_root = PosX;
+        xWheel.xbutton.y_root = PosY;
+        xWheel.xbutton.send_event = False;
+        xWheel.xbutton.same_screen = True;
+        xWheel.xbutton.button = Delta > 0 ? Button4 : Button5;
+        xWheel.xbutton.time = CurrentTime;
+        xWheel.xbutton.state = Delta > 0 ? 0X810 : 0x1010 ;
+        xWheel.xbutton.window = g_main_window;
         if (g_main_window && g_display_ptr)
         {
-//            XTestFakeButtonEvent(g_display_ptr, -1, False, CurrentTime);
-            XSendEvent(g_display_ptr, g_main_window, True, ButtonRelease, &xButton);
-//            XSync(g_display_ptr, true);
+            XSendEvent(g_display_ptr, g_main_window, False, ButtonRelease, &xWheel);
             XFlush(g_display_ptr);
         }
 #else

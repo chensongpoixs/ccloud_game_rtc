@@ -31,7 +31,7 @@ namespace chen {
 			, m_key(false) {}
 	};
 
-	
+    void set_global_display(Display* display_ptr);
 	class cinput_device
 	{
 	private:

@@ -63,6 +63,7 @@ namespace  chen {
         , m_win_height(0)
         , m_win_depth(0)
         , m_win_pixmap(0)
+        , m_win_name("")
         {}
         ~clinux_capture();
     public:
@@ -88,6 +89,8 @@ namespace  chen {
         void _show_all_window_info();
 
         bool _find_window_name(const char * window_name);
+
+
     private:
         bool                m_stoped;
         Display          *  m_display_ptr;
@@ -102,6 +105,7 @@ namespace  chen {
         uint32               m_win_height;
         uint32               m_win_depth;
         xcb_pixmap_t         m_win_pixmap;
+        std::string          m_win_name;
 //        extern  Window  g_window;
 //        extern int g_win_h;
 //        extern int g_win_w;

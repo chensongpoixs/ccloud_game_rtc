@@ -117,76 +117,82 @@ namespace  chen {
 
     bool clinux_capture::startup(const char * window_name)
     {
-        if (!_find_window_name(window_name))
-        {
-            _show_all_window_info();
-            ERROR_EX_LOG("not find window_name = %s", window_name);
-            return false;
-        }
-        s_input_device.set_main_window(m_win);
-//        m_win = win;
-        xcb_generic_error_t *err = NULL, *err2 = NULL;
-        m_connection_ptr = xcb_connect(NULL,NULL); //XGetXCBConnection(helper_disp);
-        if (!m_connection_ptr)
-        {
-            ERROR_EX_LOG("xcb_connect failed !!!");
-            return false;
-        }
-        xcb_composite_query_version_cookie_t comp_ver_cookie = xcb_composite_query_version(m_connection_ptr, 0, 2);
-        xcb_composite_query_version_reply_t *comp_ver_reply = xcb_composite_query_version_reply(m_connection_ptr, comp_ver_cookie, &err);
-        if (comp_ver_reply)
-        {
-            if (comp_ver_reply->minor_version < 2)
-            {
-                ERROR_EX_LOG("query composite failure: server returned v%d.%d", comp_ver_reply->major_version, comp_ver_reply->minor_version);
-                free(comp_ver_reply);
-                false;
-            }
-            free(comp_ver_reply);
-        }
-        else if (err)
-        {
-            ERROR_EX_LOG( "xcb error: %d\n", err->error_code);
-            free(err);
-            return false;
-        }
 
-        const xcb_setup_t *setup = xcb_get_setup(m_connection_ptr);
-        xcb_screen_iterator_t screen_iter = xcb_setup_roots_iterator(setup);
-        xcb_screen_t *screen = screen_iter.data;
-        // request redirection of window
-        xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
-//    int win_h, win_w, win_d;
-
-        xcb_get_geometry_cookie_t gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
-        xcb_get_geometry_reply_t *gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
-        if (gg_reply)
-        {
-            m_win_width = gg_reply-> width;
-            m_win_height = gg_reply->height;
-            m_win_depth = gg_reply->depth;
-            free(gg_reply);
-        }
-        else
-        {
-            if (err) {
-                ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
-                free(err);
-            }
-            return  false;
-        }
-
-        SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
-        m_win_pixmap = xcb_generate_id(m_connection_ptr);
-        xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
-
-        err = NULL;
-        if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
-        {
-            ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
-
-            return  false;
-        }
+        m_win_name = window_name;
+//        _get_all_window_info();
+//        if (!_find_window_name(window_name))
+//        {
+//            _show_all_window_info();
+//            ERROR_EX_LOG("not find window_name = %s", window_name);
+//            return false;
+//        }
+//        s_input_device.set_main_window(m_win);
+////        m_win = win;
+//        xcb_generic_error_t *err = NULL, *err2 = NULL;
+//        m_connection_ptr = xcb_connect(NULL,NULL); //XGetXCBConnection(helper_disp);
+//        if (!m_connection_ptr)
+//        {
+//            ERROR_EX_LOG("xcb_connect failed !!!");
+//            return false;
+//        }
+//        xcb_composite_query_version_cookie_t comp_ver_cookie = xcb_composite_query_version(m_connection_ptr, 0, 2);
+//        xcb_composite_query_version_reply_t *comp_ver_reply = xcb_composite_query_version_reply(m_connection_ptr, comp_ver_cookie, &err);
+//        if (comp_ver_reply)
+//        {
+//            if (comp_ver_reply->minor_version < 2)
+//            {
+//                ERROR_EX_LOG("query composite failure: server returned v%d.%d", comp_ver_reply->major_version, comp_ver_reply->minor_version);
+//                free(comp_ver_reply);
+//                false;
+//            }
+//            free(comp_ver_reply);
+//        }
+//        else if (err)
+//        {
+//            ERROR_EX_LOG( "xcb error: %d\n", err->error_code);
+//            free(err);
+//            return false;
+//        }
+//
+//        const xcb_setup_t *setup = xcb_get_setup(m_connection_ptr);
+//        xcb_screen_iterator_t screen_iter = xcb_setup_roots_iterator(setup);
+//        xcb_screen_t *screen = screen_iter.data;
+//        // request redirection of window
+//        xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
+////    int win_h, win_w, win_d;
+//
+//        xcb_get_geometry_cookie_t gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
+//        xcb_get_geometry_reply_t *gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
+//        if (gg_reply)
+//        {
+//            m_win_width = gg_reply-> width;
+//            m_win_height = gg_reply->height;
+//            m_win_depth = gg_reply->depth;
+//            free(gg_reply);
+//        }
+//        else
+//        {
+//            if (err) {
+//                ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
+//                free(err);
+//            }
+//            return  false;
+//        }
+//
+//        SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
+//        m_win_pixmap = xcb_generate_id(m_connection_ptr);
+//        xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
+//
+//        err = NULL;
+//        if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
+//        {
+//            ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
+//
+//            return  false;
+//        }
+//        xcb_map_window(m_connection_ptr, m_win);
+//
+//        xcb_flush(m_connection_ptr);
         SYSTEM_LOG("app catpure pixmap ---> ok !!!");
         m_stoped = false;
         m_thread = std::thread(&clinux_capture::_work_thread, this);
@@ -223,6 +229,90 @@ namespace  chen {
 
     void clinux_capture::_work_thread()
     {
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        int count = 0;
+        while (count++ < 10)
+        {
+            DEBUG_LOG("linux capture sleep !!!");
+            sleep(1);
+        }
+        _get_all_window_info();
+        if (!_find_window_name(m_win_name.c_str()))
+        {
+            _show_all_window_info();
+            ERROR_EX_LOG("not find window_name = %s", m_win_name.c_str());
+            return ;
+        }
+        set_global_display(m_display_ptr);
+        s_input_device.set_main_window(m_win);
+//        m_win = win;
+        xcb_generic_error_t *err = NULL, *err2 = NULL;
+        m_connection_ptr = xcb_connect(NULL,NULL); //XGetXCBConnection(helper_disp);
+        if (!m_connection_ptr)
+        {
+            ERROR_EX_LOG("xcb_connect failed !!!");
+            return ;
+        }
+        xcb_composite_query_version_cookie_t comp_ver_cookie = xcb_composite_query_version(m_connection_ptr, 0, 2);
+        xcb_composite_query_version_reply_t *comp_ver_reply = xcb_composite_query_version_reply(m_connection_ptr, comp_ver_cookie, &err);
+        if (comp_ver_reply)
+        {
+            if (comp_ver_reply->minor_version < 2)
+            {
+                ERROR_EX_LOG("query composite failure: server returned v%d.%d", comp_ver_reply->major_version, comp_ver_reply->minor_version);
+                free(comp_ver_reply);
+                false;
+            }
+            free(comp_ver_reply);
+        }
+        else if (err)
+        {
+            ERROR_EX_LOG( "xcb error: %d\n", err->error_code);
+            free(err);
+            return ;
+        }
+
+        const xcb_setup_t *setup = xcb_get_setup(m_connection_ptr);
+        xcb_screen_iterator_t screen_iter = xcb_setup_roots_iterator(setup);
+        xcb_screen_t *screen = screen_iter.data;
+        // request redirection of window
+        xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
+//    int win_h, win_w, win_d;
+
+        xcb_get_geometry_cookie_t gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
+        xcb_get_geometry_reply_t *gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
+        if (gg_reply)
+        {
+            m_win_width = gg_reply-> width;
+            m_win_height = gg_reply->height;
+            m_win_depth = gg_reply->depth;
+            free(gg_reply);
+        }
+        else
+        {
+            if (err) {
+                ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
+                free(err);
+            }
+            return  ;
+        }
+
+        SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
+        m_win_pixmap = xcb_generate_id(m_connection_ptr);
+        xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
+
+        err = NULL;
+        if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
+        {
+            ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
+
+            return  ;
+        }
+        xcb_map_window(m_connection_ptr, m_win);
+
+        xcb_flush(m_connection_ptr);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
         if (0 == m_win_pixmap || NULL == m_connection_ptr ||  NULL == m_display_ptr)
         {
 
@@ -233,14 +323,90 @@ namespace  chen {
         std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
         std::chrono::steady_clock::duration dur;
         std::chrono::milliseconds ms;
-        uint32_t elapse = 0;
-        uint32_t CAPTUER_TICK_TIME = 100 /30;
-        if (g_cfg.get_uint32(ECI_RtcFrames)> 0)
+        int32_t elapse = 0;
+        int32_t CAPTUER_TICK_TIME = 1000 /30;
+        if (g_cfg.get_int32(ECI_RtcFrames)> 0)
         {
-            CAPTUER_TICK_TIME = 100 /g_cfg.get_uint32(ECI_RtcFrames);
+            CAPTUER_TICK_TIME = 1000 /g_cfg.get_int32(ECI_RtcFrames);
         }
+        DEBUG_LOG("cpature tick time frames = %u", CAPTUER_TICK_TIME);
         while (!m_stoped)
         {
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//           if (_find_window_name(m_win_name.c_str()))
+//           {
+//               xcb_disconnect(m_connection_ptr);
+//               m_connection_ptr = NULL;
+//
+//               s_input_device.set_main_window(m_win);
+////        m_win = win;
+//               xcb_generic_error_t *err = NULL, *err2 = NULL;
+//               m_connection_ptr = xcb_connect(NULL,NULL); //XGetXCBConnection(helper_disp);
+//               if (!m_connection_ptr)
+//               {
+//                   ERROR_EX_LOG("xcb_connect failed !!!");
+//                   return ;
+//               }
+//               xcb_composite_query_version_cookie_t comp_ver_cookie = xcb_composite_query_version(m_connection_ptr, 0, 2);
+//               xcb_composite_query_version_reply_t *comp_ver_reply = xcb_composite_query_version_reply(m_connection_ptr, comp_ver_cookie, &err);
+//               if (comp_ver_reply)
+//               {
+//                   if (comp_ver_reply->minor_version < 2)
+//                   {
+//                       ERROR_EX_LOG("query composite failure: server returned v%d.%d", comp_ver_reply->major_version, comp_ver_reply->minor_version);
+//                       free(comp_ver_reply);
+//                       false;
+//                   }
+//                   free(comp_ver_reply);
+//               }
+//               else if (err)
+//               {
+//                   ERROR_EX_LOG( "xcb error: %d\n", err->error_code);
+//                   free(err);
+//                   return ;
+//               }
+//
+//               const xcb_setup_t *setup = xcb_get_setup(m_connection_ptr);
+//               xcb_screen_iterator_t screen_iter = xcb_setup_roots_iterator(setup);
+//               xcb_screen_t *screen = screen_iter.data;
+//               // request redirection of window
+//               xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
+////    int win_h, win_w, win_d;
+//
+//               xcb_get_geometry_cookie_t gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
+//               xcb_get_geometry_reply_t *gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
+//               if (gg_reply)
+//               {
+//                   m_win_width = gg_reply-> width;
+//                   m_win_height = gg_reply->height;
+//                   m_win_depth = gg_reply->depth;
+//                   free(gg_reply);
+//               }
+//               else
+//               {
+//                   if (err) {
+//                       ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
+//                       free(err);
+//                   }
+//                   return  ;
+//               }
+//
+//               SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
+//               m_win_pixmap = xcb_generate_id(m_connection_ptr);
+//               xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
+//
+//               err = NULL;
+//               if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
+//               {
+//                   ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
+//
+//                   return  ;
+//               }
+//               xcb_map_window(m_connection_ptr, m_win);
+//
+//               xcb_flush(m_connection_ptr);
+//           }
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             pre_time = std::chrono::steady_clock::now();
             xcb_generic_error_t *err = NULL, *err2 = NULL;
             xcb_get_image_cookie_t gi_cookie = xcb_get_image(m_connection_ptr, XCB_IMAGE_FORMAT_Z_PIXMAP, m_win_pixmap, 0, 0, m_win_width, m_win_height, (uint32_t)(~0UL));
@@ -263,8 +429,9 @@ namespace  chen {
             {
                 cur_time_ms = std::chrono::steady_clock::now();
                 dur = cur_time_ms - pre_time;
+//                pre_time = cur_time_ms;
                 ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
-                elapse = static_cast<uint32_t>(ms.count());
+                elapse = static_cast<int32_t>(ms.count());
                 if (elapse < CAPTUER_TICK_TIME)
                 {
                     std::this_thread::sleep_for(std::chrono::milliseconds(CAPTUER_TICK_TIME- elapse));
@@ -378,11 +545,15 @@ namespace  chen {
     {
         for (const WindowInfo& win: m_all_window_info)
         {
-            if (window_name == win.cls)
+            if (window_name == win.cls && win.win != m_win)
             {
                 m_win = win.win;
-//                ERROR_EX_LOG("");
+                ERROR_EX_LOG("");
                 return true;
+            }
+            else
+            {
+                ERROR_EX_LOG("[cls = %s][window_name = %s]", win.cls.c_str(), win.name.c_str());
             }
         }
         return false;
