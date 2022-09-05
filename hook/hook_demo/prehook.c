@@ -453,6 +453,15 @@ static  Hook_XNextEvent   real_XNextEvent = NULL;
 ////          e->xbutton.y = 200;
 ////          e->xbutton.x_root += e->xbutton.x;
 ////          e->xbutton.y_root += e->xbutton.y;
+        if (ButtonRelease == e->type || ButtonPress == e->type)
+        {
+            e->xbutton.state = 0;
+            e->xbutton.x_root = 0;
+            e->xbutton.y_root = 0;
+            e->xbutton.root = 0;
+            e->xbutton.send_event = 0;
+            e->xbutton.same_screen = 0;
+        }
           show_hook_info(d, e);
 
 
@@ -2788,7 +2797,7 @@ typedef  Status (*Hook_XSendEvent)( Display* display ,  Window w, Bool propagate
 static Hook_XSendEvent real_XSendEvent = NULL;
 
 
-Status XSendEvent( Display* display ,  Window w, Bool propagate, long event_mask, XEvent* event_send)
+Status dXSendEvent( Display* display ,  Window w, Bool propagate, long event_mask, XEvent* event_send)
 {
     if (!real_XSendEvent)
     {

@@ -478,19 +478,19 @@ void show_hook_info(Display *display, const XEvent* e)
 
 
 
-int XNextEvent( Display*	d	/* display */, XEvent*		e/* event_return */ )
-{
-//    g_display_ptr = d;
-    if (!real_XNextEvent)
-    {
-        real_XNextEvent = reinterpret_cast<Hook_XNextEvent>(dlsym(RTLD_NEXT, "XNextEvent"));
-    }
-
-    int ret = real_XNextEvent(d, e);
-    show_hook_info(d, e);
-
-    return ret;
-}
+//int XNextEvent( Display*	d	/* display */, XEvent*		e/* event_return */ )
+//{
+////    g_display_ptr = d;
+//    if (!real_XNextEvent)
+//    {
+//        real_XNextEvent = reinterpret_cast<Hook_XNextEvent>(dlsym(RTLD_NEXT, "XNextEvent"));
+//    }
+//
+//    int ret = real_XNextEvent(d, e);
+//    show_hook_info(d, e);
+//
+//    return ret;
+//}
 
 
 
@@ -1593,10 +1593,11 @@ namespace chen {
 
             if (g_display_ptr && g_main_window)
             {
-
-                XSendEvent(g_display_ptr, g_main_window, True, MotionNotify, &xmouse);
+//               BadRequest  BadValue
+              Status status =  XSendEvent(g_display_ptr, g_main_window, True, MotionNotify, &xmouse);
 //                XSync(g_display_ptr, true);
-                XFlush(g_display_ptr);
+              int xflush =  XFlush(g_display_ptr);
+                NORMAL_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
 
             }
             else
@@ -1732,42 +1733,44 @@ namespace chen {
         {
             XEvent  xButton;
             xButton.xbutton.type = ButtonPress;
-//            xButton.xbutton.serial =34;
             xButton.xbutton.x = PosX;
             xButton.xbutton.y = PosY;
             xButton.xbutton.x_root = PosX;
             xButton.xbutton.y_root = PosY;
-            xButton.xbutton.send_event = 0;
+            xButton.xbutton.send_event = False;
             xButton.xbutton.same_screen = True;
             xButton.xbutton.button = Delta > 0 ? Button4 : Button5;
+//            xButton.xbutton.button = Button4;
             xButton.xbutton.time = CurrentTime;
-            xButton.xbutton.state = 0X10;
             xButton.xbutton.window = g_main_window;
             if (g_main_window && g_display_ptr)
             {
-                XSendEvent(g_display_ptr, g_main_window, True, ButtonPress, &xButton);
-                XFlush(g_display_ptr);
+                Status status = XSendEvent(g_display_ptr, g_main_window, True, ButtonPress , &xButton);
+                int xflush = XFlush(g_display_ptr);
+                NORMAL_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
+            }
+
+            XEvent  xWheel;
+            xWheel.xbutton.type = ButtonRelease;
+            xWheel.xbutton.display = g_display_ptr;
+            xWheel.xbutton.x = PosX;
+            xWheel.xbutton.y = PosY;
+            xWheel.xbutton.x_root = PosX;
+            xWheel.xbutton.y_root = PosY;
+            xWheel.xbutton.send_event = False;
+            xWheel.xbutton.same_screen = True;
+            xWheel.xbutton.button = Delta > 0 ? Button4 : Button5;
+//            xWheel.xbutton.button = Button4;
+            xWheel.xbutton.time = CurrentTime;
+            xWheel.xbutton.window = g_main_window;
+            if (g_main_window && g_display_ptr)
+            {
+                Status status =     XSendEvent(g_display_ptr, g_main_window, False, ButtonRelease , &xWheel);
+                int xflush = XFlush(g_display_ptr);
+                NORMAL_EX_LOG("BUttonRelease [status = %u][xflush = %u]", status, xflush);
             }
         }
-//        std::this_thread::sleep_for(std::chrono::milliseconds (1));
-        XEvent  xWheel;
-        xWheel.xbutton.type = ButtonRelease;
-//        xWheel.xbutton.serial = 34;
-        xWheel.xbutton.x = PosX;
-        xWheel.xbutton.y = PosY;
-        xWheel.xbutton.x_root = PosX;
-        xWheel.xbutton.y_root = PosY;
-        xWheel.xbutton.send_event = False;
-        xWheel.xbutton.same_screen = True;
-        xWheel.xbutton.button = Delta > 0 ? Button4 : Button5;
-        xWheel.xbutton.time = CurrentTime;
-        xWheel.xbutton.state = Delta > 0 ? 0X810 : 0x1010 ;
-        xWheel.xbutton.window = g_main_window;
-        if (g_main_window && g_display_ptr)
-        {
-            XSendEvent(g_display_ptr, g_main_window, False, ButtonRelease, &xWheel);
-            XFlush(g_display_ptr);
-        }
+
 #else
         // 其他不支持的编译器需要自己实现这个方法
 #error unexpected c complier (msc/gcc), Need to implement this method for demangle
