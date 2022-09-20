@@ -1,4 +1,4 @@
 #!/bin/bash
 
 
- gcc main.c -o output -lX11
+ gcc main.c -o main -lX11 -lgkt

@@ -10,20 +10,20 @@ int main(int argc, char *argv[])
 //    XWarpPointer(display_ptr, None, DefaultRootWindow(display_ptr), 0, 0, 0, 0, 300, 300);
 
     XEvent  xButton;
-    xButton.xbutton.type = ButtonPress;
+    xButton.xbutton.type = 4; //4;
     xButton.xbutton.x = 5;
     xButton.xbutton.y = 5;
     xButton.xbutton.x_root = 5;
     xButton.xbutton.y_root = 5;
     xButton.xbutton.send_event = False;
     xButton.xbutton.same_screen = True;
-    xButton.xbutton.button =   4  ;
-//            xButton.xbutton.button = Button4;
+    //xButton.xbutton.button =   0  ;
+         xButton.xbutton.button = Button4;
     xButton.xbutton.time = CurrentTime;
     xButton.xbutton.window = atoi(argv[1]);
     if ( display_ptr)
     {
-        Status status = XSendEvent(display_ptr, atoi(argv[1]), True, ButtonPress , &xButton);
+        Status status = XSendEvent(display_ptr, atoi(argv[1]), True, 5 , &xButton);
         int xflush = XFlush(display_ptr);
         printf("ButtonPress [status = %u][xflush = %u]\n", status, xflush);
     }
@@ -38,13 +38,13 @@ int main(int argc, char *argv[])
     xWheel.xbutton.y_root = 5;
     xWheel.xbutton.send_event = False;
     xWheel.xbutton.same_screen = True;
-    xWheel.xbutton.button =   4  ;
-//            xWheel.xbutton.button = Button4;
+//    xWheel.xbutton.button =   0  ;
+            xWheel.xbutton.button = Button4;
     xWheel.xbutton.time = CurrentTime;
     xWheel.xbutton.window = atoi(argv[1]);
     if (display_ptr)
     {
-        Status status =     XSendEvent(display_ptr, atoi(argv[1]), False, ButtonRelease , &xWheel);
+        Status status =     XSendEvent(display_ptr, atoi(argv[1]), False, 5 , &xWheel);
         int xflush = XFlush(display_ptr);
         printf("BUttonRelease [status = %u][xflush = %u]\n", status, xflush);
     }

@@ -2,7 +2,7 @@ project(cx11_demo)
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 MESSAGE(STATUS "#########################")
 SET(CMAKE_BUILD_TYPE Release)
-ADD_DEFINITIONS(-pipe -O2 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -Wno-missing-field-initializers -g    -std=c99    -c  )
+#ADD_DEFINITIONS(-pipe -O2 -pedantic -Wall -W -Wundef -Wendif-labels -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -Wnested-externs -Winline -Wdisabled-optimization -Wno-missing-field-initializers -g    -std=c99    -c  )
 
 #SET(EXTRA_INC_DIR /home/ext)
 
@@ -117,33 +117,33 @@ target_link_libraries(${PROJECT_NAME} ${ALL_LIB})
 
 #################
 
-file(GLOB ALL_WINDOWS
-        window.cpp
-        )
-
-add_executable(select_window ${ALL_WINDOWS})
-target_link_libraries(select_window ${ALL_LIB})
-
-
-
-
-file(GLOB ALL_WINDOWS_X11
-        x11_get_window_id.cpp
-        )
-
-add_executable(x11_get_window_id ${ALL_WINDOWS_X11})
-target_link_libraries(x11_get_window_id ${ALL_LIB})
+#file(GLOB ALL_WINDOWS
+#        main.cpp
+#        )
+#
+#add_executable(main ${ALL_WINDOWS})
+#target_link_libraries(main ${ALL_LIB})
 
 
 
-
-
-file(GLOB  xsendevent
-        test_xsendevent.c
-        )
-
-add_executable(test_xsendevent ${xsendevent})
-target_link_libraries(test_xsendevent ${ALL_LIB})
+#
+#file(GLOB ALL_WINDOWS_X11
+#        x11_get_window_id.cpp
+#        )
+#
+#add_executable(x11_get_window_id ${ALL_WINDOWS_X11})
+#target_link_libraries(x11_get_window_id ${ALL_LIB})
+#
+#
+#
+#
+#
+#file(GLOB  xsendevent
+#        test_xsendevent.c
+#        )
+#
+#add_executable(test_xsendevent ${xsendevent})
+#target_link_libraries(test_xsendevent ${ALL_LIB})
 
 #add_subdirectory(clib)
 #add_subdirectory(common)

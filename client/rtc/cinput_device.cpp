@@ -695,13 +695,19 @@ namespace chen {
 
     void mouse_move(int x_cd,int y_cd)
     {
+//        xcb_generic_event_t
+//        xcb_button_press_event_t
+//        xcb_button_press_event_t
+//        XCB_GE_GENERIC
+//        xcb_generic_event_t
+//        XCB_EVENT_MASK_BUTTON_RELEASE
 //        Display *display = XOpenDisplay(NULL);
         Window fromroot, tmpwin, root;
         int x, y, tmp;
         unsigned int utmp;
 
         root = DefaultRootWindow(g_display_ptr);
-
+//        xcb_send_event
         XQueryPointer(g_display_ptr, root, &fromroot, &tmpwin, &x, &y, &tmp, &tmp, &utmp);// receive the mouse position
         if(g_display_ptr == NULL)
         {
@@ -1043,14 +1049,36 @@ namespace chen {
 //        event.data.keyboard.keychar = KeyCode;// VC_ESCAPE;
 //        event.data.keyboard.rawcode = KeyCode;
 //        hook_post_event(&event);
+
+	////////////////////////////////////////////////////
+	//typedef struct {
+    //           int type;       /* KeyPress or KeyRelease */
+    //           unsigned long serial;   /* # of last request processed by server */
+    //           Bool send_event;        /* true if this came from a SendEvent request */
+    //           Display *display;       /* Display the event was read from */
+    //           Window window;  /* ``event'' window it is reported relative to */
+    //           Window root;    /* root window that the event occurred on */
+    //           Window subwindow;       /* child window */
+    //           Time time;      /* milliseconds */
+    //           int x, y;       /* pointer x, y coordinates in event window */
+    //           int x_root, y_root;     /* coordinates relative to root */
+    //           unsigned int state;     /* key or button mask */
+    //           unsigned int keycode;   /* detail */
+    //           Bool same_screen;       /* same screen flag */
+    //   } XKeyEvent;
+
+	///////////////////////////////////////////////////
         XEvent  Xkey;
         Xkey.xkey.type = KeyPress;
         Xkey.xkey.send_event = 0;
         Xkey.xkey.same_screen = 1;
-        Xkey.xkey.keycode = KeyCode;
+		// key 32 ==> 65
+        Xkey.xkey.keycode = 65; //KeyCode;
         Xkey.xkey.state  = 16;
+		Xkey.xkey.display = g_display_ptr;
+		Xkey.xkey.window = g_main_window;
 
-        if (g_main_window && g_display_ptr)
+        if (g_main_window && g_display_ptr && KeyCode == 32)
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
             XSendEvent(g_display_ptr, g_main_window, True, KeyPress, &Xkey);
@@ -1130,10 +1158,12 @@ namespace chen {
         Xkey.xkey.type = KeyRelease;
         Xkey.xkey.send_event = 0;
         Xkey.xkey.same_screen = 1;
-        Xkey.xkey.keycode = KeyCode;
+        Xkey.xkey.keycode = 65; //KeyCode;
         Xkey.xkey.state  = 16;
+		Xkey.xkey.display = g_display_ptr;
+		Xkey.xkey.window = g_main_window;
 
-        if (g_main_window && g_display_ptr)
+        if (g_main_window && g_display_ptr && KeyCode == 32)
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
             XSendEvent(g_display_ptr, g_main_window, True, KeyRelease, &Xkey);
@@ -1731,6 +1761,7 @@ namespace chen {
 #elif defined(__linux__)
 
         {
+//            xcb_get_extension_data
             XEvent  xButton;
             xButton.xbutton.type = ButtonPress;
             xButton.xbutton.x = PosX;
