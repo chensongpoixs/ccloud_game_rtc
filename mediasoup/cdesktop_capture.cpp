@@ -1,3 +1,10 @@
+/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
 #include "cdesktop_capture.h"
 #include "modules/desktop_capture/desktop_capture_options.h"
 #include "rtc_base/logging.h"

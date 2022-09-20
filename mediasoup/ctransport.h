@@ -1,4 +1,11 @@
-﻿#ifndef _C_TRANSPORT_H_
+﻿/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
+#ifndef _C_TRANSPORT_H_
 #define _C_TRANSPORT_H_
 #include "mediasoupclient.hpp"
 #include "cnet_types.h"

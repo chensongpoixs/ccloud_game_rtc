@@ -1,4 +1,11 @@
-﻿#include "cosd_util.h"
+﻿/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
+#include "cosd_util.h"
 #include <iostream>
 #include <cstdlib>
 #include <string>

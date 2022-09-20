@@ -1,6 +1,10 @@
-#define MSC_CLASS "Sdp::MediaSection"
+/***********************************************************************************************
+created: 		2022-01-20
 
- 
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
 #include "MediaSection.hpp"
  
 #include <algorithm> // ::transform

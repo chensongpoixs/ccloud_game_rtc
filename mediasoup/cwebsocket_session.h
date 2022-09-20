@@ -1,3 +1,10 @@
+/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
 #ifndef C_WEBSOCKET_SESSION_H
 #define C_WEBSOCKET_SESSION_H
 #include <string>

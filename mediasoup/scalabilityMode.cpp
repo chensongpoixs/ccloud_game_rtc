@@ -1,4 +1,10 @@
-#define MSC_CLASS "scalabilityMode"
+/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
 
 #include "scalabilityMode.hpp"
 #include "clog.h"

@@ -1,3 +1,10 @@
+/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
 #include "sdptransform.hpp"
 #include <cstddef>   // size_t
 #include <sstream>   // std::stringstream

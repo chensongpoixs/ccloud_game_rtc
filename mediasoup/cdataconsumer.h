@@ -1,4 +1,11 @@
-﻿#ifndef _C_DATA_CONSUMER_H_
+﻿/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
+#ifndef _C_DATA_CONSUMER_H_
 #define _C_DATA_CONSUMER_H_
 //#include "cnoncopyable.h"
 #include <map>

@@ -1,4 +1,11 @@
-﻿#include "cdataconsumer.h"
+﻿/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
+#include "cdataconsumer.h"
 #include "clog.h"
 #include "crecv_transport.h"
 #include "cinput_device.h"

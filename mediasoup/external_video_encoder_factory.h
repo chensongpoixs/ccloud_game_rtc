@@ -1,3 +1,10 @@
+/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
 #ifndef EXTERNAL_BUILTIN_VIDEO_ENCODER_FACTORY_H_
 #define EXTERNAL_BUILTIN_VIDEO_ENCODER_FACTORY_H_
 
