@@ -74,6 +74,104 @@ namespace  chen {
         return getWindowAtom(display, win, "WM_CLASS");
     }
 
+
+
+
+
+
+/////////////////////////////////////////////pid -> window////////////////////////////////////////////////////////////////////////
+
+
+/* Arbitrary window property retrieval
+ * slightly modified version from xprop.c from Xorg */
+unsigned char *xdo_get_window_property_by_atom(Display *display, Window window, Atom atom,
+                                            long *nitems, Atom *type, int *size) {
+  Atom actual_type;
+  int actual_format;
+  unsigned long _nitems;
+  /*unsigned long nbytes;*/
+  unsigned long bytes_after; /* unused */
+  unsigned char *prop;
+  int status;
+
+  status = XGetWindowProperty(display, window, atom, 0, (~0L),
+                              False, AnyPropertyType, &actual_type,
+                              &actual_format, &_nitems, &bytes_after,
+                              &prop);
+  if (status == BadWindow) 
+  {
+    ERROR_EX_LOG("window id # 0x%lx does not exists!", window);
+  //  fprintf(stderr, "window id # 0x%lx does not exists!", window);
+    return NULL;
+  }
+
+if (status != Success) 
+{
+    ERROR_EX_LOG("XGetWindowProperty failed!");
+    //fprintf(stderr, "XGetWindowProperty failed!");
+    return NULL;
+  }
+
+  /*
+   *if (actual_format == 32)
+   *  nbytes = sizeof(long);
+   *else if (actual_format == 16)
+   *  nbytes = sizeof(short);
+   *else if (actual_format == 8)
+   *  nbytes = 1;
+   *else if (actual_format == 0)
+   *  nbytes = 0;
+   */
+
+  if (nitems != NULL) {
+    *nitems = _nitems;
+  }
+
+  if (type != NULL) {
+    *type = actual_type;
+  }
+
+  if (size != NULL) {
+    *size = actual_format;
+  }
+  return prop;
+}
+
+
+int xdo_get_pid_window(Display *display, Window window) 
+{
+  Atom type;
+  int size;
+  long nitems;
+  unsigned char *data;
+  int window_pid = 0;
+
+  static Atom atom_NET_WM_PID = -1;
+  //if (atom_NET_WM_PID == (Atom)-1) 
+  {
+    atom_NET_WM_PID = XInternAtom( display, "_NET_WM_PID", False);
+  }
+
+  data = xdo_get_window_property_by_atom(display, window, atom_NET_WM_PID, &nitems, &type, &size);
+
+  if (nitems > 0) 
+  {
+    /* The data itself is unsigned long, but everyone uses int as pid values */
+    window_pid = (int) *((unsigned long *)data);
+  }
+  free(data);
+
+  return window_pid;
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
     clinux_capture::~clinux_capture()
     {}
 
@@ -119,81 +217,6 @@ namespace  chen {
     {
 
         m_win_name = window_name;
-//        _get_all_window_info();
-//        if (!_find_window_name(window_name))
-//        {
-//            _show_all_window_info();
-//            ERROR_EX_LOG("not find window_name = %s", window_name);
-//            return false;
-//        }
-//        s_input_device.set_main_window(m_win);
-////        m_win = win;
-//        xcb_generic_error_t *err = NULL, *err2 = NULL;
-//        m_connection_ptr = xcb_connect(NULL,NULL); //XGetXCBConnection(helper_disp);
-//        if (!m_connection_ptr)
-//        {
-//            ERROR_EX_LOG("xcb_connect failed !!!");
-//            return false;
-//        }
-//        xcb_composite_query_version_cookie_t comp_ver_cookie = xcb_composite_query_version(m_connection_ptr, 0, 2);
-//        xcb_composite_query_version_reply_t *comp_ver_reply = xcb_composite_query_version_reply(m_connection_ptr, comp_ver_cookie, &err);
-//        if (comp_ver_reply)
-//        {
-//            if (comp_ver_reply->minor_version < 2)
-//            {
-//                ERROR_EX_LOG("query composite failure: server returned v%d.%d", comp_ver_reply->major_version, comp_ver_reply->minor_version);
-//                free(comp_ver_reply);
-//                false;
-//            }
-//            free(comp_ver_reply);
-//        }
-//        else if (err)
-//        {
-//            ERROR_EX_LOG( "xcb error: %d\n", err->error_code);
-//            free(err);
-//            return false;
-//        }
-//
-//        const xcb_setup_t *setup = xcb_get_setup(m_connection_ptr);
-//        xcb_screen_iterator_t screen_iter = xcb_setup_roots_iterator(setup);
-//        xcb_screen_t *screen = screen_iter.data;
-//        // request redirection of window
-//        xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
-////    int win_h, win_w, win_d;
-//
-//        xcb_get_geometry_cookie_t gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
-//        xcb_get_geometry_reply_t *gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
-//        if (gg_reply)
-//        {
-//            m_win_width = gg_reply-> width;
-//            m_win_height = gg_reply->height;
-//            m_win_depth = gg_reply->depth;
-//            free(gg_reply);
-//        }
-//        else
-//        {
-//            if (err) {
-//                ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
-//                free(err);
-//            }
-//            return  false;
-//        }
-//
-//        SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
-//        m_win_pixmap = xcb_generate_id(m_connection_ptr);
-//        xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
-//
-//        err = NULL;
-//        if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
-//        {
-//            ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
-//
-//            return  false;
-//        }
-//        xcb_map_window(m_connection_ptr, m_win);
-//
-//        xcb_flush(m_connection_ptr);
-        SYSTEM_LOG("app catpure pixmap ---> ok !!!");
         m_stoped = false;
         m_thread = std::thread(&clinux_capture::_work_thread, this);
 
@@ -490,6 +513,7 @@ namespace  chen {
                 windowinfo.name =  getWindowName(m_display_ptr, data[i]);
                 windowinfo.cls =  getWindowClass(m_display_ptr, data[i]);
                 windowinfo.win = data[i];
+                windowinfo.pid = xdo_get_pid_window(m_display_ptr, data[i]);
                 m_all_window_info.emplace_back(windowinfo);
             }
 
@@ -503,7 +527,7 @@ namespace  chen {
         SYSTEM_LOG("all window info ...");
         for (auto & win : m_all_window_info)
         {
-            SYSTEM_LOG("[name = %s][cls = %s][win = %u]", win.name.c_str(), win.cls.c_str(), win.win);
+            SYSTEM_LOG("[name = %s][cls = %s][win = %u][pid = %u]", win.name.c_str(), win.cls.c_str(), win.win, win.pid);
         }
 
     }
@@ -511,12 +535,13 @@ namespace  chen {
 
     bool clinux_capture::_find_window_name(const char * window_name)
     {
+        pid_t pid = getpid();
         for (const WindowInfo& win: m_all_window_info)
         {
-            if (window_name == win.cls && win.win != m_win)
+            if (/*window_name == win.cls && win.win != m_win*/ pid == win.pid)
             {
                 m_win = win.win;
-                ERROR_EX_LOG("");
+                WARNING_EX_LOG("[system_pid = %u][win_pid_id = %u][win_id = %u][win_cls = %s][win_name = %s]", pid, win.pid, win.win, win.cls.c_str(), win.name.c_str());
                 return true;
             }
             else

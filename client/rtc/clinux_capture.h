@@ -44,10 +44,12 @@ namespace  chen {
             std::string cls;
             std::string name;
                 Window win;
+                int pid;
             WindowInfo()
             : cls("")
             , name("")
-            , win(0 ){}
+            , win(0 )
+            , pid(0){}
         };
         typedef std::vector<WindowInfo>                                  all_window_info;
 
