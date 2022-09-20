@@ -377,7 +377,7 @@ int xdo_get_pid_window(Display *display, Window window)
                 return  ;
             }
 
-            SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
+           // SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
             m_win_pixmap = xcb_generate_id(m_connection_ptr);
             name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
 
