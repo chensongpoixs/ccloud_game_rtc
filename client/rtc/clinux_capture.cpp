@@ -331,81 +331,52 @@ namespace  chen {
         }
         DEBUG_LOG("cpature tick time frames = %u", CAPTUER_TICK_TIME);
         while (!m_stoped)
-        {
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//           if (_find_window_name(m_win_name.c_str()))
-//           {
-//               xcb_disconnect(m_connection_ptr);
-//               m_connection_ptr = NULL;
-//
-//               s_input_device.set_main_window(m_win);
-////        m_win = win;
-//               xcb_generic_error_t *err = NULL, *err2 = NULL;
-//               m_connection_ptr = xcb_connect(NULL,NULL); //XGetXCBConnection(helper_disp);
-//               if (!m_connection_ptr)
-//               {
-//                   ERROR_EX_LOG("xcb_connect failed !!!");
-//                   return ;
-//               }
-//               xcb_composite_query_version_cookie_t comp_ver_cookie = xcb_composite_query_version(m_connection_ptr, 0, 2);
-//               xcb_composite_query_version_reply_t *comp_ver_reply = xcb_composite_query_version_reply(m_connection_ptr, comp_ver_cookie, &err);
-//               if (comp_ver_reply)
-//               {
-//                   if (comp_ver_reply->minor_version < 2)
-//                   {
-//                       ERROR_EX_LOG("query composite failure: server returned v%d.%d", comp_ver_reply->major_version, comp_ver_reply->minor_version);
-//                       free(comp_ver_reply);
-//                       false;
-//                   }
-//                   free(comp_ver_reply);
-//               }
-//               else if (err)
-//               {
-//                   ERROR_EX_LOG( "xcb error: %d\n", err->error_code);
-//                   free(err);
-//                   return ;
-//               }
-//
-//               const xcb_setup_t *setup = xcb_get_setup(m_connection_ptr);
-//               xcb_screen_iterator_t screen_iter = xcb_setup_roots_iterator(setup);
-//               xcb_screen_t *screen = screen_iter.data;
-//               // request redirection of window
-//               xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
-////    int win_h, win_w, win_d;
-//
-//               xcb_get_geometry_cookie_t gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
-//               xcb_get_geometry_reply_t *gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
-//               if (gg_reply)
-//               {
-//                   m_win_width = gg_reply-> width;
-//                   m_win_height = gg_reply->height;
-//                   m_win_depth = gg_reply->depth;
-//                   free(gg_reply);
-//               }
-//               else
-//               {
-//                   if (err) {
-//                       ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
-//                       free(err);
-//                   }
-//                   return  ;
-//               }
-//
-//               SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
-//               m_win_pixmap = xcb_generate_id(m_connection_ptr);
-//               xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
-//
-//               err = NULL;
-//               if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
-//               {
-//                   ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
-//
-//                   return  ;
-//               }
-//               xcb_map_window(m_connection_ptr, m_win);
-//
-//               xcb_flush(m_connection_ptr);
-//           }
+        { 
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+             xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
+            //    int win_h, win_w, win_d;
+
+              gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
+              gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
+            if (gg_reply)
+            {
+                m_win_width = gg_reply-> width;
+                m_win_height = gg_reply->height;
+                m_win_depth = gg_reply->depth;
+                free(gg_reply);
+            }
+            else
+            {
+                if (err) {
+                    ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
+                    free(err);
+                }
+                return  ;
+            }
+
+            SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
+            m_win_pixmap = xcb_generate_id(m_connection_ptr);
+            name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
+
+            err = NULL;
+            if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
+            {
+                ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
+
+                break  ;
+            }
+            xcb_map_window(m_connection_ptr, m_win);
+
+            xcb_flush(m_connection_ptr);
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (0 == m_win_pixmap || NULL == m_connection_ptr ||  NULL == m_display_ptr)
+            {
+
+                ERROR_EX_LOG("!!g_win_pixmap = %u|| !!g_connection = %p|| !!helper_disp = %p\n", m_win_pixmap, m_connection_ptr, m_display_ptr);
+                return;
+            }
+  
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             pre_time = std::chrono::steady_clock::now();
             xcb_generic_error_t *err = NULL, *err2 = NULL;
@@ -415,10 +386,7 @@ namespace  chen {
             {
                 uint8_t *data = xcb_get_image_data(gi_reply);
                 s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
-//                    if (callback)
-//                    {
-//                        callback(data, g_win_w, g_win_h);
-//                    }
+ 
                 free(gi_reply);
             }
             else
