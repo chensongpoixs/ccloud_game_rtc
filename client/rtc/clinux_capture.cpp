@@ -355,7 +355,39 @@ int xdo_get_pid_window(Display *display, Window window)
         DEBUG_LOG("cpature tick time frames = %u", CAPTUER_TICK_TIME);
         while (!m_stoped)
         { 
-            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            pre_time = std::chrono::steady_clock::now();
+            xcb_generic_error_t *err = NULL, *err2 = NULL;
+            xcb_get_image_cookie_t gi_cookie = xcb_get_image(m_connection_ptr, XCB_IMAGE_FORMAT_Z_PIXMAP, m_win_pixmap, 0, 0, m_win_width, m_win_height, (uint32_t)(~0UL));
+            xcb_get_image_reply_t *gi_reply = xcb_get_image_reply(m_connection_ptr, gi_cookie, &err);
+            if (gi_reply)
+            {
+                uint8_t *data = xcb_get_image_data(gi_reply);
+                s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
+ 
+                free(gi_reply);
+            }
+            else
+            {
+                WARNING_EX_LOG("gi reply failed !!!");
+            }
+            if (!m_stoped)
+            {
+                cur_time_ms = std::chrono::steady_clock::now();
+                dur = cur_time_ms - pre_time;
+//                pre_time = cur_time_ms;
+                ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+                elapse = static_cast<int32_t>(ms.count());
+                if (elapse < CAPTUER_TICK_TIME)
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(CAPTUER_TICK_TIME- elapse));
+                }
+
+            }
+            if (m_win_pixmap)
+            {
+                XFreePixmap(m_display_ptr, m_win_pixmap);
+            }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
              xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
             //    int win_h, win_w, win_d;
 
@@ -401,34 +433,9 @@ int xdo_get_pid_window(Display *display, Window window)
             }
   
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            pre_time = std::chrono::steady_clock::now();
-            xcb_generic_error_t *err = NULL, *err2 = NULL;
-            xcb_get_image_cookie_t gi_cookie = xcb_get_image(m_connection_ptr, XCB_IMAGE_FORMAT_Z_PIXMAP, m_win_pixmap, 0, 0, m_win_width, m_win_height, (uint32_t)(~0UL));
-            xcb_get_image_reply_t *gi_reply = xcb_get_image_reply(m_connection_ptr, gi_cookie, &err);
-            if (gi_reply)
-            {
-                uint8_t *data = xcb_get_image_data(gi_reply);
-                s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
- 
-                free(gi_reply);
-            }
-            else
-            {
-                WARNING_EX_LOG("gi reply failed !!!");
-            }
-            if (!m_stoped)
-            {
-                cur_time_ms = std::chrono::steady_clock::now();
-                dur = cur_time_ms - pre_time;
-//                pre_time = cur_time_ms;
-                ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
-                elapse = static_cast<int32_t>(ms.count());
-                if (elapse < CAPTUER_TICK_TIME)
-                {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(CAPTUER_TICK_TIME- elapse));
-                }
+         
 
-            }
+
         }
     }
 
