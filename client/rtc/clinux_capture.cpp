@@ -254,7 +254,7 @@ int xdo_get_pid_window(Display *display, Window window)
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         int count = 0;
-        while (count++ < 10)
+        while (count++ < 3)
         {
             DEBUG_LOG("linux capture sleep !!!");
             sleep(1);
