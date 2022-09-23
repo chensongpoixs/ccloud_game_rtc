@@ -253,10 +253,11 @@ int xdo_get_pid_window(Display *display, Window window)
     void clinux_capture::_work_thread()
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////
+       
         int count = 0;
-        while (count++ < 3)
+        while (count++ < 2)
         {
-            DEBUG_LOG("linux capture sleep !!!");
+            NORMAL_EX_LOG("linux capture sleep !!!");
             sleep(1);
         }
         _get_all_window_info();
@@ -299,49 +300,19 @@ int xdo_get_pid_window(Display *display, Window window)
         xcb_screen_iterator_t screen_iter = xcb_setup_roots_iterator(setup);
         xcb_screen_t *screen = screen_iter.data;
         // request redirection of window
+        //这个代码将窗口内容重定向的离屏缓存并且跟踪 damage 信号，
         xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
-//    int win_h, win_w, win_d;
-
-        xcb_get_geometry_cookie_t gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
-        xcb_get_geometry_reply_t *gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
-        if (gg_reply)
-        {
-            m_win_width = gg_reply-> width;
-            m_win_height = gg_reply->height;
-            m_win_depth = gg_reply->depth;
-            free(gg_reply);
-        }
-        else
-        {
-            if (err) {
-                ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
-                free(err);
-            }
-            return  ;
-        }
-
+ 
+        _init_window();
+        
         NORMAL_EX_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
-        m_win_pixmap = xcb_generate_id(m_connection_ptr);
-        xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
-
-        err = NULL;
-        if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
-        {
-            ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
-
-            return  ;
-        }
+         
         xcb_map_window(m_connection_ptr, m_win);
 
         xcb_flush(m_connection_ptr);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
-        if (0 == m_win_pixmap || NULL == m_connection_ptr ||  NULL == m_display_ptr)
-        {
-
-            ERROR_EX_LOG("!!g_win_pixmap = %u|| !!g_connection = %p|| !!helper_disp = %p\n", m_win_pixmap, m_connection_ptr, m_display_ptr);
-            return;
-        }
+        
         std::chrono::steady_clock::time_point cur_time_ms;
         std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
         std::chrono::steady_clock::duration dur;
@@ -355,90 +326,45 @@ int xdo_get_pid_window(Display *display, Window window)
         NORMAL_EX_LOG("cpature tick time frames = %u", CAPTUER_TICK_TIME);
         while (!m_stoped)
         { 
-           // pre_time = std::chrono::steady_clock::now();
-            xcb_generic_error_t *err = NULL, *err2 = NULL;
-            xcb_get_image_cookie_t gi_cookie = xcb_get_image(m_connection_ptr, XCB_IMAGE_FORMAT_Z_PIXMAP, m_win_pixmap, 0, 0, m_win_width, m_win_height, (uint32_t)(~0UL));
-            xcb_get_image_reply_t *gi_reply = xcb_get_image_reply(m_connection_ptr, gi_cookie, &err);
-            if (gi_reply)
-            {
-                uint8_t *data = xcb_get_image_data(gi_reply);
-                s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
- 
-                free(gi_reply);
-            }
-            else
-            {
-                WARNING_EX_LOG("gi reply failed !!!");
-            }
-            if (!m_stoped)
-            {
-               // cur_time_ms = std::chrono::steady_clock::now();
-               // dur = cur_time_ms - pre_time;
-//                pre_time = cur_time_ms;
-               // ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
-               // elapse = static_cast<int32_t>(ms.count());
-               // if (elapse < CAPTUER_TICK_TIME)
-                {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(CAPTUER_TICK_TIME)/*- elapse)*/);
-                }
+            pre_time = std::chrono::steady_clock::now();
 
-            }
-            if (m_win_pixmap)
+           if (0 == m_win_pixmap || NULL == m_connection_ptr ||  NULL == m_display_ptr)
             {
-                XFreePixmap(m_display_ptr, m_win_pixmap);
-            }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            if (!m_stoped)
-            {
-                //这个代码将窗口内容重定向的离屏缓存并且跟踪 damage 信号，
-                // xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
-                //    int win_h, win_w, win_d;
 
-                gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
-                gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
-                if (gg_reply)
+                WARNING_EX_LOG("!!g_win_pixmap = %u|| !!g_connection = %p|| !!helper_disp = %p\n", m_win_pixmap, m_connection_ptr, m_display_ptr);
+               
+            }
+            else 
+            {
+                xcb_generic_error_t *err = NULL, *err2 = NULL;
+                xcb_get_image_cookie_t gi_cookie = xcb_get_image(m_connection_ptr, XCB_IMAGE_FORMAT_Z_PIXMAP, m_win_pixmap, 0, 0, m_win_width, m_win_height, (uint32_t)(~0UL));
+                xcb_get_image_reply_t *gi_reply = xcb_get_image_reply(m_connection_ptr, gi_cookie, &err);
+                if (gi_reply)
                 {
-                    m_win_width = gg_reply-> width;
-                    m_win_height = gg_reply->height;
-                    m_win_depth = gg_reply->depth;
-                    free(gg_reply);
+                    uint8_t *data = xcb_get_image_data(gi_reply);
+                    s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
+    
+                    free(gi_reply);
                 }
                 else
                 {
-                    if (err) {
-                        ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
-                        free(err);
-                    }
-                    return  ;
-                }
-
-            // SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
-                m_win_pixmap = xcb_generate_id(m_connection_ptr);
-                name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
-
-                err = NULL;
-                if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
-                {
-                    ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
-
-                    break  ;
-                }
-                xcb_map_window(m_connection_ptr, m_win);
-
-                xcb_flush(m_connection_ptr);
-
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
-                if (0 == m_win_pixmap || NULL == m_connection_ptr ||  NULL == m_display_ptr)
-                {
-
-                    ERROR_EX_LOG("!!g_win_pixmap = %u|| !!g_connection = %p|| !!helper_disp = %p\n", m_win_pixmap, m_connection_ptr, m_display_ptr);
-                    return;
+                    WARNING_EX_LOG("gi reply failed !!!");
                 }
             }
-  
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-         
+            if (!m_stoped)
+            {
+                cur_time_ms = std::chrono::steady_clock::now();
+                dur = cur_time_ms - pre_time;
+                pre_time = cur_time_ms;
+                ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+                elapse = static_cast<int32_t>(ms.count());
+                if (elapse < CAPTUER_TICK_TIME)
+                {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(CAPTUER_TICK_TIME- elapse));
+                }
 
+            }
+            
 
         }
     }
@@ -561,6 +487,65 @@ int xdo_get_pid_window(Display *display, Window window)
             }
         }
         return false;
+    }
+
+
+
+    bool clinux_capture::_init_window()
+    {
+        if (!m_connection_ptr)
+        {
+            WARNING_EX_LOG(" m_connection_ptr == null !!!");
+        }
+        if (m_win_pixmap)
+        {
+            XFreePixmap(m_display_ptr, m_win_pixmap);
+            m_win_pixmap = 0;
+        }
+        xcb_generic_error_t *err = NULL;
+        xcb_get_geometry_cookie_t gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
+        xcb_get_geometry_reply_t *gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
+        if (gg_reply)
+        {
+            
+            if (m_win_width != gg_reply-> width || m_win_height != gg_reply->height || m_win_depth != gg_reply->depth)
+            {
+                WARNING_EX_LOG("old [width = %u][height = %u][depth = %u] --> new [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth, gg_reply-> width, gg_reply->height, gg_reply->depth);
+                m_win_width = gg_reply-> width;
+                m_win_height = gg_reply->height;
+                m_win_depth = gg_reply->depth;
+            }
+            
+            free(gg_reply);
+        }
+        else
+        {
+            if (err) 
+            {
+                ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
+                free(err);
+            }
+            ERROR_EX_LOG("get geometry: XCB error");
+            return  false;
+        }
+
+       // NORMAL_EX_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
+        m_win_pixmap = xcb_generate_id(m_connection_ptr);
+        xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
+
+        err = NULL;
+        if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
+        {
+            ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
+
+            return  false;
+        }
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+       // xcb_map_window(m_connection_ptr, m_win);
+
+       // xcb_flush(m_connection_ptr);
+
+        return true;
     }
 }
 #endif
