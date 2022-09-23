@@ -187,7 +187,7 @@ int xdo_get_pid_window(Display *display, Window window)
 
 
         Status status =  XInitThreads();
-        SYSTEM_LOG("XInitThreads status = %u", status);
+        NORMAL_EX_LOG("XInitThreads status = %u", status);
         int32 eventBase, errorBase;
         if (!XCompositeQueryExtension(m_display_ptr, &eventBase, &errorBase))
         {
@@ -197,7 +197,7 @@ int xdo_get_pid_window(Display *display, Window window)
 
         int major = 0, minor = 2;
         status = XCompositeQueryVersion(m_display_ptr, &major, &minor);
-        SYSTEM_LOG("XCompositeQueryVersion status = %u", status);
+        NORMAL_EX_LOG("XCompositeQueryVersion status = %u", status);
         if (major == 0 && minor < 2)
         {
             ERROR_EX_LOG( "Xcomposite extension is too old: %d.%d < 0.2\n", major, minor);
@@ -320,7 +320,7 @@ int xdo_get_pid_window(Display *display, Window window)
             return  ;
         }
 
-        SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
+        NORMAL_EX_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
         m_win_pixmap = xcb_generate_id(m_connection_ptr);
         xcb_void_cookie_t name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
 
@@ -352,10 +352,10 @@ int xdo_get_pid_window(Display *display, Window window)
         {
             CAPTUER_TICK_TIME = 1000 /g_cfg.get_int32(ECI_RtcFrames);
         }
-        DEBUG_LOG("cpature tick time frames = %u", CAPTUER_TICK_TIME);
+        NORMAL_EX_LOG("cpature tick time frames = %u", CAPTUER_TICK_TIME);
         while (!m_stoped)
         { 
-            pre_time = std::chrono::steady_clock::now();
+           // pre_time = std::chrono::steady_clock::now();
             xcb_generic_error_t *err = NULL, *err2 = NULL;
             xcb_get_image_cookie_t gi_cookie = xcb_get_image(m_connection_ptr, XCB_IMAGE_FORMAT_Z_PIXMAP, m_win_pixmap, 0, 0, m_win_width, m_win_height, (uint32_t)(~0UL));
             xcb_get_image_reply_t *gi_reply = xcb_get_image_reply(m_connection_ptr, gi_cookie, &err);
@@ -372,14 +372,14 @@ int xdo_get_pid_window(Display *display, Window window)
             }
             if (!m_stoped)
             {
-                cur_time_ms = std::chrono::steady_clock::now();
-                dur = cur_time_ms - pre_time;
+               // cur_time_ms = std::chrono::steady_clock::now();
+               // dur = cur_time_ms - pre_time;
 //                pre_time = cur_time_ms;
-                ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
-                elapse = static_cast<int32_t>(ms.count());
-                if (elapse < CAPTUER_TICK_TIME)
+               // ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+               // elapse = static_cast<int32_t>(ms.count());
+               // if (elapse < CAPTUER_TICK_TIME)
                 {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(CAPTUER_TICK_TIME- elapse));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(CAPTUER_TICK_TIME)/*- elapse)*/);
                 }
 
             }
@@ -388,48 +388,52 @@ int xdo_get_pid_window(Display *display, Window window)
                 XFreePixmap(m_display_ptr, m_win_pixmap);
             }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-             xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
-            //    int win_h, win_w, win_d;
+            if (!m_stoped)
+            {
+                //这个代码将窗口内容重定向的离屏缓存并且跟踪 damage 信号，
+                // xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
+                //    int win_h, win_w, win_d;
 
-              gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
-              gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
-            if (gg_reply)
-            {
-                m_win_width = gg_reply-> width;
-                m_win_height = gg_reply->height;
-                m_win_depth = gg_reply->depth;
-                free(gg_reply);
-            }
-            else
-            {
-                if (err) {
-                    ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
-                    free(err);
+                gg_cookie = xcb_get_geometry(m_connection_ptr, m_win);
+                gg_reply = xcb_get_geometry_reply(m_connection_ptr, gg_cookie, &err);
+                if (gg_reply)
+                {
+                    m_win_width = gg_reply-> width;
+                    m_win_height = gg_reply->height;
+                    m_win_depth = gg_reply->depth;
+                    free(gg_reply);
                 }
-                return  ;
-            }
+                else
+                {
+                    if (err) {
+                        ERROR_EX_LOG( "get geometry: XCB error %d\n", err->error_code);
+                        free(err);
+                    }
+                    return  ;
+                }
 
-           // SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
-            m_win_pixmap = xcb_generate_id(m_connection_ptr);
-            name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
+            // SYSTEM_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
+                m_win_pixmap = xcb_generate_id(m_connection_ptr);
+                name_cookie = xcb_composite_name_window_pixmap(m_connection_ptr, m_win, m_win_pixmap);
 
-            err = NULL;
-            if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
-            {
-                ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
+                err = NULL;
+                if ((err = xcb_request_check(m_connection_ptr, name_cookie)) != NULL)
+                {
+                    ERROR_EX_LOG("xcb_composite_name_window_pixmap failed\n");
 
-                break  ;
-            }
-            xcb_map_window(m_connection_ptr, m_win);
+                    break  ;
+                }
+                xcb_map_window(m_connection_ptr, m_win);
 
-            xcb_flush(m_connection_ptr);
+                xcb_flush(m_connection_ptr);
 
-            ////////////////////////////////////////////////////////////////////////////////////////////////////
-            if (0 == m_win_pixmap || NULL == m_connection_ptr ||  NULL == m_display_ptr)
-            {
+                ////////////////////////////////////////////////////////////////////////////////////////////////////
+                if (0 == m_win_pixmap || NULL == m_connection_ptr ||  NULL == m_display_ptr)
+                {
 
-                ERROR_EX_LOG("!!g_win_pixmap = %u|| !!g_connection = %p|| !!helper_disp = %p\n", m_win_pixmap, m_connection_ptr, m_display_ptr);
-                return;
+                    ERROR_EX_LOG("!!g_win_pixmap = %u|| !!g_connection = %p|| !!helper_disp = %p\n", m_win_pixmap, m_connection_ptr, m_display_ptr);
+                    return;
+                }
             }
   
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -531,10 +535,10 @@ int xdo_get_pid_window(Display *display, Window window)
     }
     void clinux_capture::_show_all_window_info()
     {
-        SYSTEM_LOG("all window info ...");
+        NORMAL_EX_LOG("all window info ...");
         for (auto & win : m_all_window_info)
         {
-            SYSTEM_LOG("[name = %s][cls = %s][win = %u][pid = %u]", win.name.c_str(), win.cls.c_str(), win.win, win.pid);
+            NORMAL_EX_LOG("[name = %s][cls = %s][win = %u][pid = %u]", win.name.c_str(), win.cls.c_str(), win.win, win.pid);
         }
 
     }
@@ -548,12 +552,12 @@ int xdo_get_pid_window(Display *display, Window window)
             if (/*window_name == win.cls && win.win != m_win*/ pid == win.pid)
             {
                 m_win = win.win;
-                WARNING_EX_LOG("[system_pid = %u][win_pid_id = %u][win_id = %u][win_cls = %s][win_name = %s]", pid, win.pid, win.win, win.cls.c_str(), win.name.c_str());
+                NORMAL_EX_LOG("[system_pid = %u][win_pid_id = %u][win_id = %u][win_cls = %s][win_name = %s]", pid, win.pid, win.win, win.cls.c_str(), win.name.c_str());
                 return true;
             }
             else
             {
-                ERROR_EX_LOG("[cls = %s][window_name = %s]", win.cls.c_str(), win.name.c_str());
+                NORMAL_EX_LOG("[cls = %s][window_name = %s]", win.cls.c_str(), win.name.c_str());
             }
         }
         return false;
