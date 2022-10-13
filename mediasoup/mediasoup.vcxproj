@@ -143,6 +143,7 @@
     <ProjectGuid>{DBAF2E5E-C6B3-444F-9FAE-5EF6CA95A9FA}</ProjectGuid>
     <RootNamespace>mediasoup</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>cloud_game_rtc</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -197,7 +198,7 @@
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(ProjectDir)..\vsout\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <IncludePath>$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;..\..\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;$(CUDA_PATH)\include;.\NvCodec;$(IncludePath)</IncludePath>
     <LibraryPath>$(C_INCLUDE)\webrtc\lib\x64\release;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>

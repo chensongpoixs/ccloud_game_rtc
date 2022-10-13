@@ -19,7 +19,8 @@ purpose:		input_device
 #include <WinUser.h>
 #include <UserEnv.h>
 #include <mutex>
-#include "detours.h"
+#include <detours.h>
+
 //void CallMessage(HWND hwnd, int nMsgId, int wParam, int lParam)
 //
 //{

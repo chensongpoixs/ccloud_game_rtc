@@ -670,7 +670,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame, cnv_frame_
 		 int max_buffer_size = height * width * 4;
 		 //std::shared_ptr<uint8_t> out_buffer(new uint8_t[max_buffer_size]);
 		 frame_packet.frame.reset(new uint8_t[max_buffer_size]);
-		 if (g_dxgi_format == DXGI_FORMAT_R10G10B10A2_UNORM)
+		/* if (g_dxgi_format == DXGI_FORMAT_R10G10B10A2_UNORM)
 		 {
 			 NORMAL_EX_LOG("");
 			 D3D11_MAPPED_SUBRESOURCE dsec = { 0 };
@@ -695,7 +695,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame, cnv_frame_
 
 			 }
 		 }
-		 else if ( 0 != g_gpu_index  )
+		 else*/ if ( 0 != g_gpu_index  )
 		 {
 			 NORMAL_EX_LOG("");
 			 D3D11_MAPPED_SUBRESOURCE dsec = { 0 };
