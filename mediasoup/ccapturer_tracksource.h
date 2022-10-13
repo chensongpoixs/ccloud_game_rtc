@@ -1,4 +1,11 @@
-﻿#ifndef _C_CAPTURER_TRACKSOURCE_H_
+﻿/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
+#ifndef _C_CAPTURER_TRACKSOURCE_H_
 #define _C_CAPTURER_TRACKSOURCE_H_
  
 #include "api/video/video_frame.h"

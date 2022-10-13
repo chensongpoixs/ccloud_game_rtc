@@ -1,4 +1,11 @@
-﻿#include "desktop_capture_source.h"
+﻿/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
+#include "desktop_capture_source.h"
 
 #include "api/video/i420_buffer.h"
 #include "api/video/video_rotation.h"

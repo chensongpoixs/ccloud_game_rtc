@@ -1,4 +1,11 @@
-﻿#include "cdevice.h"
+﻿/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
+#include "cdevice.h"
 #include <api/peer_connection_interface.h> // webrtc::PeerConnectionInterface
 #include <future>                          // std::promise, std::future
 #include <memory>                          // std::unique_ptr

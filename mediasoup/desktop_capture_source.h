@@ -1,5 +1,12 @@
-﻿#ifndef EXAMPLES_DESKTOP_CAPTURE_DESKTOP_CAPTURER_SOURCE_TEST_H_
-#define EXAMPLES_DESKTOP_CAPTURE_DESKTOP_CAPTURER_SOURCE_TEST_H_
+﻿/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
+#ifndef  _DESKTOP_CAPTURE_DESKTOP_CAPTURER_SOURCE_TEST_H_
+#define  _DESKTOP_CAPTURE_DESKTOP_CAPTURER_SOURCE_TEST_H_
 
 #include "api/video/video_frame.h"
 #include "api/video/video_source_interface.h"
@@ -34,4 +41,4 @@ class VideoCaptureSource
 
 
 }
-#endif  // EXAMPLES_DESKTOP_CAPTURE_DESKTOP_CAPTURER_SOURCE_TEST_H_
+#endif  // _DESKTOP_CAPTURE_DESKTOP_CAPTURER_SOURCE_TEST_H_

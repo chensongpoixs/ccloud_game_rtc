@@ -1,3 +1,10 @@
+/***********************************************************************************************
+created: 		2020-2-13
+
+author:			chensong
+
+purpose:		nvenc
+************************************************************************************************/
 #ifndef MODULES_NV_VIDEO_CODING_CODECS_H264_ENCODER_IMPL_H_
 #define MODULES_NV_VIDEO_CODING_CODECS_H264_ENCODER_IMPL_H_
 

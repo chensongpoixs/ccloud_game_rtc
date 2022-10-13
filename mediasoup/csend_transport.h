@@ -1,4 +1,11 @@
-﻿#ifndef _C_SEND_TRANSPORT_H_
+﻿/***********************************************************************************************
+created: 		2022-01-20
+
+author:			chensong
+
+purpose:		assertion macros
+************************************************************************************************/
+#ifndef _C_SEND_TRANSPORT_H_
 #define _C_SEND_TRANSPORT_H_
 #include "ctransport.h"
 #include "ccapturer_tracksource.h"
