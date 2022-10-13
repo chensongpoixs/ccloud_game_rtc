@@ -78,8 +78,7 @@
     <ClInclude Include="NvCodec\NvEncoder\NvEncoderD3D11.h">
       <Filter>NvCodec\NvEncoder</Filter>
     </ClInclude>
-    <ClInclude Include="external_video_encoder_factory.h" />
-    <ClInclude Include="crtc_mgr.h" />
+    <ClInclude Include="external_video_encoder_factory.h" /> 
     <ClInclude Include="NvCodec\Utils\AppEncUtils.h">
       <Filter>NvCodec\Utils</Filter>
     </ClInclude>
@@ -143,8 +142,7 @@
     <ClCompile Include="NvCodec\NvEncoder\NvEncoderD3D11.cpp">
       <Filter>NvCodec\NvEncoder</Filter>
     </ClCompile>
-    <ClCompile Include="external_video_encoder_factory.cc" />
-    <ClCompile Include="crtc_mgr.cpp" />
+    <ClCompile Include="external_video_encoder_factory.cc" /> 
   </ItemGroup>
   <ItemGroup>
     <None Include="client.cfg" />
