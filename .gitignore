@@ -1,0 +1,23 @@
+x64/*
+vsout/*
+.vs/*
+cmediasoup_push.zip
+bin/x64/Debug/mediasoup.exe
+bin/x64/Debug/Debug.zip
+bin/x64/Debug/mediasoup.pdb
+thrift-0.9.3.exe
+mediasoup/log/*
+bin/x64/Debug/mediasoupd.dll
+bin/x64/Debug/mediasoupd.exe
+bin/x64/Debug/mediasoupd.exp
+bin/x64/Debug/mediasoupd.ilk
+bin/x64/Debug/mediasoupd.lib
+bin/x64/Debug/mediasoupd.pdb
+bin/x64/Debug/rtcd.exp
+bin/x64/Debug/rtcd.lib
+bin/x64/Debug/rtcd.pdb
+bin/x64/Release/rtc.dll
+bin/x64/Release/rtc.exe
+bin/x64/Release/rtc.exp
+bin/x64/Release/rtc.lib
+mediasoup/client (2).cfg
