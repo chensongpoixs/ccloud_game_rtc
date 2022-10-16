@@ -122,6 +122,11 @@ namespace chen {
 		FIntPoint							m_int_point;
 		std::map<std::string, std::map<uint32, cmouse_info>>	m_all_consumer; 
 		std::string							m_mouse_id; //当前操作的id
+#if defined(_MSC_VER)
+		HWND								m_main_win;
+#endif // #if defined(_MSC_VER)
+
+
 		
 	};
 	//extern cinput_device   g_input_device_mgr;

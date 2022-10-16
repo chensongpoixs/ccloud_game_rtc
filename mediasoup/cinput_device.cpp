@@ -152,7 +152,13 @@ namespace chen {
 ///	cinput_device   g_input_device_mgr;
 	cinput_device::cinput_device() 
 		:  m_input_device()
-		,  m_int_point(){}
+		,  m_int_point()
+		, m_all_consumer()
+		, m_mouse_id("")
+#if defined(_MSC_VER)
+		, m_main_win(NULL)
+#endif //#if defined(_MSC_VER)
+	{}
 	cinput_device::~cinput_device() {}
 
 #if defined(_MSC_VER)
@@ -652,7 +658,7 @@ namespace chen {
 			*/
 			MESSAGE(childwin, WM_KEYDOWN, KeyCode, 0);
 		}
-		else if (mwin)
+		else  if ( mwin   )
 		{
 			MESSAGE(mwin, WM_KEYDOWN, KeyCode, 0);
 		}
@@ -705,7 +711,7 @@ namespace chen {
 		{
 			MESSAGE(childwin, WM_KEYUP, KeyCode, 1);
 		}
-		else if (mwin)
+		else  if (mwin)
 		{
 			MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
 		}
@@ -922,8 +928,8 @@ namespace chen {
 
 		if (mwin)
 		{
-			CliENTTOSCREENPOINT(mwin, PosX, PosY);
-			MESSAGE(mwin, active_type, 1/*MAKEWPARAM(0,0)*/, MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			//CliENTTOSCREENPOINT(m_main_win, PosX, PosY);
+			MESSAGE(mwin, active_type, 1/*MAKEWPARAM(0,0)*/, MAKELPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -977,8 +983,8 @@ namespace chen {
 		if (mwin)
 		{
 			{
-				CliENTTOSCREENPOINT(mwin, PosX, PosY);
-				MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKELPARAM(CursorPoint.x, CursorPoint.y));
+				//CliENTTOSCREENPOINT(m_main_win, PosX, PosY);
+				MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKELPARAM(PosX, PosY));
 			}//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 			
 			
@@ -1169,7 +1175,7 @@ namespace chen {
 			}
 			
 			
-			MESSAGE(mwin, WM_MOUSEMOVE /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY) , MAKELPARAM(CursorPoint.x, CursorPoint.y ));
+			MESSAGE(mwin, WM_MOUSEMOVE /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY) , MAKELPARAM(PosX, PosY));
 			//MESSAGE(mwin, WM_INPUT /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY), MAKELPARAM(CursorPoint.x, CursorPoint.y));
 
 
@@ -1248,10 +1254,10 @@ namespace chen {
 			CliENTTOSCREENPOINT(childwin, PosX, PosY);
 			MESSAGE(childwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(childwin, WM_KEYUP, KeyCode, 1);
 		}
-		else if (mwin)
+		else if (mwin) 
 		{
-			CliENTTOSCREENPOINT(mwin, PosX, PosY);
-			MESSAGE(mwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKELPARAM(CursorPoint.x, CursorPoint.y));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			//CliENTTOSCREENPOINT(mwin, PosX, PosY);
+			MESSAGE(mwin, WM_LBUTTONDBLCLK, MAKEWPARAM(0, 0), MAKELPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
@@ -1289,9 +1295,9 @@ namespace chen {
 		NORMAL_EX_LOG(" PosX = %d, PoxY = %d", PosX, PosY);
 		if (mwin)
 		{
-			CliENTTOSCREENPOINT(mwin, PosX, PosY);
+			//CliENTTOSCREENPOINT(mwin, PosX, PosY);
 			//::PostMessage(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
-			MESSAGE(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(CursorPoint.x, CursorPoint.y));
+			MESSAGE(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
 		}
 		else
 		{

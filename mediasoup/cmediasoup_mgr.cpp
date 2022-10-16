@@ -8,6 +8,7 @@ purpose:		assertion macros
 #include "cmediasoup_mgr.h"
 #include "cclient.h"
 #include "clog.h"
+#include "cinput_device.h"
 namespace cmediasoup
 {
 	using namespace chen;
@@ -117,6 +118,17 @@ namespace cmediasoup
 		//return true;
 	}
 
+
+#if defined(_MSC_VER)
+
+
+
+	void cmediasoup_mgr::set_main_window(HWND win)
+	{
+		s_input_device;
+	}
+//	void set_main_window(HWND win);
+#endif // #if defined(_MSC_VER)
 	void cmediasoup_mgr::_mediasoup_thread()
 	{
 		SYSTEM_LOG("[info]mediasoupip = %s, port = %u, roomname = %s, client_name = %s, reconnectwiat = %u\n", m_mediasoup_ip.c_str(),

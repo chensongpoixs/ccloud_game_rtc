@@ -10,6 +10,9 @@ purpose:		log
 #include <thread>
 #include <string>
 #include <functional>
+#if defined(_MSC_VER)
+#include <Windows.h>
+#endif
 namespace cmediasoup
 {
 	typedef std::function<void(uint32_t status, uint32_t error_info)>     mediasoup_status_update_cb;
@@ -49,7 +52,11 @@ namespace cmediasoup
 		bool webrtc_video_staus() const { return m_webrtc_pause; }
 		bool  mediasoup_run();
 		
+#if defined(_MSC_VER)
 
+
+		void set_main_window(HWND win);
+#endif // #if defined(_MSC_VER)
 		void set_mediasoup_status_callback(mediasoup_status_update_cb callback);
 	private:
 		void _mediasoup_thread();
