@@ -29,9 +29,9 @@ int  main(int argc, char *argv[])
 	cmediasoup::cmediasoup_mgr::global_init();
 
 	cmediasoup::cmediasoup_mgr g_mediasoup_mgr1;
-	cmediasoup::cmediasoup_mgr g_mediasoup_mgr2;
+	//cmediasoup::cmediasoup_mgr g_mediasoup_mgr2;
 	g_mediasoup_mgr1.init(5);
-	g_mediasoup_mgr2.init(5);
+	//g_mediasoup_mgr2.init(5);
 
 	//g_mediasoup_mgr.set_mediasoup_status_callback(&mediasoup_callback);
 	/*
@@ -40,13 +40,13 @@ int  main(int argc, char *argv[])
 	
 	*/
 	g_mediasoup_mgr1.startup("127.0.0.1", 8888, "chensong1", "chensong1");
-	g_mediasoup_mgr2.startup("127.0.0.1", 8888, "chensong2", "chensong2");
+//	g_mediasoup_mgr2.startup("127.0.0.1", 8888, "chensong2", "chensong2");
 	while (!stoped)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	g_mediasoup_mgr1.destroy();
-	g_mediasoup_mgr2.destroy();
+	//g_mediasoup_mgr2.destroy();
 	cmediasoup::cmediasoup_mgr::global_destroy();
 	return 0;
 }
