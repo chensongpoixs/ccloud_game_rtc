@@ -65,7 +65,7 @@ namespace cmediasoup
 		//SYSTEM_LOG("git:branch_hash:%s", BUILD_GIT_HASH);
 		//SYSTEM_LOG("git:BUILD_TIME:%s", BUILD_TIME);
 		SYSTEM_LOG("Log init ...\n");
-		g_gpu_index = 19;
+		g_gpu_index = 0;
 		g_dxgi_format = DXGI_FORMAT_B8G8R8A8_UNORM;
 		SYSTEM_LOG("gpu index = %u", g_gpu_index);
 		static const   char* config_file = "client.cfg";
@@ -83,11 +83,6 @@ namespace cmediasoup
 
 		SYSTEM_LOG("set level = %u", g_cfg.get_uint32(ECI_LogLevel));
 
-		if (!s_input_device.init())
-		{
-			ERROR_EX_LOG("init input_device mouble !!!  ");
-			return false;
-		}
 		mediasoupclient::Initialize();
 		return true;
 	}
@@ -113,16 +108,22 @@ namespace cmediasoup
 		m_client_ptr = client_ptr;
 		return m_init;
 	}
-	void cmediasoup_mgr::startup(const char* mediasoupIp, uint16_t port
+	bool cmediasoup_mgr::startup(const char* mediasoupIp, uint16_t port
 		, const char* roomName, const char* clientName
 		, uint32_t reconnect_waittime)
 	{
+		if (!m_client_ptr)
+		{
+			WARNING_EX_LOG("not find client ptr !!!");
+			return false;
+		}
 		m_mediasoup_ip = mediasoupIp;
 		m_mediasoup_port = port;
 		m_room_name = roomName;
 		m_client_name = clientName;
 		m_reconnect_wait = reconnect_waittime;
 		m_thread = std::thread(&cmediasoup_mgr::_mediasoup_thread, this);
+		return true;
 	}
 	void cmediasoup_mgr::destroy()
 	{
@@ -207,6 +208,18 @@ namespace cmediasoup
 		cclient* client_ptr = static_cast<cclient*>(m_client_ptr);
 		
 		client_ptr->set_mediasoup_status_callback(callback);
+	}
+	void cmediasoup_mgr::set_mediasoup_input_device_event_callback(mediasoup_input_device_event_cb callback)
+	{
+
+		//set_mediasoup_input_device_callback
+		if (!m_client_ptr)
+		{
+			return;
+		}
+		cclient* client_ptr = static_cast<cclient*>(m_client_ptr);
+
+		client_ptr->set_mediasoup_input_device_callback(callback);
 	}
 	bool cmediasoup_mgr::mediasoup_run()
 	{

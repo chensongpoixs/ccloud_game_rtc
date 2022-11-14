@@ -11,6 +11,8 @@
 #include "csingleton.h"
 //#include "cdesktop_capture.h"
 #include "cmediasoup_mgr.h"
+#include "cmediasoup_input_device_event.h"
+#include "cinput_device.h"
 namespace chen {
 	class DesktopCapture;
 	class csend_transport;
@@ -69,6 +71,8 @@ namespace chen {
 	class cclient
 	{
 	private:
+		typedef  std::mutex							cmutex;
+		typedef  std::lock_guard<std::mutex>		clock_guard;
 		typedef bool (cclient::*client_protoo_msg)(const  nlohmann::json & msg);
 		typedef bool(cclient::*server_protoo_msg)(const  nlohmann::json & msg);
 		 
@@ -97,7 +101,7 @@ namespace chen {
 
 		void set_mediasoup_status_callback(cmediasoup::mediasoup_status_update_cb callback) { m_mediasoup_status_callback = callback ; }
 
-
+		void set_mediasoup_input_device_callback(cmediasoup::mediasoup_input_device_event_cb  callback);
 		void transportofferasner(bool send, bool success);
 
 		//webrtc连接失败回调用重新连接哈
@@ -106,7 +110,7 @@ namespace chen {
 
 		bool _load(nlohmann::json routerRtpCapabilities);
 
-
+		//s_input_device.set_point(frame.width(), frame.height());
 		
 	//////////////////////////////////////////////////////////////////////////////////////////////
 		// 客户端请求服务器
@@ -141,6 +145,11 @@ namespace chen {
 		bool _default_replay(const nlohmann::json & reply);
 	public:
 		bool async_produce();
+		//MEvent
+		void input_device_callback(const cmediasoup::MEvent& event);
+		
+	public:
+		void OnMessage(const webrtc::DataBuffer& buffer);
 	private:
 		void _presssmsg(std::list<std::string> & msgs);
 
@@ -195,6 +204,9 @@ namespace chen {
 		cmediasoup::mediasoup_status_update_cb		m_mediasoup_status_callback;
 		uint32							m_websocket_timer;
 		bool							m_send_produce_video_msg;
+		cmutex										m_input_device_callback_lock;
+		cmediasoup::mediasoup_input_device_event_cb    m_input_device_event_callback;
+		cinput_device								m_input_device_message;
 	};
 //#define  s_client chen::csingleton<chen::cclient>::get_instance()
 }

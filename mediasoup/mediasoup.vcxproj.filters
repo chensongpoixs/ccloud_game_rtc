@@ -83,6 +83,7 @@
       <Filter>NvCodec\Utils</Filter>
     </ClInclude>
     <ClInclude Include="build_version.h" />
+    <ClInclude Include="cmediasoup_input_device_event.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />

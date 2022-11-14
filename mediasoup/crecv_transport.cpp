@@ -118,7 +118,7 @@ namespace chen {
 		{
 			cDataConsmer cdata = m_dataconsmers.front();
 			m_dataconsmers.pop_front();
-			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>(this)));
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>(m_client_ptr, this)));
 			if (!pi.second)
 			{
 				ERROR_EX_LOG("create data channel insert failed !!!");
@@ -150,7 +150,7 @@ namespace chen {
 				ERROR_EX_LOG("create data channel failed !!!");
 				continue;;
 			}
-			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>(this)));
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>(m_client_ptr, this)));
 			if (!pi.second)
 			{
 				ERROR_EX_LOG("create data channel insert failed !!!");
@@ -190,7 +190,7 @@ namespace chen {
 				ERROR_EX_LOG("create data channel failed !!!");
 				return false;
 			}
-			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(id, std::make_shared<cdataconsumer>(this)));
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(id, std::make_shared<cdataconsumer>(m_client_ptr, this)));
 			if (!pi.second)
 			{
 				ERROR_EX_LOG("create data channel insert failed !!!");
@@ -339,7 +339,7 @@ namespace chen {
 		{
 			cDataConsmer cdata = m_dataconsmers.front();
 			m_dataconsmers.pop_front();
-			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>(this)));
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>(m_client_ptr, this)));
 			if (!pi.second)
 			{
 				ERROR_EX_LOG("create data channel insert failed !!!");
@@ -374,7 +374,7 @@ namespace chen {
 				ERROR_EX_LOG("create data channel failed !!!");
 				continue;
 			}
-			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>(this)));
+			std::pair<std::map<std::string, std::shared_ptr<cdataconsumer>>::iterator, bool> pi = m_data_consumsers.insert(std::make_pair(cdata.m_id, std::make_shared<cdataconsumer>(m_client_ptr, this)));
 			if (!pi.second)
 			{
 				ERROR_EX_LOG("create data channel insert failed !!!");

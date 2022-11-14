@@ -59,7 +59,7 @@ namespace chen {
 	{
 		if (m_capturer_ptr)
 		{
-			s_input_device.set_point(width, height);
+			//s_input_device.set_point(width, height);
 			return m_capturer_ptr->OnFrame(rgba, fmt, width, height);
 		}
 		WARNING_EX_LOG("send transport capturer = nullptr");
@@ -70,7 +70,7 @@ namespace chen {
 		if (m_capturer_ptr)
 		{
 			NORMAL_EX_LOG("");
-			s_input_device.set_point(width, height);
+			//s_input_device.set_point(width, height);
 			return m_capturer_ptr->OnFrameTexture(texture, fmt, width, height);
 		}
 		WARNING_EX_LOG("send transport capturer = nullptr");
@@ -80,7 +80,7 @@ namespace chen {
 	{
 		if (m_capturer_ptr)
 		{
-			s_input_device.set_point(width, height);
+			//s_input_device.set_point(width, height);
 			return m_capturer_ptr->OnFrame(y_ptr, fmt, uv_ptr, width, height);
 		}
 		WARNING_EX_LOG("send transport capturer = nullptr");
@@ -90,7 +90,7 @@ namespace chen {
 	{
 		if (m_capturer_ptr)
 		{
-			s_input_device.set_point(frame.width(), frame.height());
+			//s_input_device.set_point(frame.width(), frame.height());
 			return m_capturer_ptr->OnFrame(frame);
 		}
 		WARNING_EX_LOG("send transport capturer = nullptr");

@@ -87,7 +87,10 @@ namespace chen {
 		, m_mediasoup_status_callback(nullptr)
 		, m_websocket_timer(0)
 		, m_send_produce_video_msg(false)
-		, m_desktop_capture_ptr(NULL){}
+		, m_desktop_capture_ptr(NULL)
+		, m_input_device_event_callback(NULL)
+		, m_input_device_message(this)
+	{}
 	cclient::~cclient(){}
 
 	static void show_work_dir()
@@ -122,33 +125,17 @@ namespace chen {
 		
 		//一上来就推流
 		m_produce_consumer = true;
-		SYSTEM_LOG("input device  init ok !!!");
+		
 		m_server_protoo_msg_call.insert(std::make_pair("newDataConsumer", &cclient::server_request_new_dataconsumer));
 		m_server_notification_protoo_msg_call.insert(std::make_pair("peerClosed", &cclient::_notification_peer_closed));
 		SYSTEM_LOG("client init ok !!!");
 		m_webrtc_connect = false;
-		/*uint32 osg_webrtc_frame = g_cfg.get_uint32(ECI_OsgWebrtcFrame);
-		if (osg_webrtc_frame == 0)
+		if (!m_input_device_message.init())
 		{
-			osg_webrtc_frame = WEBRTC_FRAMES;
+			WARNING_EX_LOG("input device init failed !!!");
+			return false;
 		}
-		SYSTEM_LOG("osg webrtc frames = %u", osg_webrtc_frame);
-		m_frame_rgba_vec.reserve(osg_webrtc_frame);
-		for (uint32 i = 0; i < osg_webrtc_frame; ++i)
-		{
-
-			m_frame_rgba_vec[i].m_rgba_ptr = new unsigned char[OSG_RGBA_WIDTH * OSG_RGBA_HEIGHT * 4];
-			if (!m_frame_rgba_vec[i].m_rgba_ptr)
-			{
-				ERROR_EX_LOG("alloc osg rgab failed !!!");
-				return false;
-			}
-		}
-		m_osg_frame = 0;
-		m_webrtc_frame = 0;
-		m_osg_copy_thread = std::thread(&cclient::_osg_copy_rgba_thread, this);*/
-		//m_osg_work_thread = std::thread(&cclient::_osg_thread, this);
-		//SYSTEM_LOG("osg video capturer thread ok !!!");
+		SYSTEM_LOG("input device  init ok !!!");
 		if (g_cfg.get_int32(ECI_DesktopCapture))
 		{
 			m_desktop_capture_ptr.reset( DesktopCapture::Create(60, 0));
@@ -619,6 +606,38 @@ namespace chen {
 		m_loaded = true;
 		return true;
 	}
+	void cclient::set_mediasoup_input_device_callback(cmediasoup::mediasoup_input_device_event_cb  callback)
+	{
+		{
+			clock_guard lock(m_input_device_callback_lock);
+			m_input_device_event_callback = callback;
+		}
+		
+
+	}
+
+
+	void cclient::input_device_callback(const cmediasoup::MEvent& event)
+	{
+		{
+			clock_guard lock(m_input_device_callback_lock);
+			if (m_input_device_event_callback)
+			{
+				m_input_device_event_callback(event);
+			}
+			else
+			{
+				WARNING_EX_LOG("not find input device event callback !!!");
+			}
+			  
+		}
+	}
+
+	void cclient::OnMessage(const webrtc::DataBuffer& buffer)
+	{
+		//std::string s = std::string(buffer.data.data<char>(), buffer.data.size());
+		m_input_device_message.OnMessage("", buffer);
+	}
 
 	void cclient::transportofferasner(bool send, bool success)
 	{
@@ -846,6 +865,7 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
+		m_input_device_message.set_point(width, height);
 		return m_send_transport->webrtc_video(rgba, fmt, width, height);
 		 
 		return true;
@@ -880,6 +900,7 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
+		m_input_device_message.set_point(width, height);
 		return m_send_transport->webrtc_texture(texture, fmt, width, height);
 	}
 	bool cclient::webrtc_video(unsigned char * y_ptr, unsigned char * uv_ptr, uint32 fmt, int32_t width, int32_t height)
@@ -912,6 +933,7 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
+		m_input_device_message.set_point(width, height);
 		return m_send_transport->webrtc_video(y_ptr, uv_ptr, fmt, width, height);
 
 		return true;
@@ -934,6 +956,7 @@ namespace chen {
 			m_send_produce_video_msg = true;
 			_mediasoup_status_callback(EMediasoup_Request_Produce_Webrtc_Transport, 0);
 		}
+		m_input_device_message.set_point(frame.width(), frame.height());
 		return m_send_transport->webrtc_video(frame);
 	}
 	bool cclient::webrtc_run()

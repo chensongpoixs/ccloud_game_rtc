@@ -14,14 +14,16 @@
 //#include "crecv_transport.h"
 namespace chen {
 	class crecv_transport;
+	class cclient;
 	class cdataconsumer : public  webrtc::DataChannelObserver
 	{
 	public:
-		cdataconsumer( crecv_transport * transport_ptr)
+		cdataconsumer(cclient * client_ptr, crecv_transport * transport_ptr)
 			:id("")
 			, dataProducerId("")
 			, dataChannel(nullptr)
 			, m_transport(transport_ptr)
+			, m_client_ptr(client_ptr)
 		{}
 		//~cdataconsumer();
 		bool init(const std::string& id,
@@ -56,6 +58,7 @@ namespace chen {
 		nlohmann::json sctpParameters;
 		nlohmann::json appData;
 		  crecv_transport * m_transport;
+		  cclient *			m_client_ptr;
 	};
 }
 

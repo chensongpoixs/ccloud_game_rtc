@@ -27,7 +27,7 @@ namespace chen {
 			: m_mouse_key(0)
 			, m_key(false) {}
 	};
-
+	class cclient;
 	
 	class cinput_device
 	{
@@ -36,7 +36,7 @@ namespace chen {
 		typedef std::map<EToStreamMsg, input_device_handler_type>			M_INPUT_DEVICE_MAP;
 	public:
 
-		 cinput_device();
+		 cinput_device(cclient * ptr);
 		~cinput_device();
 
 
@@ -122,10 +122,11 @@ namespace chen {
 		FIntPoint							m_int_point;
 		std::map<std::string, std::map<uint32, cmouse_info>>	m_all_consumer; 
 		std::string							m_mouse_id; //当前操作的id
+		cclient	*							m_client_ptr;
 		
 	};
 	//extern cinput_device   g_input_device_mgr;
-	#define 	s_input_device chen::csingleton<chen::cinput_device>::get_instance()
+	//#define 	s_input_device chen::csingleton<chen::cinput_device>::get_instance()
 }
 
 #endif // _C_INPUT_DEVICE_H_

@@ -10,13 +10,14 @@ purpose:		log
 #include <thread>
 #include <string>
 #include <functional>
+#include "cmediasoup_input_device_event.h"
 namespace cmediasoup
 {
 	typedef std::function<void(uint32_t status, uint32_t error_info)>     mediasoup_status_update_cb;
+	typedef std::function<void(MEvent)> mediasoup_input_device_event_cb;
 
 
-
-	class  __declspec(dllimport) cmediasoup_mgr
+	class  /*__declspec(dllimport)*/ cmediasoup_mgr
 	{
 	public:
 		cmediasoup_mgr();
@@ -29,7 +30,7 @@ namespace cmediasoup
 	public:
 		bool init( uint32_t gpu_index);
 
-		void startup(const char * mediasoupIp = "127.0.0.1", uint16_t mediasoupPort = 8888, const  char * roomName = "chensong", const char* clientName = "chensong"
+		bool startup(const char * mediasoupIp = "127.0.0.1", uint16_t mediasoupPort = 8888, const  char * roomName = "chensong", const char* clientName = "chensong"
 			, uint32_t reconnectWaittime = 5);
 
 		void destroy();
@@ -54,8 +55,20 @@ namespace cmediasoup
 		bool webrtc_video_staus() const { return m_webrtc_pause; }
 		bool  mediasoup_run();
 		
-
+		/**
+		*  status ：  1 ： websocket connect 成功  
+		*			  4 ： 加入房间
+		*			  8 ： 视频通道 
+		*    
+		* 
+		*  error ： 0 ： 成功    1 ： 失败
+		* 
+		* 
+		* 
+		*/
 		void set_mediasoup_status_callback(mediasoup_status_update_cb callback);
+
+		void set_mediasoup_input_device_event_callback(mediasoup_input_device_event_cb callback);
 	private:
 		void _mediasoup_thread();
 	private:

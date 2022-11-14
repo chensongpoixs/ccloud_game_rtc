@@ -192,6 +192,7 @@ namespace chen {
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
 			g_dxgi_format = static_cast<DXGI_FORMAT>(fmt);
+			//i420_buffer_->set_texture(NULL);
 			NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
 			::memcpy(i420_buffer_->MutableDataY(), y_ptr, width * height );
 			::memcpy(i420_buffer_->MutableDataU(), uv_ptr, width * height/ 2);
@@ -224,6 +225,7 @@ namespace chen {
 		// YUV 
 		bool OnFrame(const webrtc::VideoFrame & frame)
 		{
+			//i420_buffer_->set_texture(NULL);
 			video_source_ptr->VideoOnFrame(frame);
 			return true;
 		}

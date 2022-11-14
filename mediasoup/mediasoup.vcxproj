@@ -36,6 +36,7 @@
     <ClInclude Include="cint_point.h" />
     <ClInclude Include="clog.h" />
     <ClInclude Include="clog_define.h" />
+    <ClInclude Include="cmediasoup_input_device_event.h" />
     <ClInclude Include="cmediasoup_mgr.h" />
     <ClInclude Include="cnet_types.h" />
     <ClInclude Include="cosd_util.h" />
@@ -140,7 +141,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{DBAF2E5E-C6B3-444F-9FAE-5EF6CA95A9FA}</ProjectGuid>
     <RootNamespace>mediasoup</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ProjectName>rtc</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -189,8 +190,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>F:\Work\20220803_webrtc\src;F:\Work\20220803_webrtc\src\third_party\abseil-cpp;F:\Work\20220803_webrtc\src\third_party\libyuv\include;C:\Work\mediaserver\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;C:\Program Files\CUDA\cuda_cudart\cudart\include;.\NvCodec;$(IncludePath)</IncludePath>
-    <LibraryPath>$(C_INCLUDE)\webrtc\lib\x64\debugddd;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;C:\Work\mediaserver\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;C:\Program Files\CUDA\cuda_cudart\cudart\include;.\NvCodec;$(IncludePath)</IncludePath>
+    <LibraryPath>$(C_INCLUDE)\webrtc\lib\x64\debug;$(LibraryPath)</LibraryPath>
     <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>rtcd</TargetName>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
@@ -225,7 +226,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>NvCodec\Lib\x64\nvencodeapi.lib;gdiplus.lib;F:\Work\20220803_webrtc\src\out\debug\obj\webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>NvCodec\Lib\x64\nvencodeapi.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
