@@ -1,0 +1,6 @@
+.vs/*
+.gitignore.bak
+bin/x64/Debug/*
+mediasoup/log/*
+vsout/*
+bin/x64/Release/*

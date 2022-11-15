@@ -78,7 +78,7 @@ namespace chen {
 			{
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
-			//i420_buffer_->set_texture(texture);
+			i420_buffer_->set_texture(texture);
 			g_dxgi_format = static_cast<DXGI_FORMAT>(fmt);
 			NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
 			//::memcpy(i420_buffer_->MutableDataY(), rgba, width * height * 4);
@@ -134,7 +134,7 @@ namespace chen {
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
 
-			//i420_buffer_->set_texture(NULL);
+			i420_buffer_->set_texture(NULL);
 			g_dxgi_format = static_cast<DXGI_FORMAT>(fmt);
 			NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
 			::memcpy(i420_buffer_->MutableDataY(), rgba, width * height * 4);
@@ -192,7 +192,7 @@ namespace chen {
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
 			g_dxgi_format = static_cast<DXGI_FORMAT>(fmt);
-			//i420_buffer_->set_texture(NULL);
+			i420_buffer_->set_texture(NULL);
 			NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
 			::memcpy(i420_buffer_->MutableDataY(), y_ptr, width * height );
 			::memcpy(i420_buffer_->MutableDataU(), uv_ptr, width * height/ 2);

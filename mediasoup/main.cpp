@@ -19,7 +19,11 @@ void signalHandler(int signum)
 	
 }
 
+static void input_device_callback(cmediasoup:: MEvent   event)
+{
+	printf("[%s][%d][type = %u]\n", __FUNCTION__, __LINE__, event.Event);
 
+}
 
 int  main(int argc, char *argv[])
 {
@@ -29,8 +33,10 @@ int  main(int argc, char *argv[])
 	cmediasoup::cmediasoup_mgr::global_init();
 
 	cmediasoup::cmediasoup_mgr g_mediasoup_mgr1;
+
 	//cmediasoup::cmediasoup_mgr g_mediasoup_mgr2;
 	g_mediasoup_mgr1.init(5);
+	g_mediasoup_mgr1.set_mediasoup_input_device_event_callback(&input_device_callback);
 	//g_mediasoup_mgr2.init(5);
 
 	//g_mediasoup_mgr.set_mediasoup_status_callback(&mediasoup_callback);

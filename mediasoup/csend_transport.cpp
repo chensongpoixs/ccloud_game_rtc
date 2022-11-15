@@ -69,7 +69,7 @@ namespace chen {
 	{
 		if (m_capturer_ptr)
 		{
-			NORMAL_EX_LOG("");
+			//NORMAL_EX_LOG("");
 			//s_input_device.set_point(width, height);
 			return m_capturer_ptr->OnFrameTexture(texture, fmt, width, height);
 		}
