@@ -133,7 +133,7 @@ static void* nvenc_create()
 	SYSTEM_LOG(" start  gpu info [g_gpu_index = %u] ....", g_gpu_index);
 
 
-	/*hr = enc->factory->EnumAdapters(g_gpu_index, &enc->adapter);
+	hr = enc->factory->EnumAdapters(g_gpu_index, &enc->adapter);
 	if (FAILED(hr)) 
 	{
 		WARNING_EX_LOG("[g_gpu_index = %u] enumadapters failed !!! ", g_gpu_index);
@@ -165,8 +165,8 @@ static void* nvenc_create()
 			enc->adapter = nullptr;
 			goto gpuadapter;
 		}
-	}*/
-//gpuadapter:
+	}
+gpuadapter:
 	NORMAL_EX_LOG("gpuadapter");
 	for (int gpuIndex = 0; gpuIndex <= 5; gpuIndex++) 
 	{
@@ -202,7 +202,7 @@ findok:
 	}
 
 	if (enc->d3d11_device == nullptr) {
-		printf("[nvenc] Error: Failed to create d3d11 device. \n");
+		//printf("[nvenc] Error: Failed to create d3d11 device. \n");
 		ERROR_EX_LOG("[nvenc] Error: Failed to create d3d11 device.");
 		goto failed;
 	}

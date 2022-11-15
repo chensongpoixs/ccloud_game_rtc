@@ -203,6 +203,7 @@ namespace cmediasoup
 	{
 		if (!m_client_ptr)
 		{
+			WARNING_EX_LOG("m_client_ptr  ptr nullptr !!!");
 			return;
 		}
 		cclient* client_ptr = static_cast<cclient*>(m_client_ptr);
@@ -215,6 +216,7 @@ namespace cmediasoup
 		//set_mediasoup_input_device_callback
 		if (!m_client_ptr)
 		{
+			WARNING_EX_LOG("m_client_ptr  ptr nullptr !!!");
 			return;
 		}
 		cclient* client_ptr = static_cast<cclient*>(m_client_ptr);

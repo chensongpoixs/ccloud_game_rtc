@@ -17,7 +17,7 @@ namespace cmediasoup
 	typedef std::function<void(MEvent)> mediasoup_input_device_event_cb;
 
 
-	class  /*__declspec(dllimport)*/ cmediasoup_mgr
+	class  __declspec(dllimport) cmediasoup_mgr
 	{
 	public:
 		cmediasoup_mgr();
