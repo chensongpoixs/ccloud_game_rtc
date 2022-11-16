@@ -591,21 +591,21 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 		input_texture = enc->input_texture;
 		//NORMAL_EX_LOG("");
 		//if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
-		{
-			if (lock_key >= 0 && unlock_key >= 0)
-			{
-				hr = input_texture->QueryInterface(_uuidof(IDXGIKeyedMutex), reinterpret_cast<void**>(&enc->keyed_mutex));
-				//NORMAL_EX_LOG("hr = %u", hr);
-				if (FAILED(hr))
-				{
-					enc->input_texture->Release();
-					enc->input_texture = nullptr;
-					return -1;
-				}
-				//NORMAL_EX_LOG("");
-				keyed_mutex = enc->keyed_mutex;
-			}
-		}
+		//{
+		//	if (lock_key >= 0 && unlock_key >= 0)
+		//	{
+		//		hr = input_texture->QueryInterface(_uuidof(IDXGIKeyedMutex), reinterpret_cast<void**>(&enc->keyed_mutex));
+		//		//NORMAL_EX_LOG("hr = %u", hr);
+		//		if (FAILED(hr))
+		//		{
+		//			enc->input_texture->Release();
+		//			enc->input_texture = nullptr;
+		//			return -1;
+		//		}
+		//		//NORMAL_EX_LOG("");
+		//		keyed_mutex = enc->keyed_mutex;
+		//	}
+		//}
 		
 		NORMAL_EX_LOG("");
 		enc->input_handle = handle;
