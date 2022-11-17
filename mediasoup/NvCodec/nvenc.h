@@ -17,6 +17,11 @@ NVENC 支持以下速率控制模式：
 
  
 
+$(CUDA_PATH)\lib\x64\cuda.lib
+$(CUDA_PATH)\lib\x64\cudadevrt.lib
+$(CUDA_PATH)\lib\x64\cudart.lib
+$(CUDA_PATH)\lib\x64\cudart_static.lib
+$(CUDA_PATH)\lib\x64\OpenCL.lib
 
 
 ************************************************************************************************/

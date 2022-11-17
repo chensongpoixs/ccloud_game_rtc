@@ -929,7 +929,7 @@ namespace chen {
 		if (mwin)
 		{
 			//CliENTTOSCREENPOINT(m_main_win, PosX, PosY);
-			MESSAGE(mwin, active_type, 1/*MAKEWPARAM(0,0)*/, MAKELPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+			MESSAGE(mwin, active_type, MAKEWPARAM(0,0), MAKELPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
 		else
 		{
