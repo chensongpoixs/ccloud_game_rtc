@@ -224,6 +224,13 @@ namespace chen {
 	typedef BOOL (WINAPI* PFN_UnregisterClassW)(_In_ LPCWSTR lpClassName, _In_opt_ HINSTANCE hInstance);
 	PFN_UnregisterClassW RealUnregisterClassW;
 
+
+	typedef SHORT (WINAPI* PFN_GetKeyState)( _In_ int nVirtKey);
+	PFN_GetKeyState RealGetKeyState;
+
+
+	typedef SHORT (WINAPI* PFN_GetAsyncKeyState)( _In_ int vKey);
+	PFN_GetAsyncKeyState  RealGetAsyncKeyState;
 	///////////////////////////////////////////////////////////////////////////////
 	 
 
@@ -236,7 +243,7 @@ namespace chen {
 	 
 	static std::map<const WNDCLASSA*, const  WNDCLASSA*> g_wnd_classA;
 	static std::map<const  WNDCLASSW*,const  WNDCLASSW*> g_wnd_classW;
-	 
+	static SHORT    g_ctrl = 0;
 //#define MESSAGE(g_wnd, message_id, param1, param2)  for (std::map<const WNDCLASSA*, const WNDCLASSA*>::const_iterator iter = g_wnd_classA.begin(); iter != g_wnd_classA.end(); ++iter) \
 //	{																																	\
 //		if (iter->first && iter->first->lpfnWndProc)																					\
@@ -367,6 +374,29 @@ namespace chen {
 		strcat(base_path, module);
 		return GetModuleHandleA(base_path);
 	}
+	static inline SHORT hook_GetKeyState(int key)
+	{
+		SHORT ret = RealGetKeyState(key);
+		if (key == 17 || /*key == 160  ||*/ key == 162 /* || key == 16*/)
+		{
+			ret = 4294967168;
+		}
+		NORMAL_EX_LOG("[hook_RealGetKeyState][][key = %u][ret = %u]", key,  static_cast<int>(ret));
+		return ret;
+	}
+	static inline SHORT hook_GetAsyncKeyState(int  Key)
+	{
+		SHORT ret = g_ctrl;
+		if (Key != VK_CONTROL)
+		{
+			  ret = RealGetAsyncKeyState(Key);;
+		}
+		
+		NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
+		return ret;
+	}
+	//static inline 
+
 	bool cinput_device::init()
 	{
 		//g_hrawinput.resize(RAW_INPUT_SIZE);
@@ -391,6 +421,8 @@ namespace chen {
 		void* get_raw_input_data_proc = GetProcAddress(user32dll, "GetRawInputData");
 		void* get_cursor_pos_proc = GetProcAddress(user32dll, "GetCursorPos");
 		void* set_cursor_pos_proc = GetProcAddress(user32dll, "SetCursorPos");
+		void * get_key_state_proc = GetProcAddress(user32dll, "GetKeyState"); //hook_RealGetKeyState
+		void* get_async_key_state_proc = GetProcAddress(user32dll, "GetAsyncKeyState");
 		/// <summary>
 		/// ///////////////////
 		/// </summary>
@@ -427,6 +459,18 @@ namespace chen {
 				DetourAttach((PVOID*)&RealSetCursorPos,
 					hook_set_cursor_pos);
 			}
+			if (get_async_key_state_proc)
+			{
+				RealGetAsyncKeyState = (PFN_GetAsyncKeyState)get_async_key_state_proc;
+				DetourAttach((PVOID*)&RealGetAsyncKeyState,
+					hook_GetAsyncKeyState );
+			}
+			if (get_key_state_proc)
+			{
+				RealGetKeyState = (PFN_GetKeyState)get_key_state_proc;
+				DetourAttach((PVOID*)&RealGetKeyState,
+					hook_GetKeyState);
+			}
 
 
 			/*if (register_class_a_proc)
@@ -461,6 +505,14 @@ namespace chen {
 				{
 					NORMAL_EX_LOG("  input device");
 				}
+				if (get_async_key_state_proc)
+				{
+					NORMAL_EX_LOG("input key ");
+				}
+				if (get_key_state_proc)
+				{
+					NORMAL_EX_LOG("input key state");
+				}
 				/*if (register_class_a_proc)
 				{
 					NORMAL_EX_LOG(" input device");
@@ -476,6 +528,7 @@ namespace chen {
 				RealGetRawInputData = NULL;
 				RealGetCursorPos = NULL;
 				RealSetCursorPos = NULL;
+				RealGetAsyncKeyState = NULL;
 				/*RealRegisterClassA = NULL;
 				RealRegisterClassW = NULL;*/
 				ERROR_EX_LOG("Failed to attach  mouse  : %ld", error);
@@ -645,6 +698,10 @@ namespace chen {
 		
 		SET_POINT();
 		WINDOW_CHILD();
+		if (VK_CONTROL == KeyCode)
+		{
+			g_ctrl = 4294967168;
+		}
 		if (childwin)
 		{
 			//PostMessageW
@@ -656,11 +713,44 @@ namespace chen {
 
 
 			*/
-			MESSAGE(childwin, WM_KEYDOWN, KeyCode, 0);
+			
+			//{//MAKELPARAM(PosX, PosY)
+			//	keybd_event(VK_CONTROL, 0, 0, 0);
+			//	//MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
+			//}
+			//else
+			{
+				MESSAGE(mwin, WM_SYSKEYDOWN, KeyCode, 0);
+			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
+			//{
+			//	//keybd_event(16, 0, 0, 0);//按下Shift键
+			//	//keybd_event('A', 0, 0, 0);//按下a键
+			//	//keybd_event('A', 0, KEYEVENTF_KEYUP, 0);//松开a键
+			//	//keybd_event(16, 0, KEYEVENTF_KEYUP, 0);//松开Shift键
+			//	keybd_event(KeyCode, 0, 0, 0);
+			//	SendInput();
+			//}
+			
 		}
 		else  if ( mwin   )
 		{
-			MESSAGE(mwin, WM_KEYDOWN, KeyCode, 0);
+			//if (VK_CONTROL == KeyCode)
+			//{
+			//	keybd_event(VK_CONTROL, 0, 0, 0);
+			//	//MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
+			//}
+			//else
+			{
+				MESSAGE(mwin, WM_SYSKEYDOWN, KeyCode, 0);
+			}
+			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
+			//{
+			//	//keybd_event(16, 0, 0, 0);//按下Shift键
+			//	//keybd_event('A', 0, 0, 0);//按下a键
+			//	//keybd_event('A', 0, KEYEVENTF_KEYUP, 0);//松开a键
+			//	//keybd_event(16, 0, KEYEVENTF_KEYUP, 0);//松开Shift键
+			//	keybd_event(KeyCode, 0, 0, 0);
+			//}
 		}
 		else
 		{
@@ -707,13 +797,50 @@ namespace chen {
 		
 		SET_POINT();
 		WINDOW_CHILD();
+		if (VK_CONTROL == KeyCode)
+		{
+			g_ctrl = 0;
+		}
 		if (childwin)
 		{
-			MESSAGE(childwin, WM_KEYUP, KeyCode, 1);
+			//if (VK_CONTROL == KeyCode)
+			//{
+			//	keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+			//	//MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
+			//}
+			//else
+			{
+				MESSAGE(mwin, WM_SYSKEYUP, KeyCode, 0);
+			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
+			//{
+			//	//keybd_event(16, 0, 0, 0);//按下Shift键
+			//	//keybd_event('A', 0, 0, 0);//按下a键
+			//	//keybd_event('A', 0, KEYEVENTF_KEYUP, 0);//松开a键
+			//	//keybd_event(16, 0, KEYEVENTF_KEYUP, 0);//松开Shift键
+			//	keybd_event(KeyCode, 0, KEYEVENTF_KEYUP, 0);
+			//}
 		}
 		else  if (mwin)
 		{
-			MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
+			 
+			//if (VK_CONTROL == KeyCode)
+			//{
+			//	keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+			//	//MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
+			//}
+			//else
+			{
+				MESSAGE(mwin, WM_SYSKEYUP, KeyCode, 0);
+			}
+			
+			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
+			//{
+			//	//keybd_event(16, 0, 0, 0);//按下Shift键
+			//	//keybd_event('A', 0, 0, 0);//按下a键
+			//	//keybd_event('A', 0, KEYEVENTF_KEYUP, 0);//松开a键
+			//	//keybd_event(16, 0, KEYEVENTF_KEYUP, 0);//松开Shift键
+			//	keybd_event(KeyCode, 0, KEYEVENTF_KEYUP, 0);
+			//}
 		}
 		else
 		{
