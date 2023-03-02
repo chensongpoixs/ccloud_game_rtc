@@ -377,22 +377,31 @@ namespace chen {
 	static inline SHORT hook_GetKeyState(int key)
 	{
 		SHORT ret = RealGetKeyState(key);
-		if (key == 17 || /*key == 160  ||*/ key == 162 /* || key == 16*/)
+		if ((key == 17 || key == 162)  )
 		{
-			ret = 4294967168;
+			//if (g_ctrl > 0)
+			{
+				ret = g_ctrl;
+			}
+			
 		}
-		NORMAL_EX_LOG("[hook_RealGetKeyState][][key = %u][ret = %u]", key,  static_cast<int>(ret));
+		//NORMAL_EX_LOG("[hook_RealGetKeyState][][key = %u][ret = %u]", key,  static_cast<int>(ret));
 		return ret;
 	}
 	static inline SHORT hook_GetAsyncKeyState(int  Key)
 	{
-		SHORT ret = g_ctrl;
-		if (Key != VK_CONTROL)
+		SHORT  ret = RealGetAsyncKeyState(Key);;
+		 
+		if ((Key == 17 || Key == 162)   )
 		{
-			  ret = RealGetAsyncKeyState(Key);;
+			//if (g_ctrl > 0)
+			{
+				ret = g_ctrl;
+			}
+			
 		}
 		
-		NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
+	//	NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
 		return ret;
 	}
 	//static inline 
@@ -702,6 +711,10 @@ namespace chen {
 		{
 			g_ctrl = 4294967168;
 		}
+		/*else if (32 == KeyCode)
+		{
+			g_ctrl = 0;
+		}*/
 		if (childwin)
 		{
 			//PostMessageW
@@ -797,10 +810,7 @@ namespace chen {
 		
 		SET_POINT();
 		WINDOW_CHILD();
-		if (VK_CONTROL == KeyCode)
-		{
-			g_ctrl = 0;
-		}
+		
 		if (childwin)
 		{
 			//if (VK_CONTROL == KeyCode)
@@ -847,6 +857,14 @@ namespace chen {
 			WARNING_EX_LOG("not find main window failed !!!");
 			return false;
 		}
+		if (VK_CONTROL == KeyCode)
+		{
+			g_ctrl = 0;
+		}
+		/*else if (32 == KeyCode)
+		{
+			g_ctrl = 4294967168;
+		}*/
 		#endif //#if defined(_MSC_VER)
 		//ProcessEvent(KeyUpEvent);
 		//WINDOW_MAIN();
