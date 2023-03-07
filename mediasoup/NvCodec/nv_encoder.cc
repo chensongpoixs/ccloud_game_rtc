@@ -304,7 +304,7 @@ int32_t NvEncoder::InitEncode(const VideoCodec* inst,
 		//TODO@chensong 2022-03-18 设置GOP 的大小 哈 ^_^ 不知道为什么 webrtc中设置gop key_frame_interval 字段是有效的、
 		//根据程序
 		using namespace chen;
-		nvenc_config.gop = g_cfg.get_uint32(ECI_EncoderVideoGop);// configurations_[i].key_frame_interval;
+		nvenc_config.gop = NVENC_INFINITE_GOPLENGTH; // g_cfg.get_uint32(ECI_EncoderVideoGop);// configurations_[i].key_frame_interval;
 		nvenc_config.bitrate = 100000;
 		if (!nvenc_info.init(nv_encoders_[i], &nvenc_config)) {
 			Release();

@@ -76,7 +76,7 @@ struct nvenc_data
 	uint32_t height    = 0;
 	uint32_t framerate = 0;
 	uint32_t bitrate   = 0;
-	uint32_t gop       = 0;
+	uint32_t gop       =  0/*NVENC_INFINITE_GOPLENGTH*/;
 	std::string codec;
 	DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
 	NvEncoderD3D11 *nvenc = nullptr;
@@ -320,7 +320,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	enc->framerate = config->framerate;
 	enc->format = config->format;
 	enc->codec = config->codec;
-	enc->gop = config->gop;
+	enc->gop = NVENC_INFINITE_GOPLENGTH; // config->gop;
 	enc->bitrate = config->bitrate;
 
 	NV_ENC_BUFFER_FORMAT eBufferFormat = NV_ENC_BUFFER_FORMAT_NV12;
@@ -656,7 +656,7 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 	using namespace chen;
 	//NORMAL_EX_LOG("----------->");
 	//return 0;
-	if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcMaxRate))
+	/*if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcMaxRate))
 	{
 		NORMAL_EX_LOG("[bitrate_bps = %u ]too big [defalut max bitrate = %u]", bitrate_bps/ 1000, g_cfg.get_uint32(ECI_RtcMaxRate));
 		bitrate_bps = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;
@@ -665,7 +665,7 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 	{
 		WARNING_EX_LOG("[bitrate_bps = %u ]too big [defalut avg bitrate = %u]", bitrate_bps / 1000, g_cfg.get_uint32(ECI_RtcAvgRate));
 		bitrate_bps = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;
-	}
+	}*/
 	 
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
@@ -698,9 +698,10 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 	
 	if (framerate < g_cfg.get_uint32(ECI_RtcFrames))
 	{
-		WARNING_EX_LOG("framerate = %u", framerate);
+		WARNING_EX_LOG("framerate = %u", framerate); 
 	}
-	//NORMAL_EX_LOG("----------->");
+	return 0;
+ 	//NORMAL_EX_LOG("----------->");
 	return 0;
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
