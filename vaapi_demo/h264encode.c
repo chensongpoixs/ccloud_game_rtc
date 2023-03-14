@@ -1970,6 +1970,7 @@ static int load_surface(VASurfaceID surface_id, unsigned long long display_order
         exit(1);
     }
 #else
+    // TODO@chensong 2023-03-14  读取一帧画面的数据
     void *tmp_buf = malloc(frame_size);
     fread(tmp_buf, 1, frame_size, srcyuv_fp);
     src_Y = tmp_buf;
@@ -2245,17 +2246,19 @@ static int encode_frames(void)
     if (encode_syncmode == 0)
         pthread_create(&encode_thread, NULL, storage_task_thread, NULL);
 
-    for (current_frame_encoding = 0; current_frame_encoding < frame_count; current_frame_encoding++) {
-        encoding2display_order(current_frame_encoding, intra_period, intra_idr_period, ip_period,
-                               &current_frame_display, &current_frame_type);
-        if (current_frame_type == FRAME_IDR) {
+    for (current_frame_encoding = 0; current_frame_encoding < frame_count; current_frame_encoding++) 
+	{
+        encoding2display_order(current_frame_encoding, intra_period, intra_idr_period, ip_period, &current_frame_display, &current_frame_type);
+        if (current_frame_type == FRAME_IDR) 
+		{
             numShortTerm = 0;
             current_frame_num = 0;
             current_IDR_display = current_frame_display;
         }
 
         /* check if the source frame is ready */
-        while (srcsurface_status[current_slot] != SRC_SURFACE_IN_ENCODING) {
+        while (srcsurface_status[current_slot] != SRC_SURFACE_IN_ENCODING) 
+		{
             usleep(1);
         }
 
@@ -2265,10 +2268,12 @@ static int encode_frames(void)
         BeginPictureTicks += GetTickCount() - tmp;
 
         tmp = GetTickCount();
-        if (current_frame_type == FRAME_IDR) {
+        if (current_frame_type == FRAME_IDR) 
+		{
             render_sequence();
             render_picture();
-            if (h264_packedheader) {
+            if (h264_packedheader) 
+			{
                 render_packedsequence();
                 render_packedpicture();
             }
