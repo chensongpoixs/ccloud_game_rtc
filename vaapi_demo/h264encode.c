@@ -77,8 +77,8 @@
 
 #define BITSTREAM_ALLOCATE_STEPPING     4096
 
-#define SURFACE_NUM 16 /* 16 surfaces for source YUV */
-#define SURFACE_NUM 16 /* 16 surfaces for reference */
+//#define SURFACE_NUM (1) /* 16 surfaces for source YUV */
+#define SURFACE_NUM (1) /* 16 surfaces for reference */
 static  VADisplay va_dpy;
 static  VAProfile h264_profile = ~0;
 static  VAConfigAttrib attrib[VAConfigAttribTypeMax];
@@ -159,11 +159,11 @@ struct storage_task_t {
 static  struct storage_task_t *storage_task_header = NULL, *storage_task_tail = NULL;
 #define SRC_SURFACE_IN_ENCODING 0
 #define SRC_SURFACE_IN_STORAGE  1
-static  int srcsurface_status[SURFACE_NUM];
+//static  int srcsurface_status[SURFACE_NUM];
 static  int encode_syncmode = 0;
-static  pthread_mutex_t encode_mutex = PTHREAD_MUTEX_INITIALIZER;
-static  pthread_cond_t  encode_cond = PTHREAD_COND_INITIALIZER;
-static  pthread_t encode_thread;
+// static  pthread_mutex_t encode_mutex = PTHREAD_MUTEX_INITIALIZER;
+// static  pthread_cond_t  encode_cond = PTHREAD_COND_INITIALIZER;
+// static  pthread_t encode_thread;
 
 /* for performance profiling */
 static unsigned int UploadPictureTicks = 0;
@@ -1032,7 +1032,10 @@ static int process_cmdline(int argc, char *argv[])
             printf("Source YUV file %s with %llu frames\n", srcyuv_fn, srcyuv_frames);
 
             if (frame_count == 0)
+            {
                 frame_count = srcyuv_frames;
+            }
+            printf("[%s][%d][frame_count = %u]\n", __FUNCTION__, __LINE__, frame_count);
         }
     }
 
@@ -1087,10 +1090,13 @@ static int init_va(void)
     VAStatus va_status;
     unsigned int i;
 
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     va_dpy = va_open_display();
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     va_status = vaInitialize(va_dpy, &major_ver, &minor_ver);
     CHECK_VASTATUS(va_status, "vaInitialize");
 
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     num_entrypoints = vaMaxNumEntrypoints(va_dpy);
     entrypoints = malloc(num_entrypoints * sizeof(*entrypoints));
     if (!entrypoints) {
@@ -1428,20 +1434,30 @@ static int update_ReferenceFrames(void)
     int i;
 
     if (current_frame_type == FRAME_B)
-        return 0;
+    {
+         return 0;
+    }
 
     CurrentCurrPic.flags = VA_PICTURE_H264_SHORT_TERM_REFERENCE;
     numShortTerm++;
     if (numShortTerm > num_ref_frames)
+    {
         numShortTerm = num_ref_frames;
+    }
     for (i = numShortTerm - 1; i > 0; i--)
+    {
         ReferenceFrames[i] = ReferenceFrames[i - 1];
+    }
     ReferenceFrames[0] = CurrentCurrPic;
 
     if (current_frame_type != FRAME_B)
+    {
         current_frame_num++;
+    }
     if (current_frame_num > MaxFrameNum)
+    {
         current_frame_num = 0;
+    }
 
     return 0;
 }
@@ -1558,24 +1574,34 @@ static int calc_poc(int pic_order_cnt_lsb)
     int PicOrderCntMsb, TopFieldOrderCnt;
 
     if (current_frame_type == FRAME_IDR)
-        prevPicOrderCntMsb = prevPicOrderCntLsb = 0;
-    else {
+    {
+         prevPicOrderCntMsb = prevPicOrderCntLsb = 0;
+    }
+    else 
+    {
         prevPicOrderCntMsb = PicOrderCntMsb_ref;
         prevPicOrderCntLsb = pic_order_cnt_lsb_ref;
     }
 
     if ((pic_order_cnt_lsb < prevPicOrderCntLsb) &&
         ((prevPicOrderCntLsb - pic_order_cnt_lsb) >= (int)(MaxPicOrderCntLsb / 2)))
+    {
         PicOrderCntMsb = prevPicOrderCntMsb + MaxPicOrderCntLsb;
+    }
     else if ((pic_order_cnt_lsb > prevPicOrderCntLsb) &&
              ((pic_order_cnt_lsb - prevPicOrderCntLsb) > (int)(MaxPicOrderCntLsb / 2)))
+    {
         PicOrderCntMsb = prevPicOrderCntMsb - MaxPicOrderCntLsb;
+    }
     else
+    {
         PicOrderCntMsb = prevPicOrderCntMsb;
+    }
 
     TopFieldOrderCnt = PicOrderCntMsb + pic_order_cnt_lsb;
 
-    if (current_frame_type != FRAME_B) {
+    if (current_frame_type != FRAME_B) 
+    {
         PicOrderCntMsb_ref = PicOrderCntMsb;
         pic_order_cnt_lsb_ref = pic_order_cnt_lsb;
     }
@@ -1596,18 +1622,27 @@ static int render_picture(void)
     pic_param.CurrPic.BottomFieldOrderCnt = pic_param.CurrPic.TopFieldOrderCnt;
     CurrentCurrPic = pic_param.CurrPic;
 
-    if (getenv("TO_DEL")) { /* set RefPicList into ReferenceFrames */
+    if (getenv("TO_DEL")) 
+    { /* set RefPicList into ReferenceFrames */
+        printf("[%s][%d]\n", __FUNCTION__, __LINE__);
         update_RefPicList(); /* calc RefPicList */
         memset(pic_param.ReferenceFrames, 0xff, 16 * sizeof(VAPictureH264)); /* invalid all */
-        if (current_frame_type == FRAME_P) {
+        if (current_frame_type == FRAME_P) 
+        {
             pic_param.ReferenceFrames[0] = RefPicList0_P[0];
-        } else if (current_frame_type == FRAME_B) {
+        }
+        else if (current_frame_type == FRAME_B) 
+        {
             pic_param.ReferenceFrames[0] = RefPicList0_B[0];
             pic_param.ReferenceFrames[1] = RefPicList1_B[0];
         }
-    } else {
+    } 
+    else 
+    {
+        printf("[%s][%d]\n", __FUNCTION__, __LINE__);
         memcpy(pic_param.ReferenceFrames, ReferenceFrames, numShortTerm * sizeof(VAPictureH264));
-        for (i = numShortTerm; i < SURFACE_NUM; i++) {
+        for (i = numShortTerm; i < SURFACE_NUM; i++) 
+        {
             pic_param.ReferenceFrames[i].picture_id = VA_INVALID_SURFACE;
             pic_param.ReferenceFrames[i].flags = VA_PICTURE_H264_INVALID;
         }
@@ -1857,29 +1892,39 @@ static int render_slice(void)
     slice_param.macroblock_address = 0;
     slice_param.num_macroblocks = frame_width_mbaligned * frame_height_mbaligned / (16 * 16); /* Measured by MB */
     slice_param.slice_type = (current_frame_type == FRAME_IDR) ? 2 : current_frame_type;
-    if (current_frame_type == FRAME_IDR) {
+    if (current_frame_type == FRAME_IDR)
+    {
         if (current_frame_encoding != 0)
+        {
             ++slice_param.idr_pic_id;
-    } else if (current_frame_type == FRAME_P) {
+        }
+    } 
+    else if (current_frame_type == FRAME_P) 
+    {
         int refpiclist0_max = h264_maxref & 0xffff;
         memcpy(slice_param.RefPicList0, RefPicList0_P, ((refpiclist0_max > 32) ? 32 : refpiclist0_max)*sizeof(VAPictureH264));
 
-        for (i = refpiclist0_max; i < 32; i++) {
+        for (i = refpiclist0_max; i < 32; i++) 
+        {
             slice_param.RefPicList0[i].picture_id = VA_INVALID_SURFACE;
             slice_param.RefPicList0[i].flags = VA_PICTURE_H264_INVALID;
         }
-    } else if (current_frame_type == FRAME_B) {
+    } 
+    else if (current_frame_type == FRAME_B) 
+    {
         int refpiclist0_max = h264_maxref & 0xffff;
         int refpiclist1_max = (h264_maxref >> 16) & 0xffff;
 
         memcpy(slice_param.RefPicList0, RefPicList0_B, ((refpiclist0_max > 32) ? 32 : refpiclist0_max)*sizeof(VAPictureH264));
-        for (i = refpiclist0_max; i < 32; i++) {
+        for (i = refpiclist0_max; i < 32; i++) 
+        {
             slice_param.RefPicList0[i].picture_id = VA_INVALID_SURFACE;
             slice_param.RefPicList0[i].flags = VA_PICTURE_H264_INVALID;
         }
 
         memcpy(slice_param.RefPicList1, RefPicList1_B, ((refpiclist1_max > 32) ? 32 : refpiclist1_max)*sizeof(VAPictureH264));
-        for (i = refpiclist1_max; i < 32; i++) {
+        for (i = refpiclist1_max; i < 32; i++) 
+        {
             slice_param.RefPicList1[i].picture_id = VA_INVALID_SURFACE;
             slice_param.RefPicList1[i].flags = VA_PICTURE_H264_INVALID;
         }
@@ -1893,7 +1938,9 @@ static int render_slice(void)
 
     if (h264_packedheader &&
         config_attrib[enc_packed_header_idx].value & VA_ENC_PACKED_HEADER_SLICE)
+    {
         render_packedslice();
+    }
 
     va_status = vaCreateBuffer(va_dpy, context_id, VAEncSliceParameterBufferType,
                                sizeof(slice_param), 1, &slice_param, &slice_param_buf);
@@ -1932,7 +1979,9 @@ static int load_surface(VASurfaceID surface_id, unsigned long long display_order
     int frame_size, mmap_size;
 
     if (srcyuv_fp == NULL)
+    {
         return 0;
+    }
 
     /* allow encoding more than srcyuv_frames */
     display_order = display_order % srcyuv_frames;
@@ -1970,7 +2019,6 @@ static int load_surface(VASurfaceID surface_id, unsigned long long display_order
         exit(1);
     }
 #else
-    // TODO@chensong 2023-03-14  读取一帧画面的数据
     void *tmp_buf = malloc(frame_size);
     fread(tmp_buf, 1, frame_size, srcyuv_fp);
     src_Y = tmp_buf;
@@ -1981,6 +2029,11 @@ static int load_surface(VASurfaceID surface_id, unsigned long long display_order
     upload_surface_yuv(va_dpy, surface_id,
                        srcyuv_fourcc, frame_width, frame_height,
                        src_Y, src_U, src_V);
+    if (tmp_buf)
+    {
+        free(tmp_buf);
+        tmp_buf = NULL;
+    }
     //if (mmap_ptr)
     //    munmap(mmap_ptr, mmap_size);
 
@@ -1995,9 +2048,13 @@ static int save_recyuv(VASurfaceID surface_id,
     unsigned char *dst_Y = NULL, *dst_U = NULL, *dst_V = NULL;
 
     if (recyuv_fp == NULL)
+    {
+        printf("[%s][%d]\n", __FUNCTION__, __LINE__);
         return 0;
-
-    if (srcyuv_fourcc == VA_FOURCC_NV12) {
+    }
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+    if (srcyuv_fourcc == VA_FOURCC_NV12) 
+    {
         int uv_size = 2 * (frame_width / 2) * (frame_height / 2);
         dst_Y = malloc(2 * uv_size);
         if (dst_Y == NULL) {
@@ -2014,24 +2071,28 @@ static int save_recyuv(VASurfaceID surface_id,
 
         memset(dst_Y, 0, 2 * uv_size);
         memset(dst_U, 0, uv_size);
-    } else if (srcyuv_fourcc == VA_FOURCC_IYUV ||
-               srcyuv_fourcc == VA_FOURCC_YV12) {
+    } 
+    else if (srcyuv_fourcc == VA_FOURCC_IYUV || srcyuv_fourcc == VA_FOURCC_YV12) 
+    {
         int uv_size = (frame_width / 2) * (frame_height / 2);
         dst_Y = malloc(4 * uv_size);
-        if (dst_Y == NULL) {
+        if (dst_Y == NULL) 
+        {
             printf("Failed to allocate memory for dst_Y\n");
             exit(1);
         }
 
         dst_U = malloc(uv_size);
-        if (dst_U == NULL) {
+        if (dst_U == NULL) 
+        {
             printf("Failed to allocate memory for dst_U\n");
             free(dst_Y);
             exit(1);
         }
 
         dst_V = malloc(uv_size);
-        if (dst_V == NULL) {
+        if (dst_V == NULL) 
+        {
             printf("Failed to allocate memory for dst_V\n");
             free(dst_Y);
             free(dst_U);
@@ -2041,7 +2102,9 @@ static int save_recyuv(VASurfaceID surface_id,
         memset(dst_Y, 0, 4 * uv_size);
         memset(dst_U, 0, uv_size);
         memset(dst_V, 0, uv_size);
-    } else {
+    } 
+    else 
+    {
         printf("Unsupported source YUV format\n");
         exit(1);
     }
@@ -2051,30 +2114,42 @@ static int save_recyuv(VASurfaceID surface_id,
                          dst_Y, dst_U, dst_V);
     fseek(recyuv_fp, display_order * frame_width * frame_height * 1.5, SEEK_SET);
 
-    if (srcyuv_fourcc == VA_FOURCC_NV12) {
+    if (srcyuv_fourcc == VA_FOURCC_NV12) 
+    {
         int uv_size = 2 * (frame_width / 2) * (frame_height / 2);
         fwrite(dst_Y, uv_size * 2, 1, recyuv_fp);
         fwrite(dst_U, uv_size, 1, recyuv_fp);
-    } else if (srcyuv_fourcc == VA_FOURCC_IYUV ||
-               srcyuv_fourcc == VA_FOURCC_YV12) {
+    }
+    else if (srcyuv_fourcc == VA_FOURCC_IYUV ||
+               srcyuv_fourcc == VA_FOURCC_YV12) 
+    {
         int uv_size = (frame_width / 2) * (frame_height / 2);
         fwrite(dst_Y, uv_size * 4, 1, recyuv_fp);
 
-        if (srcyuv_fourcc == VA_FOURCC_IYUV) {
+        if (srcyuv_fourcc == VA_FOURCC_IYUV) 
+        {
             fwrite(dst_U, uv_size, 1, recyuv_fp);
             fwrite(dst_V, uv_size, 1, recyuv_fp);
-        } else {
+        } 
+        else 
+        {
             fwrite(dst_V, uv_size, 1, recyuv_fp);
             fwrite(dst_U, uv_size, 1, recyuv_fp);
         }
     }
 
     if (dst_Y)
+    {
         free(dst_Y);
+    }
     if (dst_U)
+    {
         free(dst_U);
+    }
     if (dst_V)
+    {
         free(dst_V);
+    }
 
     fflush(recyuv_fp);
 
@@ -2090,7 +2165,8 @@ static int save_codeddata(unsigned long long display_order, unsigned long long e
 
     va_status = vaMapBuffer(va_dpy, coded_buf[display_order % SURFACE_NUM], (void **)(&buf_list));
     CHECK_VASTATUS(va_status, "vaMapBuffer");
-    while (buf_list != NULL) {
+    while (buf_list != NULL) 
+    {
         coded_size += fwrite(buf_list->buf, 1, buf_list->size, coded_fp);
         buf_list = (VACodedBufferSegment *) buf_list->next;
 
@@ -2122,56 +2198,12 @@ static int save_codeddata(unsigned long long display_order, unsigned long long e
 }
 
 
-static struct storage_task_t * storage_task_dequeue(void)
-{
-    struct storage_task_t *header;
-
-    pthread_mutex_lock(&encode_mutex);
-
-    header = storage_task_header;
-    if (storage_task_header != NULL) {
-        if (storage_task_tail == storage_task_header)
-            storage_task_tail = NULL;
-        storage_task_header = header->next;
-    }
-
-    pthread_mutex_unlock(&encode_mutex);
-
-    return header;
-}
-
-static int storage_task_queue(unsigned long long display_order, unsigned long long encode_order)
-{
-    struct storage_task_t *tmp;
-
-    tmp = calloc(1, sizeof(struct storage_task_t));
-    assert(tmp);
-    tmp->display_order = display_order;
-    tmp->encode_order = encode_order;
-
-    pthread_mutex_lock(&encode_mutex);
-
-    if (storage_task_header == NULL) {
-        storage_task_header = tmp;
-        storage_task_tail = tmp;
-    } else {
-        storage_task_tail->next = tmp;
-        storage_task_tail = tmp;
-    }
-
-    srcsurface_status[display_order % SURFACE_NUM] = SRC_SURFACE_IN_STORAGE;
-    pthread_cond_signal(&encode_cond);
-
-    pthread_mutex_unlock(&encode_mutex);
-
-    return 0;
-}
-
+ 
 static void storage_task(unsigned long long display_order, unsigned long long encode_order)
 {
     unsigned int tmp;
     VAStatus va_status;
-
+    printf("[%s][%d][display_order = %llu][encode_order = %llu]\n", __FUNCTION__, __LINE__, display_order, encode_order);
     tmp = GetTickCount();
     va_status = vaSyncSurface(va_dpy, src_surface[display_order % SURFACE_NUM]);
     CHECK_VASTATUS(va_status, "vaSyncSurface");
@@ -2180,45 +2212,22 @@ static void storage_task(unsigned long long display_order, unsigned long long en
     save_codeddata(display_order, encode_order);
     SavePictureTicks += GetTickCount() - tmp;
 
-    save_recyuv(ref_surface[display_order % SURFACE_NUM], display_order, encode_order);
+    // save_recyuv(ref_surface[display_order % SURFACE_NUM], display_order, encode_order);
 
     /* reload a new frame data */
     tmp = GetTickCount();
     if (srcyuv_fp != NULL)
+    {
         load_surface(src_surface[display_order % SURFACE_NUM], display_order + SURFACE_NUM);
+    }
     UploadPictureTicks += GetTickCount() - tmp;
 
-    pthread_mutex_lock(&encode_mutex);
-    srcsurface_status[display_order % SURFACE_NUM] = SRC_SURFACE_IN_ENCODING;
-    pthread_mutex_unlock(&encode_mutex);
+    // pthread_mutex_lock(&encode_mutex);
+   // srcsurface_status[display_order % SURFACE_NUM] = SRC_SURFACE_IN_ENCODING;
+    // pthread_mutex_unlock(&encode_mutex);
 }
 
-
-static void * storage_task_thread(void *t)
-{
-    while (1) {
-        struct storage_task_t *current;
-
-        current = storage_task_dequeue();
-        if (current == NULL) {
-            pthread_mutex_lock(&encode_mutex);
-            pthread_cond_wait(&encode_cond, &encode_mutex);
-            pthread_mutex_unlock(&encode_mutex);
-            continue;
-        }
-
-        storage_task(current->display_order, current->encode_order);
-
-        free(current);
-
-        /* all frames are saved, exit the thread */
-        if (++frame_coded >= frame_count)
-            break;
-    }
-
-    return 0;
-}
-
+ 
 
 static int encode_frames(void)
 {
@@ -2228,39 +2237,49 @@ static int encode_frames(void)
 
     /* upload RAW YUV data into all surfaces */
     tmp = GetTickCount();
-    if (srcyuv_fp != NULL) {
+    if (srcyuv_fp != NULL) 
+    {
         for (i = 0; i < SURFACE_NUM; i++)
+        {
             load_surface(src_surface[i], i);
-    } else
+        }
+    } 
+    else
+    {
         upload_source_YUV_once_for_all();
+    }
     UploadPictureTicks += GetTickCount() - tmp;
 
     /* ready for encoding */
-    memset(srcsurface_status, SRC_SURFACE_IN_ENCODING, sizeof(srcsurface_status));
+    // memset(srcsurface_status, SRC_SURFACE_IN_ENCODING, sizeof(srcsurface_status));
 
     memset(&seq_param, 0, sizeof(seq_param));
     memset(&pic_param, 0, sizeof(pic_param));
     memset(&slice_param, 0, sizeof(slice_param));
 
     printf("---sysnmo=%d------------------------\n", encode_syncmode);
-    if (encode_syncmode == 0)
-        pthread_create(&encode_thread, NULL, storage_task_thread, NULL);
+    // if (encode_syncmode == 0)
+    // {
+    //     pthread_create(&encode_thread, NULL, storage_task_thread, NULL);
+    // }
 
     for (current_frame_encoding = 0; current_frame_encoding < frame_count; current_frame_encoding++) 
-	{
-        encoding2display_order(current_frame_encoding, intra_period, intra_idr_period, ip_period, &current_frame_display, &current_frame_type);
+    {
+        printf("[%s][%d][frame_count = %u][current_frame_encoding = %llu]\n", __FUNCTION__, __LINE__, frame_count, current_frame_encoding);
+        encoding2display_order(current_frame_encoding, intra_period, intra_idr_period, ip_period,
+                               &current_frame_display, &current_frame_type);
         if (current_frame_type == FRAME_IDR) 
-		{
+        {
             numShortTerm = 0;
             current_frame_num = 0;
             current_IDR_display = current_frame_display;
         }
 
         /* check if the source frame is ready */
-        while (srcsurface_status[current_slot] != SRC_SURFACE_IN_ENCODING) 
-		{
-            usleep(1);
-        }
+        // while (srcsurface_status[current_slot] != SRC_SURFACE_IN_ENCODING) 
+        // {
+        //     usleep(1);
+        // }
 
         tmp = GetTickCount();
         va_status = vaBeginPicture(va_dpy, context_id, src_surface[current_slot]);
@@ -2269,18 +2288,20 @@ static int encode_frames(void)
 
         tmp = GetTickCount();
         if (current_frame_type == FRAME_IDR) 
-		{
+        {
             render_sequence();
             render_picture();
-            if (h264_packedheader) 
-			{
+            if (h264_packedheader)
+            {
                 render_packedsequence();
                 render_packedpicture();
             }
             //if (rc_mode == VA_RC_CBR)
             //    render_packedsei();
             //render_hrd();
-        } else {
+        } 
+        else 
+        {
             //render_sequence();
             render_picture();
             //if (rc_mode == VA_RC_CBR)
@@ -2295,18 +2316,23 @@ static int encode_frames(void)
         CHECK_VASTATUS(va_status, "vaEndPicture");;
         EndPictureTicks += GetTickCount() - tmp;
 
-        if (encode_syncmode)
+        // if (encode_syncmode)
+        {
             storage_task(current_frame_display, current_frame_encoding);
-        else /* queue the storage task queue */
-            storage_task_queue(current_frame_display, current_frame_encoding);
+        }
+        // else /* queue the storage task queue */
+        // {
+        //     storage_task_queue(current_frame_display, current_frame_encoding);
+        // }
 
         update_ReferenceFrames();
     }
 
-    if (encode_syncmode == 0) {
-        int ret;
-        pthread_join(encode_thread, (void **)&ret);
-    }
+    // if (encode_syncmode == 0) 
+    // {
+    //     int ret;
+    //     pthread_join(encode_thread, (void **)&ret);
+    // }
 
     return 0;
 }
@@ -2458,8 +2484,8 @@ static int print_performance(unsigned int PictureCount)
            (int) others, ((double) others) / (double) PictureCount,
            others / (double) TotalTicks / 0.01);
 
-    if (encode_syncmode == 0)
-        printf("(Multithread enabled, the timing is only for reference)\n");
+    // if (encode_syncmode == 0)
+    //     printf("(Multithread enabled, the timing is only for reference)\n");
 
     return 0;
 }
@@ -2475,13 +2501,19 @@ int main(int argc, char **argv)
 
     start = GetTickCount();
 
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     init_va();
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     setup_encode();
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
 
     encode_frames();
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
 
     release_encode();
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     deinit_va();
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
 
     TotalTicks += GetTickCount() - start;
     print_performance(frame_count);
