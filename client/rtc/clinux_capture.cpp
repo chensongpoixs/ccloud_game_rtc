@@ -13,6 +13,10 @@ purpose:		linux_app_capture
 #include "cclient.h"
 #include "ccfg.h"
 #include "cinput_device.h"
+
+
+#include "cgl_egl_common.h"
+
 namespace  chen {
 
     static std::string getWindowAtom(Display * xdisp, Window win, const char *atom)
@@ -489,7 +493,7 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
 
     bool clinux_capture::_find_window_name(const char * window_name)
     {
-        pid_t pid = 5070;// //getpid();
+        pid_t pid = 3154;// //getpid();
         for (const WindowInfo& win: m_all_window_info)
         {
             if (/*window_name == win.cls && win.win != m_win*/ pid == win.pid)
@@ -558,11 +562,18 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
             return  false;
         }
         XErrorHandler prev = XSetErrorHandler(silence_x11_errors);
+
+        /////////////////////////////
+          gl_egl_create_texture_from_pixmap(m_win_width, m_win_height, GL_BGRA, EGL_TEXTURE_2D,  m_win_pixmap );
+         /////////////////////
+
+
         XSetErrorHandler(prev);
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////
        // xcb_map_window(m_connection_ptr, m_win);
 
        // xcb_flush(m_connection_ptr);
+      
 
         return true;
     }

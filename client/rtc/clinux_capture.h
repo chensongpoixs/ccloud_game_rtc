@@ -106,7 +106,7 @@ namespace  chen {
         uint32               m_win_width;
         uint32               m_win_height;
         uint32               m_win_depth;
-        xcb_pixmap_t         m_win_pixmap;
+        /*xcb_pixmap_t*/ Pixmap         m_win_pixmap;
         std::string          m_win_name;
 //        extern  Window  g_window;
 //        extern int g_win_h;
