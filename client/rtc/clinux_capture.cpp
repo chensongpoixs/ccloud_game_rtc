@@ -13,8 +13,24 @@ purpose:		linux_app_capture
 #include "cclient.h"
 #include "ccfg.h"
 #include "cinput_device.h"
-
-
+#include <iostream>
+#include <memory>
+#include <stdint.h>
+#include "Logger.h"
+#include "NvEncoderGL.h"
+#include "NvEncoderCLIOptions.h"
+//#include "NvCodecUtils.h"
+// #include <GL/glew.h>
+// #include <GL/glut.h>
+// #include <GL/freeglut_ext.h>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <stdexcept>
+#include <sstream>
+#include <iterator>
+#include <cstring>
+#include <functional>
 #include "cgl_egl_common.h"
 
 namespace  chen {
@@ -341,6 +357,50 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
             CAPTUER_TICK_TIME = 1000 /g_cfg.get_int32(ECI_RtcFrames);
         }
         NORMAL_EX_LOG("cpature tick time frames = %u", CAPTUER_TICK_TIME);
+
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //     char   szOutFilePath[256] = "test_yuv.h264";
+    //     int32 nWidth = m_win_width, nHeight = m_win_height;
+    //     NV_ENC_BUFFER_FORMAT eFormat = NV_ENC_BUFFER_FORMAT_IYUV;
+        
+    //     //  glutInit();
+    //     glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+
+    //      std::ostringstream oss;
+    //         oss << "-codec h264 -fps 25 ";
+    //       NvEncoderInitParam encodeCLIOptions(oss.str().c_str());
+    //     // glutInitWindowSize(16, 16);
+    //     //     int window = glutCreateWindow("AppEncGL");
+    //     //     if (!window)
+    //     //     {
+    //     //         std::cout << "Unable to create GLUT window." << std::endl;
+    //     //         return 1;
+    //     //     }
+    //     //     glutHideWindow();
+
+    //      NvEncoderGL enc(nWidth, nHeight, eFormat);
+
+    //     NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
+    //     NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
+    //     initializeParams.encodeConfig = &encodeConfig;
+    //     enc.CreateDefaultEncoderParams(&initializeParams, encodeCLIOptions.GetEncodeGUID(),
+    //         encodeCLIOptions.GetPresetGUID());
+
+    //     encodeCLIOptions.SetInitParams(&initializeParams, eFormat);
+
+    //     enc.CreateEncoder(&initializeParams);
+
+    //     int nFrameSize = enc.GetFrameSize();
+    //     std::unique_ptr<uint8_t[]> pHostFrame(new uint8_t[nFrameSize]);
+        int nFrame = 0;
+    // std::ofstream fpOut(szOutFilePath, std::ios::out | std::ios::binary);
+        // if (!fpOut)
+        // {
+        //     std::ostringstream err;
+        //     err << "Unable to open output file: " << szOutFilePath << std::endl;
+        //     throw std::invalid_argument(err.str());
+        // }
+
         while (!m_stoped)
         { 
             pre_time = std::chrono::steady_clock::now();
@@ -353,23 +413,35 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
             }
             else 
             {
-                xcb_generic_error_t *err = NULL, *err2 = NULL;
-                xcb_get_image_cookie_t gi_cookie = xcb_get_image(m_connection_ptr, XCB_IMAGE_FORMAT_Z_PIXMAP, m_win_pixmap, 0, 0, m_win_width, m_win_height, (uint32_t)(~0UL));
-                xcb_get_image_reply_t *gi_reply = xcb_get_image_reply(m_connection_ptr, gi_cookie, &err);
-                if (gi_reply)
+                //  const NvEncInputFrame* encoderInputFrame = enc.GetNextInputFrame();
+                // NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = (NV_ENC_INPUT_RESOURCE_OPENGL_TEX *)encoderInputFrame->inputPtr;
+
+                gl_egl_create_texture_from_pixmap(NULL/*pResource*/ , m_win_width, m_win_height, GL_BGRA, EGL_TEXTURE_2D,  m_win_pixmap );
+                std::vector<std::vector<uint8_t>> vPacket;
+                // enc.EndEncode(vPacket);
+                  nFrame += (int)vPacket.size();
+                for (std::vector<uint8_t> &packet : vPacket)
                 {
-                    uint8_t *data = xcb_get_image_data(gi_reply);
-                    s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
-                    static FILE * out_file_yuv_ptr = fopen("./capture.yuv", "wb+");
-                    NORMAL_EX_LOG("get frame OK !!!");
-                    fwrite(data, m_win_width * m_win_height * 4, 1,  out_file_yuv_ptr);
-                    fflush(out_file_yuv_ptr);
-                    free(gi_reply);
+                    // fpOut.write(reinterpret_cast<char*>(packet.data()), packet.size());
+                    //fpOut.out.flush();
                 }
-                else
-                {
-                    WARNING_EX_LOG("gi reply failed !!!");
-                }
+                // xcb_generic_error_t *err = NULL, *err2 = NULL;
+                // xcb_get_image_cookie_t gi_cookie = xcb_get_image(m_connection_ptr, XCB_IMAGE_FORMAT_Z_PIXMAP, m_win_pixmap, 0, 0, m_win_width, m_win_height, (uint32_t)(~0UL));
+                // xcb_get_image_reply_t *gi_reply = xcb_get_image_reply(m_connection_ptr, gi_cookie, &err);
+                // if (gi_reply)
+                // {
+                //     uint8_t *data = xcb_get_image_data(gi_reply);
+                //     s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
+                //     static FILE * out_file_yuv_ptr = fopen("./capture.yuv", "wb+");
+                //     NORMAL_EX_LOG("get frame OK !!!");
+                //     fwrite(data, m_win_width * m_win_height * 4, 1,  out_file_yuv_ptr);
+                //     fflush(out_file_yuv_ptr);
+                //     free(gi_reply);
+                // }
+                // else
+                // {
+                //     WARNING_EX_LOG("gi reply failed !!!");
+                // }
             }
             //if (!m_stoped)
             {
@@ -564,7 +636,7 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
         XErrorHandler prev = XSetErrorHandler(silence_x11_errors);
 
         /////////////////////////////
-          gl_egl_create_texture_from_pixmap(m_win_width, m_win_height, GL_BGRA, EGL_TEXTURE_2D,  m_win_pixmap );
+        //   gl_egl_create_texture_from_pixmap(m_win_width, m_win_height, GL_BGRA, EGL_TEXTURE_2D,  m_win_pixmap );
          /////////////////////
 
 

@@ -12,7 +12,7 @@
 #include <iostream>
 #include "NvEncoder.h"
 #include <unordered_map>
-#include <GL/glew.h>
+//#include <GL/glew.h>
 
 class NvEncoderGL : public NvEncoder
 {

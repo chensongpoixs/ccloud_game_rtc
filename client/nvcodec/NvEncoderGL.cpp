@@ -10,7 +10,8 @@
 */
 
 #include "NvEncoderGL.h"
-
+#include <GL/glew.h>
+// #inlcude "glad/glad.h"
 NvEncoderGL::NvEncoderGL(uint32_t nWidth, uint32_t nHeight, NV_ENC_BUFFER_FORMAT eBufferFormat,
     uint32_t nExtraOutputDelay, bool bMotionEstimationOnly) :
     NvEncoder(NV_ENC_DEVICE_TYPE_OPENGL, nullptr, nWidth, nHeight, eBufferFormat,
@@ -36,7 +37,7 @@ void NvEncoderGL::AllocateInputBuffers(int32_t numInputBuffers)
 {
     if (!IsHWEncoderInitialized())
     {
-        NVENC_THROW_ERROR("Encoder device not initialized", NV_ENC_ERR_ENCODER_NOT_INITIALIZED);
+        // NVENC_THROW_ERROR("Encoder device not initialized", NV_ENC_ERR_ENCODER_NOT_INITIALIZED);
     }
     int numCount = m_bMotionEstimationOnly ? 2 : 1;
 

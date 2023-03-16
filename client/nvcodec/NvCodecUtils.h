@@ -26,7 +26,7 @@ inline bool check(CUresult e, int iLine, const char *szFile) {
     if (e != CUDA_SUCCESS) {
         const char *szErrName = NULL;
         cuGetErrorName(e, &szErrName);
-        LOG(FATAL) << "CUDA driver API error " << szErrName << " at line " << iLine << " in file " << szFile;
+        // LOG(FATAL) << "CUDA driver API error " << szErrName << " at line " << iLine << " in file " << szFile;
         return false;
     }
     return true;
@@ -36,7 +36,7 @@ inline bool check(CUresult e, int iLine, const char *szFile) {
 #ifdef __CUDA_RUNTIME_H__
 inline bool check(cudaError_t e, int iLine, const char *szFile) {
     if (e != cudaSuccess) {
-        LOG(FATAL) << "CUDA runtime API error " << cudaGetErrorName(e) << " at line " << iLine << " in file " << szFile;
+        // LOG(FATAL) << "CUDA runtime API error " << cudaGetErrorName(e) << " at line " << iLine << " in file " << szFile;
         return false;
     }
     return true;
@@ -44,8 +44,9 @@ inline bool check(cudaError_t e, int iLine, const char *szFile) {
 #endif
 
 #ifdef _NV_ENCODEAPI_H_
-inline bool check(NVENCSTATUS e, int iLine, const char *szFile) {
-    const char *aszErrName[] = {
+inline bool check(NVENCSTATUS e, int iLine, const char *szFile) 
+{
+    const  char *aszErrName[] = {
         "NV_ENC_SUCCESS",
         "NV_ENC_ERR_NO_ENCODE_DEVICE",
         "NV_ENC_ERR_UNSUPPORTED_DEVICE",
@@ -74,7 +75,7 @@ inline bool check(NVENCSTATUS e, int iLine, const char *szFile) {
         "NV_ENC_ERR_RESOURCE_NOT_MAPPED",
     };
     if (e != NV_ENC_SUCCESS) {
-        LOG(FATAL) << "NVENC error " << aszErrName[e] << " at line " << iLine << " in file " << szFile;
+        // LOG(FATAL) << "NVENC error " << aszErrName[e] << " at line " << iLine << " in file " << szFile;
         return false;
     }
     return true;
@@ -84,7 +85,7 @@ inline bool check(NVENCSTATUS e, int iLine, const char *szFile) {
 #ifdef _WINERROR_
 inline bool check(HRESULT e, int iLine, const char *szFile) {
     if (e != S_OK) {
-        LOG(FATAL) << "HRESULT error 0x" << (void *)e << " at line " << iLine << " in file " << szFile;
+        // LOG(FATAL) << "HRESULT error 0x" << (void *)e << " at line " << iLine << " in file " << szFile;
         return false;
     }
     return true;
@@ -94,7 +95,7 @@ inline bool check(HRESULT e, int iLine, const char *szFile) {
 #if defined(__gl_h_) || defined(__GL_H__)
 inline bool check(GLenum e, int iLine, const char *szFile) {
     if (e != 0) {
-        LOG(ERROR) << "GLenum error " << e << " at line " << iLine << " in file " << szFile;
+        // LOG(ERROR) << "GLenum error " << e << " at line " << iLine << " in file " << szFile;
         return false;
     }
     return true;
