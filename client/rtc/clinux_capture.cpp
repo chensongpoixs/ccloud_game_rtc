@@ -165,7 +165,20 @@ int xdo_get_pid_window(Display *display, Window window)
 }
 
 
+static int silence_x11_errors(Display *display, XErrorEvent *error)
+{
+	//UNUSED_PARAMETER(display);
+	//UNUSED_PARAMETER(err);
+    char str1[512];
+	char str2[512];
+	char str3[512];
+	XGetErrorText(display, error->error_code, str1, sizeof(str1));
+	XGetErrorText(display, error->request_code, str2, sizeof(str2));
+	XGetErrorText(display, error->minor_code, str3, sizeof(str3));
 
+	ERROR_EX_LOG( "X Error: %s, Major opcode: %s, " "Minor opcode: %s, Serial: %lu", str1, str2, str3, error->serial);
+	return 0;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -343,7 +356,10 @@ int xdo_get_pid_window(Display *display, Window window)
                 {
                     uint8_t *data = xcb_get_image_data(gi_reply);
                     s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
-    
+                    static FILE * out_file_yuv_ptr = fopen("./capture.yuv", "wb+");
+                    NORMAL_EX_LOG("get frame OK !!!");
+                    fwrite(data, m_win_width * m_win_height * 4, 1,  out_file_yuv_ptr);
+                    fflush(out_file_yuv_ptr);
                     free(gi_reply);
                 }
                 else
@@ -351,13 +367,14 @@ int xdo_get_pid_window(Display *display, Window window)
                     WARNING_EX_LOG("gi reply failed !!!");
                 }
             }
-            if (!m_stoped)
+            //if (!m_stoped)
             {
                 cur_time_ms = std::chrono::steady_clock::now();
                 dur = cur_time_ms - pre_time;
                 pre_time = cur_time_ms;
                 ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
                 elapse = static_cast<int32_t>(ms.count());
+                NORMAL_EX_LOG("capture frame [ms = %u][m_win_width = %u][m_win_height = %u]", elapse, m_win_width, m_win_height);
                 if (elapse < CAPTUER_TICK_TIME)
                 {
                     std::this_thread::sleep_for(std::chrono::milliseconds(CAPTUER_TICK_TIME- elapse));
@@ -472,7 +489,7 @@ int xdo_get_pid_window(Display *display, Window window)
 
     bool clinux_capture::_find_window_name(const char * window_name)
     {
-        pid_t pid = getpid();
+        pid_t pid = 5070;// //getpid();
         for (const WindowInfo& win: m_all_window_info)
         {
             if (/*window_name == win.cls && win.win != m_win*/ pid == win.pid)
@@ -540,6 +557,8 @@ int xdo_get_pid_window(Display *display, Window window)
 
             return  false;
         }
+        XErrorHandler prev = XSetErrorHandler(silence_x11_errors);
+        XSetErrorHandler(prev);
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////
        // xcb_map_window(m_connection_ptr, m_win);
 
