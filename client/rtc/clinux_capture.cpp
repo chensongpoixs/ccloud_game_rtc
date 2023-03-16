@@ -33,6 +33,12 @@ purpose:		linux_app_capture
 #include <functional>
 #include "cgl_egl_common.h"
 
+#include "cgl_global.h"
+
+// #include <GL/glew.h>
+// #include <GL/glut.h>
+// #include <GL/freeglut_ext.h>
+
 namespace  chen {
 
     static std::string getWindowAtom(Display * xdisp, Window win, const char *atom)
@@ -359,41 +365,35 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
         NORMAL_EX_LOG("cpature tick time frames = %u", CAPTUER_TICK_TIME);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //     char   szOutFilePath[256] = "test_yuv.h264";
-    //     int32 nWidth = m_win_width, nHeight = m_win_height;
-    //     NV_ENC_BUFFER_FORMAT eFormat = NV_ENC_BUFFER_FORMAT_IYUV;
+        char   szOutFilePath[256] = "test_yuv.h264";
+        int32 nWidth = m_win_width;
+        int32 nHeight = m_win_height;
+        NV_ENC_BUFFER_FORMAT eFormat = NV_ENC_BUFFER_FORMAT_IYUV;
         
-    //     //  glutInit();
-    //     glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
-
-    //      std::ostringstream oss;
-    //         oss << "-codec h264 -fps 25 ";
-    //       NvEncoderInitParam encodeCLIOptions(oss.str().c_str());
-    //     // glutInitWindowSize(16, 16);
-    //     //     int window = glutCreateWindow("AppEncGL");
-    //     //     if (!window)
-    //     //     {
-    //     //         std::cout << "Unable to create GLUT window." << std::endl;
-    //     //         return 1;
-    //     //     }
-    //     //     glutHideWindow();
-
-    //      NvEncoderGL enc(nWidth, nHeight, eFormat);
-
-    //     NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
-    //     NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
-    //     initializeParams.encodeConfig = &encodeConfig;
-    //     enc.CreateDefaultEncoderParams(&initializeParams, encodeCLIOptions.GetEncodeGUID(),
-    //         encodeCLIOptions.GetPresetGUID());
-
-    //     encodeCLIOptions.SetInitParams(&initializeParams, eFormat);
-
-    //     enc.CreateEncoder(&initializeParams);
-
-    //     int nFrameSize = enc.GetFrameSize();
+         NORMAL_EX_LOG("");
+        init_gl();
+         NORMAL_EX_LOG("");
+         std::ostringstream oss;
+            oss << "-codec h264 -fps 25 ";
+          NvEncoderInitParam encodeCLIOptions(oss.str().c_str());
+        
+        NORMAL_EX_LOG("");
+         NvEncoderGL enc(nWidth, nHeight, eFormat);
+        NORMAL_EX_LOG("");
+        NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
+        NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
+        initializeParams.encodeConfig = &encodeConfig;
+        enc.CreateDefaultEncoderParams(&initializeParams, encodeCLIOptions.GetEncodeGUID(),
+            encodeCLIOptions.GetPresetGUID());
+NORMAL_EX_LOG("");
+        encodeCLIOptions.SetInitParams(&initializeParams, eFormat);
+NORMAL_EX_LOG("");
+        enc.CreateEncoder(&initializeParams);
+NORMAL_EX_LOG("");
+        int nFrameSize = enc.GetFrameSize();
     //     std::unique_ptr<uint8_t[]> pHostFrame(new uint8_t[nFrameSize]);
         int nFrame = 0;
-    // std::ofstream fpOut(szOutFilePath, std::ios::out | std::ios::binary);
+    std::ofstream fpOut(szOutFilePath, std::ios::out | std::ios::binary);
         // if (!fpOut)
         // {
         //     std::ostringstream err;
@@ -413,16 +413,19 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
             }
             else 
             {
-                //  const NvEncInputFrame* encoderInputFrame = enc.GetNextInputFrame();
-                // NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = (NV_ENC_INPUT_RESOURCE_OPENGL_TEX *)encoderInputFrame->inputPtr;
-
-                gl_egl_create_texture_from_pixmap(NULL/*pResource*/ , m_win_width, m_win_height, GL_BGRA, EGL_TEXTURE_2D,  m_win_pixmap );
+                NORMAL_EX_LOG("");
+                 const NvEncInputFrame* encoderInputFrame = enc.GetNextInputFrame();
+                NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = (NV_ENC_INPUT_RESOURCE_OPENGL_TEX *)encoderInputFrame->inputPtr;
+NORMAL_EX_LOG("");
+                gl_egl_create_texture_from_pixmap(pResource , m_win_width, m_win_height, GL_BGRA, EGL_TEXTURE_2D,  m_win_pixmap );
+                NORMAL_EX_LOG("");
                 std::vector<std::vector<uint8_t>> vPacket;
-                // enc.EndEncode(vPacket);
+                enc.EndEncode(vPacket);
+                NORMAL_EX_LOG("vPacket.size() = %u", vPacket.size());
                   nFrame += (int)vPacket.size();
                 for (std::vector<uint8_t> &packet : vPacket)
                 {
-                    // fpOut.write(reinterpret_cast<char*>(packet.data()), packet.size());
+                    fpOut.write(reinterpret_cast<char*>(packet.data()), packet.size());
                     //fpOut.out.flush();
                 }
                 // xcb_generic_error_t *err = NULL, *err2 = NULL;
@@ -565,7 +568,12 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
 
     bool clinux_capture::_find_window_name(const char * window_name)
     {
-        pid_t pid = 3154;// //getpid();
+         pid_t pid =   getpid();
+        if (g_cfg.get_uint32(ECI_Pid) != 0)
+        {
+                pid = g_cfg.get_uint32(ECI_Pid);
+        }
+        NORMAL_EX_LOG("--->   pid = %u", pid);
         for (const WindowInfo& win: m_all_window_info)
         {
             if (/*window_name == win.cls && win.win != m_win*/ pid == win.pid)

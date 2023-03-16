@@ -19,7 +19,7 @@
 
 #include <asm/ioctl.h>
 #include "nvEncodeAPI.h"
-
+#include "cgl_global.h"
 namespace chen { 
 typedef unsigned int drm_handle_t;
 
@@ -215,8 +215,15 @@ static inline bool gl_bind_texture(GLenum target, GLuint texture)
 	glBindTexture(target, texture);
 	return gl_success("glBindTexture");
 }
+
+//  extern EGLDisplay eglDisplay ;
   void gl_egl_create_texture_from_pixmap(NV_ENC_INPUT_RESOURCE_OPENGL_TEX* pResource,   uint32_t width, uint32_t height, uint32_t color_format, EGLint target, void * pixmap)
 {
+	if (!pResource)
+	{
+		ERROR_EX_LOG("pRessouce = NULL");
+		return ;
+	}
 	NORMAL_EX_LOG("");
     if (!init_egl_image_target_texture_2d_ext())
 	{
@@ -232,26 +239,30 @@ static inline bool gl_bind_texture(GLenum target, GLuint texture)
     EGLDisplay egl_display = eglGetCurrentDisplay();
     if (!egl_display)
     {
-        printf("[%s][%d][egl_display]\n", __FUNCTION__, __LINE__);
+        ERROR_EX_LOG("[%s][%d][egl_display]\n", __FUNCTION__, __LINE__);
         return ;
     }
+
 	NORMAL_EX_LOG("");
 	EGLImage image = eglCreateImage(egl_display, EGL_NO_CONTEXT,
 					EGL_NATIVE_PIXMAP_KHR, pixmap, pixmap_attrs);
 	if (image == EGL_NO_IMAGE) 
     {
-		printf("[%s][%d][ERROR]Cannot create EGLImage: %s",__FUNCTION__, __LINE__,
+		ERROR_EX_LOG("[%s][%d][ERROR]Cannot create EGLImage: %s",__FUNCTION__, __LINE__,
 		     gl_egl_error_to_string(eglGetError()));
 		return ;
 	}
+	NORMAL_EX_LOG("");
 	gl_bind_texture(pResource->target, pResource->texture);
+	NORMAL_EX_LOG("");
 	gl_tex_param_i(EGL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	NORMAL_EX_LOG("");
 	gl_tex_param_i(EGL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	NORMAL_EX_LOG("");
     glEGLImageTargetTexture2DOES(EGL_TEXTURE_2D, image);
 	if (!gl_success("glEGLImageTargetTexture2DOES")) 
     {
-        printf("[%s][%d][ERROR]\n", __FUNCTION__, __LINE__);
+        ERROR_EX_LOG("[%s][%d][ERROR]\n", __FUNCTION__, __LINE__);
 		//gs_texture_destroy(texture);
 		//texture = NULL;
 	}
