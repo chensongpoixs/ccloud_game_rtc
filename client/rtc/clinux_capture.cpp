@@ -33,7 +33,7 @@ purpose:		linux_app_capture
 #include "NvEncoderGL.h"
 #include "NvEncoderCLIOptions.h"
 #include "cgl_global.h"
-
+#include "cclient.h"
 #include "third_party/libyuv/include/libyuv.h"
 
 namespace  chen {
@@ -362,34 +362,34 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
         NORMAL_EX_LOG("cpature tick time frames = %u", CAPTUER_TICK_TIME);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        char   szOutFilePath[256] = "test_yuv.h264";
-        int32 nWidth = m_win_width;
-        int32 nHeight = m_win_height;
-        NV_ENC_BUFFER_FORMAT eFormat = NV_ENC_BUFFER_FORMAT_IYUV;
+    //     char   szOutFilePath[256] = "test_yuv.h264";
+    //     int32 nWidth = m_win_width;
+    //     int32 nHeight = m_win_height;
+    //     NV_ENC_BUFFER_FORMAT eFormat = NV_ENC_BUFFER_FORMAT_IYUV;
         
-         NORMAL_EX_LOG("");
-        init_gl();
-         NORMAL_EX_LOG("");
-         std::ostringstream oss;
-            oss << "-codec h264 -fps 25 ";
-          NvEncoderInitParam encodeCLIOptions(oss.str().c_str());
+    //      NORMAL_EX_LOG("");
+    //     init_gl();
+    //      NORMAL_EX_LOG("");
+    //      std::ostringstream oss;
+    //         oss << "-codec h264 -fps 25 ";
+    //       NvEncoderInitParam encodeCLIOptions(oss.str().c_str());
         
-        NORMAL_EX_LOG("");
-         NvEncoderGL enc(nWidth, nHeight, eFormat);
-        NORMAL_EX_LOG("");
-        NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
-        NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
-        initializeParams.encodeConfig = &encodeConfig;
-        enc.CreateDefaultEncoderParams(&initializeParams, encodeCLIOptions.GetEncodeGUID(), encodeCLIOptions.GetPresetGUID());
-        NORMAL_EX_LOG("");
-        encodeCLIOptions.SetInitParams(&initializeParams, eFormat);
-        NORMAL_EX_LOG("");
-        enc.CreateEncoder(&initializeParams);
-        NORMAL_EX_LOG("");
-        int nFrameSize = enc.GetFrameSize();
-    //     std::unique_ptr<uint8_t[]> pHostFrame(new uint8_t[nFrameSize]);
-        int nFrame = 0;
-        std::ofstream fpOut(szOutFilePath, std::ios::out | std::ios::binary);
+    //     NORMAL_EX_LOG("");
+    //      NvEncoderGL enc(nWidth, nHeight, eFormat);
+    //     NORMAL_EX_LOG("");
+    //     NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
+    //     NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
+    //     initializeParams.encodeConfig = &encodeConfig;
+    //     enc.CreateDefaultEncoderParams(&initializeParams, encodeCLIOptions.GetEncodeGUID(), encodeCLIOptions.GetPresetGUID());
+    //     NORMAL_EX_LOG("");
+    //     encodeCLIOptions.SetInitParams(&initializeParams, eFormat);
+    //     NORMAL_EX_LOG("");
+    //     enc.CreateEncoder(&initializeParams);
+    //     NORMAL_EX_LOG("");
+    //     int nFrameSize = enc.GetFrameSize();
+    // //     std::unique_ptr<uint8_t[]> pHostFrame(new uint8_t[nFrameSize]);
+    //     int nFrame = 0;
+    //     std::ofstream fpOut(szOutFilePath, std::ios::out | std::ios::binary);
         // if (!fpOut)
         // {
         //     std::ostringstream err;
@@ -398,7 +398,7 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
         // }
         //encodec_gl(m_win_width, m_win_height, m_win_pixmap);
         NORMAL_EX_LOG("");
-        rtc::scoped_refptr<webrtc::I420Buffer> i420_buffer_  = webrtc::I420Buffer::Create(nWidth, nHeight);
+        rtc::scoped_refptr<webrtc::I420Buffer> i420_buffer_  = webrtc::I420Buffer::Create(m_win_width, m_win_height);
         // return ;
         while (!m_stoped)
         { 
@@ -422,8 +422,19 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
                     libyuv::ConvertToI420(data, 0, i420_buffer_->MutableDataY(),
                     i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
                     i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
-                    i420_buffer_->StrideV(), 0, 0, nWidth, nHeight, nWidth,
-                    nHeight, libyuv::kRotate0, libyuv::FOURCC_ABGR);
+                    i420_buffer_->StrideV(), 0, 0, m_win_width, m_win_height, m_win_width,
+                    m_win_height, libyuv::kRotate0, libyuv::FOURCC_ABGR);
+
+                       webrtc::VideoFrame captureFrame = webrtc::VideoFrame::Builder()
+                        .set_video_frame_buffer(i420_buffer_)
+                        .set_timestamp_rtp(0)
+                        .set_timestamp_ms(rtc::TimeMillis())
+                        .set_rotation(webrtc::kVideoRotation_0)
+                        .build();
+                // captureFrame.set_ntp_time_ms(0);
+                    s_client.webrtc_video(captureFrame);
+                    //TODO@chensong send video --> rtc --> 
+
                     // s_client.webrtc_video(data, 48,  m_win_width, m_win_height);
                     // static FILE * out_file_yuv_ptr = fopen("./capture.yuv", "wb+");
                     // NORMAL_EX_LOG("get frame OK !!!");
@@ -431,23 +442,23 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
                     // fflush(out_file_yuv_ptr);
 
                     //////////////////////////////////
-                    const NvEncInputFrame* encoderInputFrame = enc.GetNextInputFrame();
-                    NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = (NV_ENC_INPUT_RESOURCE_OPENGL_TEX *)encoderInputFrame->inputPtr;
+                    // const NvEncInputFrame* encoderInputFrame = enc.GetNextInputFrame();
+                    // NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = (NV_ENC_INPUT_RESOURCE_OPENGL_TEX *)encoderInputFrame->inputPtr;
                     
-                    glBindTexture(pResource->target, pResource->texture);
-                    glTexSubImage2D(pResource->target, 0, 0, 0, nWidth, nHeight * 3/2, GL_RED, GL_UNSIGNED_BYTE, i420_buffer_->DataY());
-                    glBindTexture(pResource->target, 0);
+                    // glBindTexture(pResource->target, pResource->texture);
+                    // glTexSubImage2D(pResource->target, 0, 0, 0, nWidth, nHeight * 3/2, GL_RED, GL_UNSIGNED_BYTE, i420_buffer_->DataY());
+                    // glBindTexture(pResource->target, 0);
                     
                     
-                    std::vector<std::vector<uint8_t>> vPacket;
-                    enc.EncodeFrame(vPacket);
-                    NORMAL_EX_LOG("vPacket.size() = %u", vPacket.size());
-                        nFrame += (int)vPacket.size();
-                    for (std::vector<uint8_t> &packet : vPacket)
-                    {
-                        fpOut.write(reinterpret_cast<char*>(packet.data()), packet.size());
-                        //fpOut.out.flush();
-                    }
+                    // std::vector<std::vector<uint8_t>> vPacket;
+                    // enc.EncodeFrame(vPacket);
+                    // NORMAL_EX_LOG("vPacket.size() = %u", vPacket.size());
+                    //     nFrame += (int)vPacket.size();
+                    // for (std::vector<uint8_t> &packet : vPacket)
+                    // {
+                    //     fpOut.write(reinterpret_cast<char*>(packet.data()), packet.size());
+                    //     //fpOut.out.flush();
+                    // }
 
                     /////////////////////////////////////////
 
