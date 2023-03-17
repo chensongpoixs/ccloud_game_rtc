@@ -19,8 +19,12 @@
 #include <cstring>
 #include <functional>
 #include "Logger.h"
-
+#include "clog.h"
 // extern simplelogger::Logger *logger;
+
+
+
+using namespace chen;
 
 #ifndef _WIN32
 inline bool operator==(const GUID &guid1, const GUID &guid2) {
@@ -244,6 +248,8 @@ public:
         }
 
         funcInit(pParams);
+        NORMAL_EX_LOG("%s", NvEncoderInitParam().MainParamToString(pParams).c_str());
+        NORMAL_EX_LOG("%s", NvEncoderInitParam().FullParamToString(pParams).c_str());
         // LOG(INFO) << NvEncoderInitParam().MainParamToString(pParams);
         // LOG(TRACE) << NvEncoderInitParam().FullParamToString(pParams);
     }
@@ -255,6 +261,7 @@ private:
         auto it = std::find(vstrValueName.begin(), vstrValueName.end(), strValue);
         if (it == vstrValueName.end()) {
             // LOG(ERROR) << strName << " options: " << strValueNames;
+            ERROR_EX_LOG("%s options:  %s", strName.c_str(), strValueNames.c_str());
             return false;
         }
         *pValue = vValue[it - vstrValueName.begin()];
@@ -265,6 +272,7 @@ private:
         auto it = std::find(vValue.begin(), vValue.end(), value);
         if (it == vValue.end()) {
             // LOG(ERROR) << "Invalid value. Can't convert to one of " << strValueNames;
+            ERROR_EX_LOG("Invalid value. Can't convert to one of  %s", strValueNames.c_str());
             return std::string();
         }
         return split(strValueNames, ' ')[it - vValue.begin()];
@@ -276,6 +284,7 @@ private:
             char c = strValue[l];
             if (c != 0 && c != 'k' && c != 'm') {
                 // LOG(ERROR) << strName << " units: 1, K, M (lower case also allowed)";
+                ERROR_EX_LOG("%s  units: 1, K, M (lower case also allowed)", strName.c_str());
             }
             *pBitRate = (unsigned)((c == 'm' ? 1000000 : (c == 'k' ? 1000 : 1)) * r);
         } catch (std::invalid_argument) {
@@ -289,6 +298,7 @@ private:
             *pInt = std::stoi(strValue);
         } catch (std::invalid_argument) {
             // LOG(ERROR) << strName << " need a value of positive number";
+            ERROR_EX_LOG("%s  need a value of positive number", strName.c_str());
             return false; 
         }
         return true;
@@ -302,7 +312,9 @@ private:
             } else if (vQp.size() == 3) {
                 *pQp = {(unsigned)std::stoi(vQp[0]), (unsigned)std::stoi(vQp[1]), (unsigned)std::stoi(vQp[2])};
             } else {
+                
                 // LOG(ERRNVENC_THROW_ERROROR) << strName << " qp_for_P_B_I or qp_P,qp_B,qp_I (no space is allowed)";
+                ERROR_EX_LOG("%s  qp_for_P_B_I or qp_P,qp_B,qp_I (no space is allowed)", strName.c_str());
                 return false;
             }
         } catch (std::invalid_argument) {

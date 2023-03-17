@@ -37,7 +37,8 @@ void NvEncoderGL::AllocateInputBuffers(int32_t numInputBuffers)
 {
     if (!IsHWEncoderInitialized())
     {
-        // NVENC_THROW_ERROR("Encoder device not initialized", NV_ENC_ERR_ENCODER_NOT_INITIALIZED);
+
+        NVENC_THROW_ERROR("Encoder device not initialized", NV_ENC_ERR_ENCODER_NOT_INITIALIZED);
     }
     int numCount = m_bMotionEstimationOnly ? 2 : 1;
 

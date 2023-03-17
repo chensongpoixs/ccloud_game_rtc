@@ -15,7 +15,9 @@
 #include "api/video_codecs/sdp_video_format.h"
 #if defined(_MSC_VER)
 #include "nv_encoder.h"
+#else 
 
+#endif 
 namespace chen {
 
 class ExternalEncoderFactory : public webrtc::VideoEncoderFactory {
@@ -39,11 +41,18 @@ public:
 	std::unique_ptr<webrtc::VideoEncoder> CreateVideoEncoder(
 		const webrtc::SdpVideoFormat& format) override {
 		if (format.name == cricket::kH264CodecName/*absl::EqualsIgnoreCase(format.name, cricket::kH264CodecName)*/) {
-			if (webrtc::H264Encoder::IsSupported()) {
-				if (nvenc_info.is_supported()) {
-					return absl::make_unique<webrtc::NvEncoder>(cricket::VideoCodec(format));
+			if (webrtc::H264Encoder::IsSupported()) 
+			{
+#if defined(_MSC_VER)
+				if (nvenc_info.is_supported())
+				{
+					return absl::make_unique<webrtc::NvEncoder>(cricket::VideoCodec(format)); 
 				}
-				else {
+				else
+#else 
+
+#endif  
+				{
 					return webrtc::H264Encoder::Create(cricket::VideoCodec(format));
 				}
 			}			
@@ -58,6 +67,6 @@ std::unique_ptr<webrtc::VideoEncoderFactory> CreateBuiltinExternalVideoEncoderFa
 }
 
 }
-#endif
+
 
 

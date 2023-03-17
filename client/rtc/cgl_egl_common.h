@@ -12,13 +12,15 @@
 #if defined(__linux__)
 #include <stdio.h>
 #include <stdlib.h>
-#include "glad/glad_egl.h"
-#include "glad/glad.h"
+// #include "glad/glad_egl.h"
+// #include "glad/glad.h"
  #include "nvEncodeAPI.h"
  
 namespace chen {
 
-    void gl_egl_create_texture_from_pixmap(NV_ENC_INPUT_RESOURCE_OPENGL_TEX* pResource,  uint32_t width, uint32_t height, uint32_t color_format, EGLint target, void * pixmap);
+    void gl_egl_create_texture_from_pixmap(NV_ENC_INPUT_RESOURCE_OPENGL_TEX* pResource,  uint32_t width, uint32_t height, uint32_t color_format, uint32_t target, void * pixmap);
+    bool gl_create_image(void * pixmap);
+    void gl_destroy_image();
 // namespace chen {
 //bool init_egl_image_target_texture_2d_ext(void);
 }

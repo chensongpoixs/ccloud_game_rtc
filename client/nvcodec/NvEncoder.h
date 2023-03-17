@@ -19,7 +19,10 @@
 #include <iostream>
 #include <sstream>
 #include <string.h>
+#include "clog.h"
 
+
+using namespace chen;
 /**
 * @brief Exception class for error reporting from NvEncodeAPI calls.
 */
@@ -45,6 +48,9 @@ inline NVENCException NVENCException::makeNVENCException(const std::string& erro
 {
     std::ostringstream errorLog;
     errorLog << functionName << " : " << errorStr << " at " << fileName << ":" << lineNo << std::endl;
+    ERROR_EX_LOG("[%s][%s][%d][errorStr = %s]", fileName, functionName, lineNo, errorStr.c_str());
+   
+
     NVENCException exception(errorLog.str(), errorCode);
     return exception;
 }

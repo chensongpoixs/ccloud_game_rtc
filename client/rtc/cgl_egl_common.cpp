@@ -217,7 +217,7 @@ static inline bool gl_bind_texture(GLenum target, GLuint texture)
 }
 
 //  extern EGLDisplay eglDisplay ;
-  void gl_egl_create_texture_from_pixmap(NV_ENC_INPUT_RESOURCE_OPENGL_TEX* pResource,   uint32_t width, uint32_t height, uint32_t color_format, EGLint target, void * pixmap)
+  void gl_egl_create_texture_from_pixmap(NV_ENC_INPUT_RESOURCE_OPENGL_TEX* pResource,   uint32_t width, uint32_t height, uint32_t color_format, uint32_t target, void * pixmap)
 {
 	if (!pResource)
 	{
@@ -275,5 +275,55 @@ static inline bool gl_bind_texture(GLenum target, GLuint texture)
 
 	return ;
 }
+
+ EGLDisplay egl_display_ptr ;
+EGLImage image_ptr ;
+
+bool gl_create_image(void * pixmap)
+{
+
+
+	NORMAL_EX_LOG("");
+    if (!init_egl_image_target_texture_2d_ext())
+	{
+        return false;
+    }
+	NORMAL_EX_LOG("");
+	const EGLAttrib pixmap_attrs[] = {
+		EGL_IMAGE_PRESERVED_KHR,
+		EGL_TRUE,
+		EGL_NONE,
+	};
+
+      egl_display_ptr = eglGetCurrentDisplay();
+    if ( egl_display_ptr == EGL_NO_DISPLAY)
+    {
+        ERROR_EX_LOG("[%s][%d][egl_display]\n", __FUNCTION__, __LINE__);
+        return false;
+    }
+
+	NORMAL_EX_LOG("");
+	image_ptr = eglCreateImage(egl_display_ptr, EGL_NO_CONTEXT, EGL_NATIVE_PIXMAP_KHR, pixmap, pixmap_attrs);
+	if (image_ptr == EGL_NO_IMAGE) 
+    {
+		ERROR_EX_LOG("[%s][%d][ERROR]Cannot create EGLImage: %s",__FUNCTION__, __LINE__, gl_egl_error_to_string(eglGetError()));
+		return false;
+	}
+	glEGLImageTargetTexture2DOES(EGL_TEXTURE_2D, image_ptr);
+	if (!gl_success("glEGLImageTargetTexture2DOES")) 
+    {
+        ERROR_EX_LOG("[%s][%d][ERROR]\n", __FUNCTION__, __LINE__);
+		//gs_texture_destroy(texture);
+		//texture = NULL;
+	}
+	return true;
+}
+    void gl_destroy_image()
+	{
+		// struct gs_texture *texture = gl_egl_create_texture_from_eglimage(
+		// 	egl_display, width, height, color_format, target, image);
+		eglDestroyImage(egl_display_ptr, image_ptr);
+	}
+
 }
 #endif 
