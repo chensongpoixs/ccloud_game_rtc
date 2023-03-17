@@ -38,9 +38,9 @@ LINK_DIRECTORIES(
 
 file(GLOB ALL_CXX_SRCS
         ./*.cc 
-		#./Nv*.cpp 
+		./*.cpp 
 		#./Logger.h 
-		./czero_copy.cpp 
+		#./czero_copy.cpp 
 	#	./../../clib/clog.cpp 
 	#	./../../clib/casync_log.cpp 
 
