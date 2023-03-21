@@ -63,6 +63,7 @@ purpose:		input_device
 #include <xcb/xproto.h>
 #include <list>
 #include <X11/Xlib.h>
+#include <unordered_map>
 
 typedef std::mutex                    clock_type;
 typedef std::lock_guard<std::mutex>  clock_guard;
@@ -75,8 +76,159 @@ static unsigned  long                   g_count = 0;
 static  uint32_t g_new_seria = 0;
 static  uint32_t g_core_seria = 0;
 
+static std::unordered_map<uint32_t, uint32_t> g_unix_key_table = {
+ /*ESC*/	                                   { 27   , 9  },
+ /*F1*/                                        { 112  , 67 },
+ /*F2*/                                        { 113  , 68 },
+ /*F3*/                                        { 114  , 69 },
+ /*F4*/                                        { 115  , 70 },
+ /*F5*/                                        { 116  , 71 },
+ /*F6*/                                        { 117  , 72 },
+ /*F7*/                                        { 118  , 73 },
+ /*F8*/                                        { 119  , 74 },
+ /*F9*/                                        { 120  , 75 },
+ /*F10*/                                       { 121  , 76 },
+ /*F11*/                                       { 122  , 95 },
+ /*F12*/                                       { 123  , 96 },
+ ///*F8*/                                        { 124  , 79 },
+ /*Print Screen  SysRq*/                       {  44  ,  0 }, // 0 未知数字
+ /*Scrool Look*/                               { 145  , 78 },
+ /*Pause Break */                              {  19  , 127},
+ /* ~ ·*/                                      { 192  , 49 },
+ /* 1 */                                       {  49  , 10 },
+ /* 2  */                                      {  50  , 11 },
+ /* 3  */                                      {  51  , 12   },
+ /* 4 */                                       {  52  , 13   },
+ /* 5  */                                      {  53  , 14   },
+ /* 6  */                                      {  54  , 15  },
+ /* 7  */                                      {  55  , 16   },
+ /* 8  */                                      {  56  , 17   },
+ /* 9  */                                      {  57  , 18   },
+ /* 0  */                                      {  48  , 19   },
+ /* -  */                                      {  189 , 20   },
+ /* +  */                                      {  187 , 21   },
+ /* Backspace  */                              {  8   , 22   },
+
+ /* Insert  */                                 {  45  , 118   },
+ /* Home  */                                   {  36  , 110  },
+ /* Page Up  */                                {  33  , 112   },
+ 
+ /* Num Lock  */                               {   144,  77  },
+ /* /  */                              		   {   111,  106  },
+ /* *  */                                      {   106,  63 },
+ /* -  */                                      {   109,  82  },
+ 
+///////////////////////////////////////////////////////////////////////
+
+ /* Tab  */                                    {   9   ,  23 },
+ /* Q  */                                      {   81  ,  24 },
+ /* W  */                                      {   87  ,  25 },
+ /* E  */                                      {   69  ,  26 },
+ /* R  */                                      {   82  ,  27 },
+ /* T  */                                      {   84  ,  28 },
+ /* Y  */                                      {   89  ,  29 },
+ /* U  */                                      {   85  ,  30 },
+ /* I  */                                      {   73  ,  31 },
+ /* O  */                                      {   79  ,  32 },
+ /* P  */                                      {   80  ,  33 },
+ /* {  */                                      {  219  ,  34 },
+ /* }  */                                      {  221  ,  35 },
+ /* Enter  */                                  {   13  ,  36 },
+ 
+ 
+ /* Delete  */                                 {   46  ,  119 },
+ /* End  */                                    {   35  ,  115 },
+ /* Pace Down  */                              {   34  ,  117 },
+ 
+ /* 7  */                                      {   103 ,   79},
+ /* 8  */                                      {   104 ,   80},
+ /* 9  */                                      {   105 ,   81},
+ /* +  */                                      {   107 ,   86},
+ 
+ /////////////////////////////////////////////////////////////////////
+ 
+ /* Caps Lock  */                            {   20  , 66},
+ /* A  */                                    {   65  , 38},
+ /* S  */                                    {   83  , 39},
+ /* D  */                                    {   68  , 40},
+ /* F  */                                    {   70  , 41},
+ /* G  */                                    {   71  , 42},
+ /* H  */                                    {   72  , 43},
+ /* J  */                                    {   74  , 44},
+ /* K  */                                    {   75  , 45},
+ /* L  */                                    {   76  , 46},
+ /* ;  */                                    {  186  , 47},
+ /* '  */                                    {  222  , 48},
+ /* \  */                                    {  220  , 51},
+ 
+ 
+ /* 4  */                                    {  100  , 83},
+ /* 5  */                                    {  101  , 84},
+ /* 6  */                                    {  102  , 85},
+ 
+ 
+ ////////////////////////////////////////////////////////////////////////
+ 
+ /* Shift  */                            	 {   16  , 50},
+ /* Z */                                     {   90  , 52},
+ /* X  */                                    {   88  , 53},
+ /* C  */                                    {   67  , 54},
+ /* V  */                                    {   86  , 55},
+ /* B  */                                    {   66  , 56},
+ /* N  */                                    {   78  , 57},
+ /* M  */                                    {   77  , 58},
+ /* <  */                                    {  188  , 59},
+ /* >  */                                    {  190  , 60},
+ /* /  */                                    {  191  , 61},
+ ///* Shift   */                               {   16  , 62 },
+ 
+ /* 向上→  */                                {   38  , 111},
+ 
+ 
+ /* 1  */                                    {   97  , 87},
+ /* 2  */                                    {   98  , 88},
+ /* 3  */                                    {   99  , 89},
+ ///* Enter  */                                {   13  , 104},
+ 
+ 
+ ////////////////////////////////////////////////////////////////////
+ /* Ctrl  */                                 {   17  , 37/*105*/ },
+// /* win  */                                  {   91  , },
+ /* Alt  */                                  {   18  , 64/*108*/},
+ /* 空格键  */                               {   32  , 65},
+// /* Fn  */                                 {   20  , },
+ /* ContextMenu  */                          {   93  , 135},
+ /* 左向→  */                                {   37  , 113},
+ /* 向下→  */                                {   40  , 116},
+ /* 向右→  */                                {   39  , 114},
+ /* 0  */                                    {   96  ,  90},
+ /* .  */                                    {   190  , 91}, 
+ 
+};
 
 
+
+/*
+state --> 
+
+
+#define ShiftMask		(1<<0)
+#define LockMask		(1<<1)
+#define ControlMask		(1<<2)
+#define Mod1Mask		(1<<3)
+#define Mod2Mask		(1<<4)
+#define Mod3Mask		(1<<5)
+#define Mod4Mask		(1<<6)
+#define Mod5Mask		(1<<7)
+
+
+#define Button1Mask		(1<<8)
+#define Button2Mask		(1<<9)
+#define Button3Mask		(1<<10)
+#define Button4Mask		(1<<11)
+#define Button5Mask		(1<<12)
+
+*/
 
 //#define gettid() syscall(__NR_gettid)
 
@@ -860,6 +1012,8 @@ namespace chen {
     }
 
 
+static uint32 g_key_state = 0;
+
 
 ///	cinput_device   g_input_device_mgr;
 	cinput_device::cinput_device() 
@@ -1073,12 +1227,37 @@ namespace chen {
         Xkey.xkey.send_event = 0;
         Xkey.xkey.same_screen = 1;
 		// key 32 ==> 65
-        Xkey.xkey.keycode = 65; //KeyCode;
-        Xkey.xkey.state  = 16;
+        Xkey.xkey.keycode = /*65*/  g_unix_key_table[KeyCode]; //KeyCode;
+        Xkey.xkey.state  = g_key_state;
 		Xkey.xkey.display = g_display_ptr;
 		Xkey.xkey.window = g_main_window;
 
-        if (g_main_window && g_display_ptr && KeyCode == 32)
+		/*
+		#define ShiftMask		(1<<0)
+#define LockMask		(1<<1)
+#define ControlMask		(1<<2)
+#define Mod1Mask		(1<<3)
+		
+		*/
+		if (16 == KeyCode )
+		{
+			g_key_state |= ShiftMask;
+		}
+		else if (20 == KeyCode )
+		{
+			g_key_state |= LockMask;
+		}
+		else if (17 == KeyCode)
+		{
+			g_key_state |= ControlMask;
+		}
+		else if (18 == KeyCode)
+		{
+			g_key_state |= Mod1Mask;
+		}
+
+		// if ()
+        if (g_main_window && g_display_ptr /*&& KeyCode == 32*/)
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
             XSendEvent(g_display_ptr, g_main_window, True, KeyPress, &Xkey);
@@ -1158,12 +1337,28 @@ namespace chen {
         Xkey.xkey.type = KeyRelease;
         Xkey.xkey.send_event = 0;
         Xkey.xkey.same_screen = 1;
-        Xkey.xkey.keycode = 65; //KeyCode;
-        Xkey.xkey.state  = 16;
+        Xkey.xkey.keycode = /*65*/ g_unix_key_table[KeyCode]; //KeyCode;
+        Xkey.xkey.state  = g_key_state;
 		Xkey.xkey.display = g_display_ptr;
 		Xkey.xkey.window = g_main_window;
+		if (16 == KeyCode )
+		{
+			g_key_state |= ~ShiftMask;
+		}
+		else if (20 == KeyCode )
+		{
+			g_key_state |= ~LockMask;
+		}
+		else if (17 == KeyCode)
+		{
+			g_key_state |= ~ControlMask;
+		}
+		else if (18 == KeyCode)
+		{
+			g_key_state |= ~Mod1Mask;
+		}
 
-        if (g_main_window && g_display_ptr && KeyCode == 32)
+        if (g_main_window && g_display_ptr /*&& KeyCode == 32*/)
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
             XSendEvent(g_display_ptr, g_main_window, True, KeyRelease, &Xkey);
@@ -1243,8 +1438,23 @@ namespace chen {
         Xkey.xkey.send_event = 0;
         Xkey.xkey.same_screen = 1;
         Xkey.xkey.keycode = Character;
-        Xkey.xkey.state  = 16;
-
+        Xkey.xkey.state  = g_key_state;
+		if (16 == Character)
+		{
+			g_key_state |= ShiftMask;
+		}
+		else if (20 == Character)
+		{
+			g_key_state |= LockMask;
+		}
+		else if (17 == Character)
+		{
+			g_key_state |= ControlMask;
+		}
+		else if (18 == Character)
+		{
+			g_key_state |= Mod1Mask;
+		}
         if (g_main_window && g_display_ptr)
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, True, CurrentTime);
@@ -1430,7 +1640,25 @@ namespace chen {
         xButton.xbutton.send_event = 0;
         xButton.xbutton.same_screen = True;
         xButton.xbutton.button = active_type;
-        xButton.xbutton.state = 16;  // TODO@chensong 20220822  这个变量很神奇 目前只要是16 就可以哈、 新大陆你们自己玩吧
+		xButton.xbutton.state = g_key_state;
+		if (active_type == Button1)
+		{
+			g_key_state |= Button1Mask;
+		}
+		else if (Button2 == active_type)
+		{
+			g_key_state |= Button2Mask;
+		}
+		else if (Button3 == active_type) 
+		{
+			g_key_state |= Button3Mask;
+		}
+		// else 
+		// {
+		// 	WARNING_EX_LOG("ative_type not find --->");
+		// 	return false;
+		// }
+	  //  xButton.xbutton.state = 16;  // TODO@chensong 20220822  这个变量很神奇 目前只要是16 就可以哈、 新大陆你们自己玩吧
         xButton.xbutton.time = CurrentTime;
         xButton.xbutton.window = g_main_window;
 //        {
@@ -1523,6 +1751,18 @@ namespace chen {
         xButton.xbutton.time = CurrentTime;
         xButton.xbutton.state = 27;
         xButton.xbutton.window = g_main_window;
+		if (active_type == Button1)
+		{
+			g_key_state |= ~Button1Mask;
+		}
+		else if (Button2 == active_type)
+		{
+			g_key_state |= ~Button2Mask;
+		}
+		else if (Button3 == active_type) 
+		{
+			g_key_state |= ~Button3Mask;
+		}
         if (g_main_window && g_display_ptr)
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, False, CurrentTime);

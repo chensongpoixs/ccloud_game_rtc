@@ -497,7 +497,7 @@ void EncodeGL(char *szInFilePath, char *szOutFilePath, int nWidth, int nHeight,
        EGLImage image = eglCreateImage(egl_display, EGL_NO_CONTEXT,
             EGL_NATIVE_PIXMAP_KHR, pixmap,
             pixmap_attrs);*/
-        
+        glBindTexture(pResource->target, pResource->texture);
         glTexSubImage2D(pResource->target, 0, 0, 0, nWidth, nHeight * 3 / 2,
             GL_RED, GL_UNSIGNED_BYTE, pHostFrame.get());
         glBindTexture(pResource->target, 0);

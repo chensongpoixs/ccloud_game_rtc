@@ -35,7 +35,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
+///usr/include/xcb/xproto.h
 #include <xcb/xcb.h>
 
 void
@@ -152,20 +152,39 @@ main ()
                         ev->event, ev->event_x, ev->event_y);
                 break;
             }
-            case XCB_KEY_PRESS: {
+            case XCB_KEY_PRESS: 
+            {
+                /*
+                typedef struct xcb_key_press_event_t {
+    uint8_t         response_type;
+    xcb_keycode_t   detail;
+    uint16_t        sequence;
+    xcb_timestamp_t time;
+    xcb_window_t    root;
+    xcb_window_t    event;
+    xcb_window_t    child;
+    int16_t         root_x;
+    int16_t         root_y;
+    int16_t         event_x;
+    int16_t         event_y;
+    uint16_t        state;
+    uint8_t         same_screen;
+    uint8_t         pad0;
+} xcb_key_press_event_t;
+                */
                 xcb_key_press_event_t *ev = (xcb_key_press_event_t *)e;
                 print_modifiers(ev->state);
 
-                printf ("Key pressed in window %ld\n",
-                        ev->event);
+                printf ("Key pressed in window %ld[response_type = %u][detail = %u][sequence = %u][xcb_timestamp_t = %u][root_x = %u][root_y = %u][event_x = %u][event_y = %u][state = %u][same_screen = %u][pad0 = %u]\n", 
+                ev->event, ev->response_type, ev->detail, ev->sequence, ev->time, ev->root_x, ev->root_y, ev->event_x, ev->event_y, ev->state, ev->same_screen, ev->pad0);
                 break;
             }
             case XCB_KEY_RELEASE: {
                 xcb_key_release_event_t *ev = (xcb_key_release_event_t *)e;
                 print_modifiers(ev->state);
 
-                printf ("Key released in window %ld\n",
-                        ev->event);
+                printf ("Key released in window %ld[response_type = %u][detail = %u][sequence = %u][xcb_timestamp_t = %u][root_x = %u][root_y = %u][event_x = %u][event_y = %u][state = %u][same_screen = %u][pad0 = %u]\n", 
+                ev->event, ev->response_type, ev->detail, ev->sequence, ev->time, ev->root_x, ev->root_y, ev->event_x, ev->event_y, ev->state, ev->same_screen, ev->pad0);
                 break;
             }
             default:

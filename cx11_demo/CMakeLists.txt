@@ -138,12 +138,12 @@ target_link_libraries(${PROJECT_NAME} ${ALL_LIB})
 #
 #
 #
-#file(GLOB  xsendevent
-#        test_xsendevent.c
-#        )
-#
-#add_executable(test_xsendevent ${xsendevent})
-#target_link_libraries(test_xsendevent ${ALL_LIB})
+file(GLOB  xsendevent
+        test_xsendevent.c
+        )
+
+add_executable(test_xsendevent ${xsendevent})
+target_link_libraries(test_xsendevent ${ALL_LIB})
 
 #add_subdirectory(clib)
 #add_subdirectory(common)
