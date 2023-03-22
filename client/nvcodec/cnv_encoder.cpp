@@ -31,10 +31,12 @@ purpose:		nvenc
 #include "cgl_egl_common.h"
 #include "NvEncoderGL.h"
 #include "NvEncoderCLIOptions.h"
+
+#include "glad/glad.h"
 // #include "NvCodecUtils.h"
-#include <GL/glew.h>
-#include <GL/glut.h>
-#include <GL/freeglut_ext.h>
+// #include <GL/glew.h>
+// #include <GL/glut.h>
+// #include <GL/freeglut_ext.h>
 #include "cgl_global.h"
 
 // namespace webrtc {

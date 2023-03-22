@@ -10,8 +10,8 @@
 */
 
 #include "NvEncoderGL.h"
-#include <GL/glew.h>
-// #inlcude "glad/glad.h"
+// #include <GL/glew.h>
+#include "glad/glad.h"
 NvEncoderGL::NvEncoderGL(uint32_t nWidth, uint32_t nHeight, NV_ENC_BUFFER_FORMAT eBufferFormat,
     uint32_t nExtraOutputDelay, bool bMotionEstimationOnly) :
     NvEncoder(NV_ENC_DEVICE_TYPE_OPENGL, nullptr, nWidth, nHeight, eBufferFormat,

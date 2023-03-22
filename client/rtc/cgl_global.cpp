@@ -7,9 +7,9 @@ purpose:		linux_app_capture
 ************************************************************************************************/
 
 #include "cgl_global.h"
-#include <GL/glew.h>
-#include <GL/glut.h>
-#include <GL/freeglut_ext.h>
+// #include <GL/glew.h>
+// #include <GL/glut.h>
+// #include <GL/freeglut_ext.h>
 #include "clog.h"
 #include <iostream>
 #include <string.h>
@@ -25,9 +25,11 @@ purpose:		linux_app_capture
 #include <iterator>
 #include <cstring>
 #include <functional>
-#include <GL/glew.h>
-#include <GL/glut.h>
-#include <GL/freeglut_ext.h>
+// #include <GL/glew.h>
+// #include <GL/glut.h>
+// #include <GL/freeglut_ext.h>
+#include "glad/glad_egl.h"
+#include "glad/glad.h"
 #include "Logger.h"
 #include "NvEncoderGL.h"
 #include "NvEncoderCLIOptions.h"

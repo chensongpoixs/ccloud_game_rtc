@@ -18,9 +18,9 @@ purpose:		linux_app_capture
 #include <stdint.h>
 
 // #include "NvCodecUtils.h"
-#include <GL/glew.h>
-#include <GL/glut.h>
-#include <GL/freeglut_ext.h>
+// #include <GL/glew.h>
+// #include <GL/glut.h>
+// #include <GL/freeglut_ext.h>
 #include <vector>
 #include <string>
 #include <algorithm>

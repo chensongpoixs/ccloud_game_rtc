@@ -33,9 +33,9 @@
 
 #ifndef __glad_egl_h_
 
-// #ifdef __egl_h_
-// #error EGL header already included, remove this include, glad already provides it
-// #endif
+#ifdef __egl_h_
+#error EGL header already included, remove this include, glad already provides it
+#endif
 
 #define __glad_egl_h_
 #define __egl_h_
