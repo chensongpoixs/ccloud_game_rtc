@@ -93,6 +93,9 @@ namespace  chen {
         bool _find_window_name(const char * window_name);
 
         bool _init_window();
+
+
+        bool _check_xcomp_window_exists();
     private:
         bool                m_stoped;
         Display          *  m_display_ptr;

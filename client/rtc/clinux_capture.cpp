@@ -16,7 +16,12 @@ purpose:		linux_app_capture
 #include <iostream>
 #include <memory>
 #include <stdint.h>
-
+//#include <glad/glad.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xlib-xcb.h>
+#include <xcb/xcb.h>
+#include <xcb/composite.h>
 // #include "NvCodecUtils.h"
 // #include <GL/glew.h>
 // #include <GL/glut.h>
@@ -413,6 +418,54 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
             }
             else 
             {
+                if (_check_xcomp_window_exists())
+                {
+                    WARNING_EX_LOG("window exits ---> ");
+                     _get_all_window_info();
+                    if (!_find_window_name(m_win_name.c_str()))
+                    {
+                        _show_all_window_info();
+                        ERROR_EX_LOG("not find window_name = %s", m_win_name.c_str());
+                        break;
+                    } 
+                    s_input_device.set_main_window(m_win);
+            
+                    comp_ver_cookie = xcb_composite_query_version(m_connection_ptr, 0, 2);
+                    comp_ver_reply = xcb_composite_query_version_reply(m_connection_ptr, comp_ver_cookie, &err);
+                    if (comp_ver_reply)
+                    {
+                        if (comp_ver_reply->minor_version < 2)
+                        {
+                            ERROR_EX_LOG("query composite failure: server returned v%d.%d", comp_ver_reply->major_version, comp_ver_reply->minor_version);
+                            free(comp_ver_reply);
+                            false;
+                        }
+                        free(comp_ver_reply);
+                    }
+                    else if (err)
+                    {
+                        ERROR_EX_LOG( "xcb error: %d\n", err->error_code);
+                        free(err);
+                        break;
+                    }
+
+                     setup = xcb_get_setup(m_connection_ptr);
+                     screen_iter = xcb_setup_roots_iterator(setup);
+                     screen = screen_iter.data;
+                    // request redirection of window
+                    //这个代码将窗口内容重定向的离屏缓存并且跟踪 damage 信号，
+                    xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
+            
+                    _init_window();
+                    
+                    NORMAL_EX_LOG("app capture [width = %u][height = %u][depth = %u]", m_win_width, m_win_height, m_win_depth);
+                    
+                    xcb_map_window(m_connection_ptr, m_win);
+
+                    xcb_flush(m_connection_ptr);
+
+
+                }
                
                 xcb_generic_error_t *err = NULL, *err2 = NULL;
                 xcb_get_image_cookie_t gi_cookie = xcb_get_image(m_connection_ptr, XCB_IMAGE_FORMAT_Z_PIXMAP, m_win_pixmap, 0, 0, m_win_width, m_win_height, (uint32_t)(~0UL));
@@ -684,6 +737,19 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
       
 
         return true;
+    }
+
+    bool clinux_capture::_check_xcomp_window_exists()
+    {
+        xcb_generic_error_t *err = NULL;
+        xcb_get_window_attributes_cookie_t attr_cookie = xcb_get_window_attributes(m_connection_ptr, m_win);
+        xcb_get_window_attributes_reply_t *attr = xcb_get_window_attributes_reply(m_connection_ptr, attr_cookie, &err);
+
+        bool exists = err == NULL && attr->map_state == XCB_MAP_STATE_VIEWABLE;
+        free(attr);
+        return exists;
+
+        //return true;
     }
 }
 #endif
