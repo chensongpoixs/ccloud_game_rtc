@@ -48,7 +48,7 @@ inline NVENCException NVENCException::makeNVENCException(const std::string& erro
 {
     std::ostringstream errorLog;
     errorLog << functionName << " : " << errorStr << " at " << fileName << ":" << lineNo << std::endl;
-    ERROR_EX_LOG("[%s][%s][%d][errorStr = %s]", fileName, functionName, lineNo, errorStr.c_str());
+    ERROR_EX_LOG("[%s][%s][%d][errorStr = %s]", fileName.c_str(), functionName.c_str(), lineNo, errorStr.c_str());
    
 
     NVENCException exception(errorLog.str(), errorCode);

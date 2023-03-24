@@ -9,7 +9,9 @@ purpose:		linux_app_capture
 
 #ifndef C_GL_GLOBAL_H
 #define C_GL_GLOBAL_H
-
+ #include "nvEncodeAPI.h"
+ #include <stdio.h>
+#include <stdlib.h>
 namespace chen {
 
     bool init_gl();
@@ -18,6 +20,7 @@ namespace chen {
 
     void destroy_gl();
     // extern EGLDisplay eglDisplay ;
+     void gl_egl_create_texture_from_pixmap(NV_ENC_INPUT_RESOURCE_OPENGL_TEX* pResource,   uint32_t width, uint32_t height, uint32_t color_format, uint32_t target, void * pixmap);
 }
 
 #endif // C_GL_GLOBAL_H

@@ -368,7 +368,7 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
     //     NV_ENC_BUFFER_FORMAT eFormat = NV_ENC_BUFFER_FORMAT_IYUV;
         
     //      NORMAL_EX_LOG("");
-    //     init_gl();
+    //    init_gl();
     //      NORMAL_EX_LOG("");
     //      std::ostringstream oss;
     //         oss << "-codec h264 -fps 25 ";
@@ -387,15 +387,16 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
     //     enc.CreateEncoder(&initializeParams);
     //     NORMAL_EX_LOG("");
     //     int nFrameSize = enc.GetFrameSize();
+    //     NORMAL_EX_LOG("");
     // //     std::unique_ptr<uint8_t[]> pHostFrame(new uint8_t[nFrameSize]);
     //     int nFrame = 0;
     //     std::ofstream fpOut(szOutFilePath, std::ios::out | std::ios::binary);
-        // if (!fpOut)
-        // {
-        //     std::ostringstream err;
-        //     err << "Unable to open output file: " << szOutFilePath << std::endl;
-        //     throw std::invalid_argument(err.str());
-        // }
+    //     if (!fpOut)
+    //     {
+    //         std::ostringstream err;
+    //         err << "Unable to open output file: " << szOutFilePath << std::endl;
+    //         throw std::invalid_argument(err.str());
+    //     }
         //encodec_gl(m_win_width, m_win_height, m_win_pixmap);
         NORMAL_EX_LOG("");
         rtc::scoped_refptr<webrtc::I420Buffer> i420_buffer_  = webrtc::I420Buffer::Create(m_win_width, m_win_height);
@@ -423,7 +424,7 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
                     i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
                     i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
                     i420_buffer_->StrideV(), 0, 0, m_win_width, m_win_height, m_win_width,
-                    m_win_height, libyuv::kRotate0, libyuv::FOURCC_ABGR);
+                    m_win_height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
 
                        webrtc::VideoFrame captureFrame = webrtc::VideoFrame::Builder()
                         .set_video_frame_buffer(i420_buffer_)
@@ -442,23 +443,24 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
                     // fflush(out_file_yuv_ptr);
 
                     //////////////////////////////////
-                    // const NvEncInputFrame* encoderInputFrame = enc.GetNextInputFrame();
-                    // NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = (NV_ENC_INPUT_RESOURCE_OPENGL_TEX *)encoderInputFrame->inputPtr;
+//                     const NvEncInputFrame* encoderInputFrame = enc.GetNextInputFrame();
+//                     NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = (NV_ENC_INPUT_RESOURCE_OPENGL_TEX *)encoderInputFrame->inputPtr;
+// // uint32_t width, uint32_t height, uint32_t color_format, uint32_t target, void * pixmap
+//                    gl_egl_create_texture_from_pixmap(pResource, m_win_width, m_win_height, GL_BGRA, GL_TEXTURE_2D, m_win_pixmap);
+//                     //  glBindTexture(pResource->target, pResource->texture);
+//                     //  glTexSubImage2D(pResource->target, 0, 0, 0, nWidth, nHeight * 3/2, GL_RED, GL_UNSIGNED_BYTE, i420_buffer_->DataY());
+//                     //  glBindTexture(pResource->target, 0);
                     
-                    // glBindTexture(pResource->target, pResource->texture);
-                    // glTexSubImage2D(pResource->target, 0, 0, 0, nWidth, nHeight * 3/2, GL_RED, GL_UNSIGNED_BYTE, i420_buffer_->DataY());
-                    // glBindTexture(pResource->target, 0);
                     
-                    
-                    // std::vector<std::vector<uint8_t>> vPacket;
-                    // enc.EncodeFrame(vPacket);
-                    // NORMAL_EX_LOG("vPacket.size() = %u", vPacket.size());
-                    //     nFrame += (int)vPacket.size();
-                    // for (std::vector<uint8_t> &packet : vPacket)
-                    // {
-                    //     fpOut.write(reinterpret_cast<char*>(packet.data()), packet.size());
-                    //     //fpOut.out.flush();
-                    // }
+//                     std::vector<std::vector<uint8_t>> vPacket;
+//                     enc.EncodeFrame(vPacket);
+//                     NORMAL_EX_LOG("vPacket.size() = %u", vPacket.size());
+//                         nFrame += (int)vPacket.size();
+//                     for (std::vector<uint8_t> &packet : vPacket)
+//                     {
+//                         fpOut.write(reinterpret_cast<char*>(packet.data()), packet.size());
+//                         // fpOut.out.fflush();
+//                     }
 
                     /////////////////////////////////////////
 
@@ -472,7 +474,7 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
                     WARNING_EX_LOG("gi reply failed !!!");
                 }
             }
-            //if (!m_stoped)
+            if (!m_stoped)
             {
                 cur_time_ms = std::chrono::steady_clock::now();
                 dur = cur_time_ms - pre_time;

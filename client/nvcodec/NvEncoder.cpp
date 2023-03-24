@@ -13,6 +13,10 @@
 #include <dlfcn.h>
 #endif
 #include "NvEncoder.h"
+#include "clog.h"
+
+
+using namespace chen;
 
 #ifndef _WIN32
 #include <cstring>
@@ -198,26 +202,32 @@ void NvEncoder::CreateDefaultEncoderParams(NV_ENC_INITIALIZE_PARAMS* pIntializeP
 
 void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
 {
+    NORMAL_EX_LOG("------->>>>>");
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     if (!m_hEncoder)
     {
         NVENC_THROW_ERROR("Encoder Initialization failed", NV_ENC_ERR_NO_ENCODE_DEVICE);
     }
-
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+NORMAL_EX_LOG("");
     if (!pEncoderParams)
     {
         NVENC_THROW_ERROR("Invalid NV_ENC_INITIALIZE_PARAMS ptr", NV_ENC_ERR_INVALID_PTR);
     }
-
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+NORMAL_EX_LOG("");
     if (pEncoderParams->encodeWidth == 0 || pEncoderParams->encodeHeight == 0)
     {
         NVENC_THROW_ERROR("Invalid encoder width and height", NV_ENC_ERR_INVALID_PARAM);
     }
-
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+NORMAL_EX_LOG("");
     if (pEncoderParams->encodeGUID != NV_ENC_CODEC_H264_GUID && pEncoderParams->encodeGUID != NV_ENC_CODEC_HEVC_GUID)
     {
         NVENC_THROW_ERROR("Invalid codec guid", NV_ENC_ERR_INVALID_PARAM);
     }
-
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+NORMAL_EX_LOG("");
     if (pEncoderParams->encodeGUID == NV_ENC_CODEC_H264_GUID)
     {
         if (m_eBufferFormat == NV_ENC_BUFFER_FORMAT_YUV420_10BIT || m_eBufferFormat == NV_ENC_BUFFER_FORMAT_YUV444_10BIT)
@@ -225,7 +235,8 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
             NVENC_THROW_ERROR("10-bit format isn't supported by H264 encoder", NV_ENC_ERR_INVALID_PARAM);
         }
     }
-
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+NORMAL_EX_LOG("");
     // set other necessary params if not set yet
     if (pEncoderParams->encodeGUID == NV_ENC_CODEC_H264_GUID)
     {
@@ -235,7 +246,8 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
             NVENC_THROW_ERROR("Invalid ChromaFormatIDC", NV_ENC_ERR_INVALID_PARAM);
         }
     }
-
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+NORMAL_EX_LOG("");
     if (pEncoderParams->encodeGUID == NV_ENC_CODEC_HEVC_GUID)
     {
         bool yuv10BitFormat = (m_eBufferFormat == NV_ENC_BUFFER_FORMAT_YUV420_10BIT || m_eBufferFormat == NV_ENC_BUFFER_FORMAT_YUV444_10BIT) ? true : false;
@@ -250,10 +262,12 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
             NVENC_THROW_ERROR("Invalid ChromaFormatIDC", NV_ENC_ERR_INVALID_PARAM);
         }
     }
-
+    printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+    NORMAL_EX_LOG("");
     memcpy(&m_initializeParams, pEncoderParams, sizeof(m_initializeParams));
     m_initializeParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
-
+NORMAL_EX_LOG("");
+printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     if (pEncoderParams->encodeConfig)
     {
         memcpy(&m_encodeConfig, pEncoderParams->encodeConfig, sizeof(m_encodeConfig));
@@ -268,20 +282,25 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
         m_encodeConfig.rcParams.rateControlMode = NV_ENC_PARAMS_RC_CONSTQP;
         m_encodeConfig.rcParams.constQP = { 28, 31, 25 };
     }
+    // printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+    NORMAL_EX_LOG("");
     m_initializeParams.encodeConfig = &m_encodeConfig;
 
     NVENC_API_CALL(m_nvenc.nvEncInitializeEncoder(m_hEncoder, &m_initializeParams));
-
+NORMAL_EX_LOG("");
+// printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     m_bEncoderInitialized = true;
     m_nWidth = m_initializeParams.encodeWidth;
     m_nHeight = m_initializeParams.encodeHeight;
     m_nMaxEncodeWidth = m_initializeParams.maxEncodeWidth;
     m_nMaxEncodeHeight = m_initializeParams.maxEncodeHeight;
-
+NORMAL_EX_LOG("");
+// printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     m_nEncoderBuffer = m_encodeConfig.frameIntervalP + m_encodeConfig.rcParams.lookaheadDepth + m_nExtraOutputDelay;
     m_nOutputDelay = m_nEncoderBuffer - 1;
     m_vMappedInputBuffers.resize(m_nEncoderBuffer, nullptr);
-
+NORMAL_EX_LOG("");
+// printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     m_vpCompletionEvent.resize(m_nEncoderBuffer, nullptr);
 #if defined(_WIN32)
     for (int i = 0; i < m_nEncoderBuffer; i++) 
@@ -292,19 +311,24 @@ void NvEncoder::CreateEncoder(const NV_ENC_INITIALIZE_PARAMS* pEncoderParams)
         m_nvenc.nvEncRegisterAsyncEvent(m_hEncoder, &eventParams);
     }
 #endif
-
+NORMAL_EX_LOG("");
+// printf("[%s][%d]\n", __FUNCTION__, __LINE__);
     if (m_bMotionEstimationOnly)
     {
+        NORMAL_EX_LOG("");
         m_vMappedRefBuffers.resize(m_nEncoderBuffer, nullptr);
         InitializeMVOutputBuffer();
     }
     else
     {
-        m_vBitstreamOutputBuffer.resize(m_nEncoderBuffer, nullptr);
+        NORMAL_EX_LOG("");
+        m_vBitstreamOutputBuffer.clear();
+       // m_vBitstreamOutputBuffer.resize(m_nEncoderBuffer, nullptr);
         InitializeBitstreamBuffer();
     }
-
-    AllocateInputBuffers(m_nEncoderBuffer);
+    NORMAL_EX_LOG("====>>>>>>>");
+// printf("[%s][%d]\n", __FUNCTION__, __LINE__);
+   AllocateInputBuffers(m_nEncoderBuffer);
 }
 
 void NvEncoder::DestroyEncoder()
@@ -845,12 +869,18 @@ void NvEncoder::GetInitializeParams(NV_ENC_INITIALIZE_PARAMS *pInitializeParams)
 
 void NvEncoder::InitializeBitstreamBuffer()
 {
+    NORMAL_EX_LOG("[m_nEncoderBuffer = %u]", m_nEncoderBuffer);
     for (int i = 0; i < m_nEncoderBuffer; i++)
     {
         NV_ENC_CREATE_BITSTREAM_BUFFER createBitstreamBuffer = { NV_ENC_CREATE_BITSTREAM_BUFFER_VER };
+        // NORMAL_EX_LOG("[i = %u]", i);
         NVENC_API_CALL(m_nvenc.nvEncCreateBitstreamBuffer(m_hEncoder, &createBitstreamBuffer));
-        m_vBitstreamOutputBuffer[i] = createBitstreamBuffer.bitstreamBuffer;
+        // NORMAL_EX_LOG("[i = %u]", i);
+        //m_vBitstreamOutputBuffer[i] = createBitstreamBuffer.bitstreamBuffer;
+        m_vBitstreamOutputBuffer.push_back(createBitstreamBuffer.bitstreamBuffer);
+        // NORMAL_EX_LOG("[i = %u]", i);
     }
+    NORMAL_EX_LOG("[m_nEncoderBuffer = %u]", m_nEncoderBuffer);
 }
 
 void NvEncoder::DestroyBitstreamBuffer()

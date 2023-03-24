@@ -1640,24 +1640,27 @@ static uint32 g_key_state = 0;
         xButton.xbutton.send_event = 0;
         xButton.xbutton.same_screen = True;
         xButton.xbutton.button = active_type;
+       
+		
+ 		 if (active_type == Button1)
+        {
+            g_key_state |= Button1Mask;
+        }
+        else if (Button2 == active_type)
+        {
+            g_key_state |= Button2Mask;
+        }
+        else if (Button3 == active_type)
+        {
+            g_key_state |= Button3Mask;
+        }
+        else
+        {
+            WARNING_EX_LOG("ative_type not find --->");
+            return false;
+        }
+		WARNING_EX_LOG("[g_key_state = %u]", g_key_state);
 		xButton.xbutton.state = g_key_state;
-		if (active_type == Button1)
-		{
-			g_key_state |= Button1Mask;
-		}
-		else if (Button2 == active_type)
-		{
-			g_key_state |= Button2Mask;
-		}
-		else if (Button3 == active_type) 
-		{
-			g_key_state |= Button3Mask;
-		}
-		// else 
-		// {
-		// 	WARNING_EX_LOG("ative_type not find --->");
-		// 	return false;
-		// }
 	  //  xButton.xbutton.state = 16;  // TODO@chensong 20220822  这个变量很神奇 目前只要是16 就可以哈、 新大陆你们自己玩吧
         xButton.xbutton.time = CurrentTime;
         xButton.xbutton.window = g_main_window;
@@ -1749,20 +1752,22 @@ static uint32 g_key_state = 0;
         xButton.xbutton.same_screen = True;
         xButton.xbutton.button = active_type;
         xButton.xbutton.time = CurrentTime;
-        xButton.xbutton.state = 27;
+        if (active_type == Button1)
+        {
+            g_key_state &= ~Button1Mask ;
+        }
+        else if (Button2 == active_type)
+        {
+            g_key_state &= ~Button2Mask ;
+        }
+        else if (Button3 == active_type)
+        {
+            g_key_state &= ~Button3Mask ;
+        }
+		WARNING_EX_LOG("[g_key_state = %u]", g_key_state);
+        xButton.xbutton.state = g_key_state;
         xButton.xbutton.window = g_main_window;
-		if (active_type == Button1)
-		{
-			g_key_state |= ~Button1Mask;
-		}
-		else if (Button2 == active_type)
-		{
-			g_key_state |= ~Button2Mask;
-		}
-		else if (Button3 == active_type) 
-		{
-			g_key_state |= ~Button3Mask;
-		}
+
         if (g_main_window && g_display_ptr)
         {
 //            XTestFakeButtonEvent(g_display_ptr, -1, False, CurrentTime);
