@@ -1343,19 +1343,19 @@ static uint32 g_key_state = 0;
 		Xkey.xkey.window = g_main_window;
 		if (16 == KeyCode )
 		{
-			g_key_state |= ~ShiftMask;
+			g_key_state &= ~ShiftMask;
 		}
 		else if (20 == KeyCode )
 		{
-			g_key_state |= ~LockMask;
+			g_key_state &= ~LockMask;
 		}
 		else if (17 == KeyCode)
 		{
-			g_key_state |= ~ControlMask;
+			g_key_state &= ~ControlMask;
 		}
 		else if (18 == KeyCode)
 		{
-			g_key_state |= ~Mod1Mask;
+			g_key_state &= ~Mod1Mask;
 		}
 
         if (g_main_window && g_display_ptr /*&& KeyCode == 32*/)
@@ -1659,7 +1659,7 @@ static uint32 g_key_state = 0;
             WARNING_EX_LOG("ative_type not find --->");
             return false;
         }
-		WARNING_EX_LOG("[g_key_state = %u]", g_key_state);
+		 
 		xButton.xbutton.state = g_key_state;
 	  //  xButton.xbutton.state = 16;  // TODO@chensong 20220822  这个变量很神奇 目前只要是16 就可以哈、 新大陆你们自己玩吧
         xButton.xbutton.time = CurrentTime;
@@ -1764,7 +1764,7 @@ static uint32 g_key_state = 0;
         {
             g_key_state &= ~Button3Mask ;
         }
-		WARNING_EX_LOG("[g_key_state = %u]", g_key_state);
+		 
         xButton.xbutton.state = g_key_state;
         xButton.xbutton.window = g_main_window;
 
