@@ -106,12 +106,12 @@ namespace chen {
             i420_buffer_->width() * i420_buffer_->height() < width * height) {
             i420_buffer_ = webrtc::I420Buffer::Create(width, height);
         }
-		memcpy(i420_buffer_->MutableDataY(), frame->data(), width * height * 4);
-      /*  libyuv::ConvertToI420(frame->data(), 0, i420_buffer_->MutableDataY(),
+		//memcpy(i420_buffer_->MutableDataY(), frame->data(), width * height * 4);
+      libyuv::ConvertToI420(frame->data(), 0, i420_buffer_->MutableDataY(),
             i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
             i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
             i420_buffer_->StrideV(), 0, 0, width, height, width,
-            height, libyuv::kRotate0, libyuv::FOURCC_ARGB);*/
+            height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
 
 
         // seting 马流的信息

@@ -107,6 +107,8 @@ namespace chen {
 
 		void transportofferasner(bool send, bool success);
 
+		void set_p2p_connect() { m_p2p_connect_failed = 0; }
+
 		//webrtc连接失败回调用重新连接哈
 		void webrtc_connect_failed_callback();
 	private:
@@ -202,6 +204,7 @@ namespace chen {
 		cmediasoup::mediasoup_status_update_cb		m_mediasoup_status_callback;
 		uint32							m_websocket_timer;
 		bool							m_send_produce_video_msg;
+		uint32							m_p2p_connect_failed;
 	};
 #define  s_client chen::csingleton<chen::cclient>::get_instance()
 }

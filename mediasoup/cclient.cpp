@@ -92,7 +92,8 @@ namespace chen {
 		, m_ui_type(EUI_None)
 		, m_mediasoup_status_callback(nullptr)
 		, m_websocket_timer(0)
-		, m_send_produce_video_msg(false){}
+		, m_send_produce_video_msg(false)
+		, m_p2p_connect_failed(0){}
 	cclient::~cclient(){}
 
 	static void show_work_dir()
@@ -700,8 +701,9 @@ namespace chen {
 	{
 		WARNING_EX_LOG("webrtc connect failed callback wait ------> reconnect_times = %d", m_websocket_timer);
 		m_status = EMediasoup_Reset;
-		++m_websocket_timer;
-		if (m_websocket_timer > g_cfg.get_uint32(ECI_WebSocketTimers))
+		++m_p2p_connect_failed;
+		//++m_websocket_timer;
+		if (m_p2p_connect_failed > g_cfg.get_uint32(ECI_WebSocketTimers))
 		{
 			_mediasoup_status_callback(EMediasoup_WebSocket_Init, 1);
 		}
