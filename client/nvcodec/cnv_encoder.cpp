@@ -1272,8 +1272,42 @@ int32_t cnv_encoder::SetRateAllocation(
       target_bitrate.iLayer = SPATIAL_LAYER_ALL,
       target_bitrate.iBitrate = configurations_[i].target_bps;
     //   encoders_[i]->SetOption(ENCODER_OPTION_BITRATE, &target_bitrate);
-    //   encoders_[i]->SetOption(ENCODER_OPTION_FRAME_RATE,
-    //                           &configurations_[i].max_frame_rate);
+    //   encoders_[i]->SetOption(ENCODER_OPTION_FRAME_RATE, &configurations_[i].max_frame_rate);
+        if (encoders_[i])
+        {
+            NV_ENC_RECONFIGURE_PARAMS reconfigureParams = {0};
+            reconfigureParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
+            reconfigureParams.forceIDR = 1;
+            reconfigureParams.resetEncoder = 1;
+
+            NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
+            reconfigureParams.reInitEncodeParams.encodeConfig = &encodeConfig;
+            ((NvEncoderCuda*)encoders_[i])->GetInitializeParams(&reconfigureParams.reInitEncodeParams);
+            reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.averageBitRate =  configurations_[i].target_bps; // bitrate_bps;
+            reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000; // bitrate_bps;
+            ((NvEncoderCuda*)encoders_[i])->Reconfigure(&reconfigureParams);
+            ///////////////
+
+
+        }
+        if (encoders_[i])
+        {
+          NV_ENC_RECONFIGURE_PARAMS reconfigureParams;
+              
+              reconfigureParams.version = NV_ENC_RECONFIGURE_PARAMS_VER;
+              reconfigureParams.resetEncoder = 1;
+              reconfigureParams.forceIDR = 1;
+              
+              NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
+              reconfigureParams.reInitEncodeParams.encodeConfig = &encodeConfig;
+              ((NvEncoderCuda*)encoders_[i])->GetInitializeParams(&reconfigureParams.reInitEncodeParams);
+              reconfigureParams.reInitEncodeParams.frameRateNum = configurations_[i].max_frame_rate;
+              ((NvEncoderCuda*)encoders_[i])->Reconfigure(&reconfigureParams);
+
+        }
+
+
+
     } else {
       configurations_[i].SetStreamState(false);
     }
@@ -1394,23 +1428,26 @@ int32_t cnv_encoder::Encode(const VideoFrame& input_frame,
     //                     configurations_[i].height, libyuv::kFilterBilinear);
     // }
 
-    // if (!configurations_[i].sending) {
-    //   continue;
-    // }
-    // if (frame_types != nullptr) {
-    //   // Skip frame?
-    //   if ((*frame_types)[i] == kEmptyFrame) {
-    //     continue;
-    //   }
-    // }
-    // if (send_key_frame) {
-    //   // API doc says ForceIntraFrame(false) does nothing, but calling this
-    //   // function forces a key frame regardless of the |bIDR| argument's value.
-    //   // (If every frame is a key frame we get lag/delays.)
-    //   ( (NvEncoderGL*)encoders_[i])->ForceIntraFrame();
-    //   NORMAL_EX_LOG("ForceIntraFrame");
-    //   configurations_[i].key_frame_request = false;
-    // }
+    if (!configurations_[i].sending) {
+      continue;
+    }
+    if (frame_types != nullptr) {
+      // Skip frame?
+      if ((*frame_types)[i] == kEmptyFrame) {
+        continue;
+      }
+    }
+    if (send_key_frame) {
+      // API doc says ForceIntraFrame(false) does nothing, but calling this
+      // function forces a key frame regardless of the |bIDR| argument's value.
+      // (If every frame is a key frame we get lag/delays.)
+      if (!encoders_.empty() && encoders_[i])
+      {
+        ( (NvEncoderCuda*)encoders_[i])->ForceIntraFrame();
+           NORMAL_EX_LOG("ForceIntraFrame");
+          configurations_[i].key_frame_request = false;
+      }
+    }
     // EncodeFrame output.
     SFrameBSInfo info;
     memset(&info, 0, sizeof(SFrameBSInfo));
