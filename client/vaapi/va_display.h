@@ -24,7 +24,7 @@
 
 #ifndef VA_DISPLAY_H
 #define VA_DISPLAY_H
-
+#if VAAPI
 #include <va/va.h>
 #include <stdio.h>
 
@@ -64,5 +64,5 @@ va_print_display_options(FILE *stream);
 #ifdef __cplusplus
 }
 #endif
-
+#endif
 #endif /* VA_DISPLAY_H */

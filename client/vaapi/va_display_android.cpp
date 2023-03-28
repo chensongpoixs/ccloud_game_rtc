@@ -21,7 +21,7 @@
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
+#if VAAPI
 #include <va/va_android.h>
 #include "va_display.h"
 
@@ -56,3 +56,6 @@ const VADisplayHooks va_display_hooks_android = {
     va_close_display_android,
     va_put_surface_android
 };
+
+
+#endif

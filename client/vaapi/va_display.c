@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#if VAAPI
 #include <va/va.h>
 #include "va_display.h"
 
@@ -204,3 +205,4 @@ va_print_display_options(FILE *stream)
     fprintf(stream, "\t--display display | help         Show information for the specified display, or the available display list \n");
     fprintf(stream, "\t--device device                  Set device name, only available under drm and win32 displays\n");
 }
+#endif

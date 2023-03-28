@@ -61,7 +61,10 @@ void NvEncoderGL::AllocateInputBuffers(int32_t numInputBuffers)
                 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
 
             glBindTexture(GL_TEXTURE_RECTANGLE, 0);
-
+            // 初始化帧缓冲
+            glGenFramebuffers(1, &pResource->framebuffer);
+            glBindFramebuffer(GL_FRAMEBUFFER, pResource->framebuffer);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, tex, 0);
             pResource->texture = tex;
             pResource->target = GL_TEXTURE_RECTANGLE;
             inputFrames.push_back(pResource);

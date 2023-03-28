@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#if VAAPI
 #include <va/va_win32.h>
 #include "va_display.h"
 #include <directx/dxcore_interface.h>
@@ -167,4 +168,6 @@ extern const VADisplayHooks va_display_hooks_win32 = {
 
 #ifdef __cplusplus
 }
+
+#endif //
 #endif

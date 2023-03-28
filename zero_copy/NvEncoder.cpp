@@ -12,8 +12,9 @@
 #ifndef WIN32
 #include <dlfcn.h>
 #endif
-#include "NvEncoder.h"
 
+#include "NvEncoder.h"
+#include "nvEncodeAPI.h"
 #ifndef _WIN32
 #include <cstring>
 static inline bool operator==(const GUID &guid1, const GUID &guid2) {

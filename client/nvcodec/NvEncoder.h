@@ -222,6 +222,12 @@ public:
     */
     virtual ~NvEncoder();
 
+
+    /**
+	*  @brief request idr
+	*/
+	void ForceIntraFrame() { m_forceIDR = true; }
+
 public:
     /**
     *  @brief This a static function to get chroma offsets for YUV planar formats.
@@ -410,4 +416,7 @@ private:
     int32_t m_iGot = 0;
     int32_t m_nEncoderBuffer = 0;
     int32_t m_nOutputDelay = 0;
+
+
+    bool m_forceIDR;
 };

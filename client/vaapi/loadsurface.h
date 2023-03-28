@@ -22,7 +22,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include "loadsurface_yuv.h"
-
+#if VAAPI
 static int scale_2dimage(unsigned char *src_img, int src_imgw, int src_imgh,
                          unsigned char *dst_img, int dst_imgw, int dst_imgh)
 {
@@ -489,5 +489,5 @@ static int download_surface_yuv(VADisplay va_dpy, VASurfaceID surface_id,
 
     return 0;
 }
-
+#endif //#if VAAPI
 #endif /* LIBVA_UTILS_UPLOAD_DOWNLOAD_YUV_SURFACE */

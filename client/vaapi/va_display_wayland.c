@@ -24,6 +24,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#if VAAPI
+
 #ifdef IN_LIBVA
 # include "va/wayland/va_wayland.h"
 #else
@@ -195,3 +197,4 @@ const VADisplayHooks va_display_hooks_wayland = {
     va_close_display_wayland,
     va_put_surface_wayland,
 };
+#endif

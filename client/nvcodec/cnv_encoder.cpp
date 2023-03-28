@@ -32,7 +32,7 @@ purpose:		nvenc
 #include "NvEncoderGL.h"
 #include "NvEncoderCLIOptions.h"
 
-#include "glad/glad.h"
+// #include "glad/glad.h"
 // #include "NvCodecUtils.h"
 // #include <GL/glew.h>
 // #include <GL/glut.h>
@@ -838,6 +838,10 @@ purpose:		nvenc
 #include "system_wrappers/include/metrics.h"
 #include "third_party/libyuv/include/libyuv/convert.h"
 #include "third_party/libyuv/include/libyuv/scale.h"
+// #include "nvEncoderCuda.h"
+#include "NvEncoderCuda.h"
+#include <cuda.h>
+
 
 using namespace chen;
 namespace webrtc {
@@ -986,7 +990,8 @@ cnv_encoder::cnv_encoder(const cricket::VideoCodec& codec)
       has_reported_init_(false),
       has_reported_error_(false),
       num_temporal_layers_(1),
-      tl0sync_limit_(0) {
+      tl0sync_limit_(0)
+      , m_cuContext(NULL) {
   RTC_CHECK(absl::EqualsIgnoreCase(codec.name, cricket::kH264CodecName));
   std::string packetization_mode_string;
   if (codec.GetParam(cricket::kH264FmtpPacketizationMode,
@@ -1052,11 +1057,22 @@ int32_t cnv_encoder::InitEncode(const VideoCodec* inst,
   }
 
   num_temporal_layers_ = codec_.H264()->numberOfTemporalLayers;
-        init_gl();
-    NORMAL_EX_LOG("");
-    std::ostringstream oss;
-    oss << "-codec h264 -fps 25 ";
-    NvEncoderInitParam encodeCLIOptions(oss.str().c_str());
+      //  init_gl();
+      cuInit(0);
+      int nGpu = 0;
+      int iGpu = 0;
+      cuDeviceGetCount(&nGpu);
+       CUdevice cuDevice = 0;
+         cuDeviceGet(&cuDevice, iGpu);
+        char szDeviceName[80];
+        cuDeviceGetName(szDeviceName, sizeof(szDeviceName), cuDevice) ;
+         NORMAL_EX_LOG("GPU in use: %s", szDeviceName); // << std::endl;
+        // CUcontext cuContext = NULL;
+        cuCtxCreate(&m_cuContext, 0, cuDevice);
+    // NORMAL_EX_LOG("");
+    // std::ostringstream oss;
+    // oss << "-codec h264 -fps 25 ";
+    // NvEncoderInitParam encodeCLIOptions(oss.str().c_str());
   for (int i = 0, idx = number_of_streams - 1; i < number_of_streams; ++i, --idx) 
   {
     // ISVCEncoder* openh264_encoder;
@@ -1101,16 +1117,66 @@ int32_t cnv_encoder::InitEncode(const VideoCodec* inst,
     configurations_[i].max_bps = codec_.maxBitrate * 1000;
     configurations_[i].target_bps = codec_.startBitrate * 1000;
 
-    encoders_[i] = new NvEncoderGL  (configurations_[i].width, configurations_[i].height, NV_ENC_BUFFER_FORMAT_IYUV);
+    encoders_[i] = new NvEncoderCuda  (m_cuContext, configurations_[i].width, configurations_[i].height, NV_ENC_BUFFER_FORMAT_IYUV);
     NORMAL_EX_LOG("");
     NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
     NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
     initializeParams.encodeConfig = &encodeConfig;
-    ((NvEncoderGL*)encoders_[i])->CreateDefaultEncoderParams(&initializeParams, encodeCLIOptions.GetEncodeGUID(), encodeCLIOptions.GetPresetGUID());
+    ((NvEncoderCuda*)encoders_[i])->CreateDefaultEncoderParams(&initializeParams, NV_ENC_CODEC_H264_GUID, NV_ENC_PRESET_P3_GUID);
     NORMAL_EX_LOG("");
-    encodeCLIOptions.SetInitParams(&initializeParams, NV_ENC_BUFFER_FORMAT_IYUV);
+    // encodeCLIOptions.SetInitParams(&initializeParams, NV_ENC_BUFFER_FORMAT_IYUV);
+    initializeParams.encodeWidth = configurations_[i].width;
+	initializeParams.encodeHeight = configurations_[i].height;
+	initializeParams.version = NV_ENC_INITIALIZE_PARAMS_VER;
+	initializeParams.encodeGUID = NV_ENC_CODEC_H264_GUID;
+	initializeParams.presetGUID = NV_ENC_PRESET_P4_GUID;
+	 
+	initializeParams.frameRateDen = 1;
+	initializeParams.enablePTD = 1;
+	initializeParams.reportSliceOffsets = 0;
+	initializeParams.enableSubFrameWrite = 0;
+	
+	initializeParams.tuningInfo = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
+	initializeParams.frameRateNum = 60;
+
+
+	///////////////
+	// H.264 specific settings
+	///
+	
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.enableIntraRefresh = 1;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.intraRefreshPeriod = 180;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.intraRefreshCnt = 180;
+	//initializeParams.encodeConfig->encodeCodecConfig.h264Config.idrPeriod = 
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.repeatSPSPPS = 1;
+	/*
+	* Slice mode - set the slice mode to "entire frame as a single slice" because WebRTC implementation doesn't work well with slicing. The default slicing mode
+	* produces (rarely, but especially under packet loss) grey full screen or just top half of it.
+	*/
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceMode = 0;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.sliceModeData = 0;
+	// `outputPictureTimingSEI` is used in CBR mode to fill video frame with data to match the requested bitrate.
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.outputPictureTimingSEI = 1;
+	initializeParams.encodeConfig->encodeCodecConfig.h264Config.enableFillerDataInsertion = 1;
+	//initializeParams.encodeConfig->gopLength =  g_cfg.get_uint32(ECI_EncoderVideoGop);//NVENC_INFINITE_GOPLENGTH;//
+	//initializeParams.encodeConfig->rcParams.averageBitRate = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000 ;
+	//initializeParams.encodeConfig->rcParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;
+	//initializeParams.encodeConfig->rcParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;// NV_ENC_PARAMS_RC_VBR_HQ;// NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ;
+	//initializeParams.encodeConfig->rcParams.qpMapMode = NV_ENC_QP_MAP_DELTA;
+	NV_ENC_RC_PARAMS& RateControlParams = initializeParams.encodeConfig->rcParams;
+#define DEFAULT_BITRATE (1000000u)
+	uint32_t const MinQP = static_cast<uint32_t>(1);
+	uint32_t const MaxQP = static_cast<uint32_t>(51);
+	RateControlParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;
+	RateControlParams.averageBitRate = 8000 * 1000;// DEFAULT_BITRATE;
+	RateControlParams.maxBitRate = 100000 * 1000;// DEFAULT_BITRATE; // Not used for CBR
+	RateControlParams.multiPass = NV_ENC_TWO_PASS_FULL_RESOLUTION;
+	RateControlParams.minQP = { MinQP, MinQP, MinQP };
+	RateControlParams.maxQP = { MaxQP, MaxQP, MaxQP };
+	RateControlParams.enableMinQP = 1;
+	RateControlParams.enableMaxQP = 1;
     NORMAL_EX_LOG("");
-    ((NvEncoderGL*)encoders_[i])->CreateEncoder(&initializeParams);
+    ((NvEncoderCuda*)encoders_[i])->CreateEncoder(&initializeParams);
 
     // Create encoder parameters based on the layer configuration.
     // SEncParamExt encoder_params = CreateEncoderParams(i);
@@ -1146,7 +1212,7 @@ int32_t cnv_encoder::InitEncode(const VideoCodec* inst,
 
 int32_t cnv_encoder::Release() {
   while (!encoders_.empty()) {
-    NvEncoderGL* openh264_encoder = encoders_.back();
+    NvEncoderCuda* openh264_encoder = encoders_.back();
     if (openh264_encoder) {
     //   RTC_CHECK_EQ(0, openh264_encoder->Uninitialize());
     //   WelsDestroySVCEncoder(openh264_encoder);
@@ -1233,7 +1299,7 @@ static void RtpFragmentize(EncodedImage* encoded_image,
 
 	// TODO(nisse): Use a cache or buffer pool to avoid allocation?
 	encoded_image->Allocate(required_capacity);
-
+ 
 
 	///////////////////////////////////////H264 NAL///////////////////////////////////////////////////////
 
@@ -1341,10 +1407,11 @@ int32_t cnv_encoder::Encode(const VideoFrame& input_frame,
     //   // API doc says ForceIntraFrame(false) does nothing, but calling this
     //   // function forces a key frame regardless of the |bIDR| argument's value.
     //   // (If every frame is a key frame we get lag/delays.)
-    //   encoders_[i]->ForceIntraFrame(true);
+    //   ( (NvEncoderGL*)encoders_[i])->ForceIntraFrame();
+    //   NORMAL_EX_LOG("ForceIntraFrame");
     //   configurations_[i].key_frame_request = false;
     // }
-    // // EncodeFrame output.
+    // EncodeFrame output.
     SFrameBSInfo info;
     memset(&info, 0, sizeof(SFrameBSInfo));
 
@@ -1360,18 +1427,28 @@ int32_t cnv_encoder::Encode(const VideoFrame& input_frame,
 
 
 
+const NvEncInputFrame* encoderInputFrame = ((NvEncoderCuda*)encoders_[i])->GetNextInputFrame();
+            NvEncoderCuda::CopyToDeviceFrame(m_cuContext, frame_buffer->DataY(), 0, (CUdeviceptr)encoderInputFrame->inputPtr,
+                (int)encoderInputFrame->pitch,
+                ((NvEncoderCuda*)encoders_[i])->GetEncodeWidth(),
+                ((NvEncoderCuda*)encoders_[i])->GetEncodeHeight(), 
+                CU_MEMORYTYPE_HOST, 
+                encoderInputFrame->bufferFormat,
+                encoderInputFrame->chromaOffsets,
+                encoderInputFrame->numChromaPlanes);
 
+           // enc.EncodeFrame(vPacket);
 
-        const NvEncInputFrame* encoderInputFrame = ((NvEncoderGL*)encoders_[i])->GetNextInputFrame();
-        NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = (NV_ENC_INPUT_RESOURCE_OPENGL_TEX *)encoderInputFrame->inputPtr;
+        // const NvEncInputFrame* encoderInputFrame = ((NvEncoderGL*)encoders_[i])->GetNextInputFrame();
+        // NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = (NV_ENC_INPUT_RESOURCE_OPENGL_TEX *)encoderInputFrame->inputPtr;
         
-        glBindTexture(pResource->target, pResource->texture);
-        glTexSubImage2D(pResource->target, 0, 0, 0, frame_buffer->width(), frame_buffer->height() * 3/2, GL_RED, GL_UNSIGNED_BYTE, frame_buffer->DataY());
-        glBindTexture(pResource->target, 0);
+        // glBindTexture(pResource->target, pResource->texture);
+        // glTexSubImage2D(pResource->target, 0, 0, 0, frame_buffer->width(), frame_buffer->height() * 3/2, GL_RED, GL_UNSIGNED_BYTE, frame_buffer->DataY());
+        // glBindTexture(pResource->target, 0);
         cnv_frame_packet  frame_packet;
         frame_packet.frame.reset(new uint8_t[frame_buffer->width()* frame_buffer->height() * 4]);
         std::vector<std::vector<uint8_t>> vPacket;
-        ((NvEncoderGL*)encoders_[i])->EncodeFrame(vPacket);
+        ((NvEncoderCuda*)encoders_[i])->EncodeFrame(vPacket);
         NORMAL_EX_LOG("vPacket.size() = %u", vPacket.size());
             //nFrame += (int)vPacket.size();
         size_t cur_index = 0;

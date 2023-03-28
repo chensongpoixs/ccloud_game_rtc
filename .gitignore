@@ -9,4 +9,6 @@ inject/linux/sample-library32.so
 inject/linux/sample-target
 inject/linux/sample-target32
 linux/rtc
-
+hook/hook_demo/main
+hook/hook_demo/*.so
+zero_copy/glad

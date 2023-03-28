@@ -66,6 +66,8 @@ namespace  chen {
         , m_win_depth(0)
         , m_win_pixmap(0)
         , m_win_name("")
+        , m_video_width(0)
+        , m_video_height(0)
         {}
         ~clinux_capture();
     public:
@@ -96,6 +98,8 @@ namespace  chen {
 
 
         bool _check_xcomp_window_exists();
+
+        bool _watcher_process(xcb_generic_event_t *ev);
     private:
         bool                m_stoped;
         Display          *  m_display_ptr;
@@ -116,6 +120,10 @@ namespace  chen {
 //        extern int g_win_w;
 //        extern int g_win_d;
 //        extern xcb_pixmap_t g_win_pixmap;
+
+
+        uint32              m_video_width;
+        uint32              m_video_height;
     };
 }
 

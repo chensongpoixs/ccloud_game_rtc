@@ -12,16 +12,19 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <fcntl.h>
+#include <GL/glut.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 //#include <Xlib.h>
 #include <X11/Xlib.h>
+#include <EGL/egl.h>
+#include <GL/glx.h>
 //#include "test.h"
 //#include <gtk/gtk.h>
 
 //#include <GL/wglew.h>
-//#include <GL/glew.h>
+// #include <GL/glew.h>
 //typedef void	(*t_glFlush)(void);
 //FILE  * out_log_file_ptr = fopen("./log/hook.log", "wb+");
 //#include <>
@@ -29,8 +32,49 @@
 
 #include <xcb/xproto.h>
 #define gettid() syscall(__NR_gettid)
+//static void (*real_glFlush)(void   ) = NULL;
+//static void (*glTexImage2DFuncPtr)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid*) = NULL;
+
+static void (*hook_glDrawArrays)(GLenum mode, GLint first, GLsizei count) = NULL;
+static FILE  *out_gl_ptr = NULL;
+static unsigned char * rgba_ptr = NULL;
+static int TICK_TIME = 1000;
+void glDrawArrays(GLenum mode, GLint first, GLsizei count)
+{
+      if (!hook_glDrawArrays)
+    {
+        hook_glDrawArrays = dlsym(RTLD_NEXT, "glDrawArrays");
+    }
+
+    
 
 
+
+ struct timeval tTimeVal;
+    gettimeofday(&tTimeVal, NULL);
+    struct tm *tTM = localtime(&tTimeVal);
+    char buffer[1024] = {0};
+    (void)sprintf(buffer, "[hook_glDrawArrays][%s][%d] ======================>[%04d-%02d-%02d %02d:%02d:%02d.%03ld.%03ld]\n", __FUNCTION__, __LINE__,  tTM->tm_year +1900, tTM->tm_mon +1, tTM->tm_mday, tTM->tm_hour, tTM->tm_min, tTM->tm_sec, tTimeVal.tv_usec/ 1000, tTimeVal.tv_usec %1000);
+   //(void)write(1, buffer, strlen(buffer));
+
+
+
+    hook_glDrawArrays(mode, first, count);
+}
+
+static  void (*hook_glTexImage2D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid*) = NULL;
+
+void glTextImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* data)
+{
+      if (!hook_glTexImage2D)
+    {
+        hook_glTexImage2D = dlsym(RTLD_NEXT, "glTextImage2D");
+    }
+    char buffer[1024] = {0};
+    (void)sprintf(buffer, "[hook_glTexImage2D] ======================>\n" );
+    (void)write(1, buffer, strlen(buffer));
+    hook_glTexImage2D(target, level, internalformat, width, height, border, format, type, data);
+}
 /**
  *
  *
@@ -76,551 +120,1041 @@ static unsigned  long g_count = 0;
 void show(const char * str, size_t len)
 {
 //    char buffer[10240] = {0};
-//    (void) sprintf(buffer, "real_XNextEvent %s [time_now :%d-%d-%d %d:%d:%d.%ld]\n", str, 1900 + t->tm_year,
+//    (void) sprintf(buffer, "real_XNextEvent %s [treal_glutSwapBuffersime_now :%d-%d-%d %d:%d:%d.%ld]\n", str, 1900 + t->tm_year,
 //                   1+t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, tv.tv_usec);
     (void) write(1, str, len);
     (void) write(1, "\n", 1);
 }
-void show_hook_info(Display *display, const XEvent* e)
+// void show_hook_info(Display *display, const XEvent* e)
+// {
+//     char buffer[102400] = {0};
+
+//     switch (e->type)
+//     {
+//         case KeyPress:
+//         {
+// //            typedef struct {
+// //                int type;		/* of event */
+// //                unsigned long serial;	/* # of last request processed by server */
+// //                Bool send_event;	/* true if this came from a SendEvent request */
+// //                Display *display;	/* Display the event was read from */
+// //                Window window;	        /* "event" window it is reported relative to */
+// //                Window root;	        /* root window that the event occurred on */
+// //                Window subwindow;	/* child window */
+// //                Time time;		/* milliseconds */
+// //                int x, y;		/* pointer x, y coordinates in event window */
+// //                int x_root, y_root;	/* coordinates relative to root */
+// //                unsigned int state;	/* key or button mask */
+// //                unsigned int keycode;	/* detail */
+// //                Bool same_screen;	/* same screen flag */
+// //            } XKeyEvent;
+//             int len = sprintf(buffer, "[KeyPress  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
+//                           e->xkey.type, display, e->xkey.serial, e->xkey.send_event, e->xkey.display, e->xkey.window, e->xkey.root, e->xkey.subwindow, e->xkey.x, e->xkey.y, e->xkey.x_root, e->xkey.y_root, e->xkey.state, e->xkey.keycode, e->xkey.same_screen);
+//             show(buffer, len);
+//             break;
+//         }
+//         case KeyRelease:
+//         {
+//             int len =  sprintf(buffer, "[KeyRelease  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
+//                           e->xkey.type, display, e->xkey.serial, e->xkey.send_event, e->xkey.display, e->xkey.window, e->xkey.root, e->xkey.subwindow, e->xkey.x, e->xkey.y, e->xkey.x_root, e->xkey.y_root, e->xkey.state, e->xkey.keycode, e->xkey.same_screen);
+//             show(buffer, len);
+//             break;
+//         }
+//         case ButtonPress:
+//         {
+//             //
+// //            typedef struct {
+// //                int type;		/* of event */
+// //                unsigned long serial;	/* # of last request processed by server */
+// //                Bool send_event;	/* true if this came from a SendEvent request */
+// //                Display *display;	/* Display the event was read from */
+// //                Window window;	        /* "event" window it is reported relative to */
+// //                Window root;	        /* root window that the event occurred on */
+// //                Window subwindow;	/* child window */
+// //                Time time;		/* milliseconds */
+// //                int x, y;		/* pointer x, y coordinates in event window */
+// //                int x_root, y_root;	/* coordinates relative to root */
+// //                unsigned int state;	/* key or button mask */
+// //                unsigned int button;	/* detail */
+// //                Bool same_screen;	/* same screen flag */
+// //            } XButtonEvent;
+//             int len =  sprintf(buffer, "[ButtonPress type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %u][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
+//                           e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
+//             show(buffer, len);
+//             break;
+//         }
+//         case ButtonRelease:
+//         {
+//             int len =  sprintf(buffer, "[ButtonRelease type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %u][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
+//                           e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
+//             show(buffer, len);
+//             break;
+//         }
+//         case MotionNotify:
+//         {
+
+// //            typedef struct {
+// //                int type;		/* of event */
+// //                unsigned long serial;	/* # of last request processed by server */
+// //                Bool send_event;	/* true if this came from a SendEvent request */
+// //                Display *display;	/* Display the event was read from */
+// //                Window window;	        /* "event" window reported relative to */
+// //                Window root;	        /* root window that the event occurred on */
+// //                Window subwindow;	/* child window */
+// //                Time time;		/* milliseconds */
+// //                int x, y;		/* pointer x, y coordinates in event window */
+// //                int x_root, y_root;	/* coordinates relative to root */
+// //                unsigned int state;	/* key or button mask */
+// //                char is_hint;		/* detail */
+// //                Bool same_screen;	/* same screen flag */
+// //            } XMotionEvent;
+
+//             int len =  sprintf(buffer, "[MotionNotify type = %u][ display = %p][serial = %u][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][is_hint = %c][same_screen = %d]\n",
+//                           e->xmotion.type, display, e->xmotion.serial, e->xmotion.send_event, e->xmotion.display, e->xmotion.window, e->xmotion.root, e->xmotion.subwindow, e->xmotion.x, e->xmotion.y, e->xmotion.x_root, e->xmotion.y_root, e->xmotion.state, e->xmotion.is_hint, e->xmotion.same_screen);
+
+//            show(buffer, len);
+//             break;
+//         }
+//         case EnterNotify:
+//         {
+// //            typedef struct {
+// //                int type;		/* of event */
+// //                unsigned long serial;	/* # of last request processed by server */
+// //                Bool send_event;	/* true if this came from a SendEvent request */
+// //                Display *display;	/* Display the event was read from */
+// //                Window window;	        /* "event" window reported relative to */
+// //                Window root;	        /* root window that the event occurred on */
+// //                Window subwindow;	/* child window */
+// //                Time time;		/* milliseconds */
+// //                int x, y;		/* pointer x, y coordinates in event window */
+// //                int x_root, y_root;	/* coordinates relative to root */
+// //                int mode;		/* NotifyNormal, NotifyGrab, NotifyUngrab */
+// //                int detail;
+// //                /*
+// //                 * NotifyAncestor, NotifyVirtual, NotifyInferior,
+// //                 * NotifyNonlinear,NotifyNonlinearVirtual
+// //                 */
+// //                Bool same_screen;	/* same screen flag */
+// //                Bool focus;		/* boolean focus */
+// //                unsigned int state;	/* key or button mask */
+// //            } XCrossingEvent;
+//             int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u]"
+//                                        "[x = %u, y = %u][x_root = %u, y_root = %u][mode = %u][detail = %u][same_screen = %d][focus = %d][state = %u]",
+//                                        EnterNotify, e->xcrossing.type, e->xcrossing.serial, e->xcrossing.send_event, e->xcrossing.display, e->xcrossing.window,
+//                                        e->xcrossing.root, e->xcrossing.subwindow, e->xcrossing.x, e->xcrossing.y, e->xcrossing.x_root, e->xcrossing.y_root, e->xcrossing.mode, e->xcrossing.detail,
+//                                        e->xcrossing.same_screen, e->xcrossing.focus, e->xcrossing.state);
+//             show(buffer, len);
+//             break;
+//         }
+//         case LeaveNotify:
+//         {
+//             int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u]"
+//                                        "[x = %u, y = %u][x_root = %u, y_root = %u][mode = %u][detail = %u][same_screen = %d][focus = %d][state = %u]",
+//                                EnterNotify, e->xcrossing.type, e->xcrossing.serial, e->xcrossing.send_event, e->xcrossing.display, e->xcrossing.window,
+//                                e->xcrossing.root, e->xcrossing.subwindow, e->xcrossing.x, e->xcrossing.y, e->xcrossing.x_root, e->xcrossing.y_root, e->xcrossing.mode, e->xcrossing.detail,
+//                                e->xcrossing.same_screen, e->xcrossing.focus, e->xcrossing.state);
+//             show(buffer, len);
+//             break;
+//         }
+//         case FocusIn:
+//         {
+// //            typedef struct {
+// //                int type;		/* FocusIn or FocusOut */
+// //                unsigned long serial;	/* # of last request processed by server */
+// //                Bool send_event;	/* true if this came from a SendEvent request */
+// //                Display *display;	/* Display the event was read from */
+// //                Window window;		/* window of event */
+// //                int mode;		/* NotifyNormal, NotifyWhileGrabbed,
+// //				   NotifyGrab, NotifyUngrab */
+// //                int detail;
+// //                /*
+// //                 * NotifyAncestor, NotifyVirtual, NotifyInferior,
+// //                 * NotifyNonlinear,NotifyNonlinearVirtual, NotifyPointer,
+// //                 * NotifyPointerRoot, NotifyDetailNone
+// //                 */
+// //            } XFocusChangeEvent;
+//             int len =  sprintf(buffer, "[FocusIn   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][mode = %u][detail = %u]",
+//                                FocusIn, e->xfocus.type, e->xfocus.serial, e->xfocus.send_event, e->xfocus.display, e->xfocus.window, e->xfocus.mode, e->xfocus.detail);
+//             show(buffer, len);
+//             break;
+//         }
+//         case FocusOut:
+//         {
+//             int len =  sprintf(buffer, "[FocusIn   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][mode = %u][detail = %u]",
+//                                FocusIn, e->xfocus.type, e->xfocus.serial, e->xfocus.send_event, e->xfocus.display, e->xfocus.window, e->xfocus.mode, e->xfocus.detail);
+//             show(buffer, len);
+//             break;
+//         }
+//         case KeymapNotify:
+//         {
+//             int len =  sprintf(buffer, "[KeymapNotify   = %d]", KeymapNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case Expose:
+//         {
+//             int len =  sprintf(buffer, "Expose   = %d", Expose);
+//             show(buffer, len);
+//             break;
+//         }
+//         case GraphicsExpose:
+//         {
+//             int len =  sprintf(buffer, "GraphicsExpose   = %d", GraphicsExpose);
+//             show(buffer, len);
+//             break;
+//         }
+//         case NoExpose:
+//         {
+//             int len =  sprintf(buffer, "NoExpose   = %d", NoExpose);
+//             show(buffer, len);
+//             break;
+//         }
+//         case VisibilityNotify:
+//         {
+//             int len =  sprintf(buffer, "VisibilityNotify   = %d", VisibilityNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case CreateNotify:
+//         {
+//             int len =  sprintf(buffer, "CreateNotify   = %d", CreateNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case DestroyNotify:
+//         {
+//             int len =  sprintf(buffer, "DestroyNotify   = %d", DestroyNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case UnmapNotify:
+//         {
+//             int len =  sprintf(buffer, "UnmapNotify   = %d", UnmapNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case MapNotify:
+//         {
+//             int len =  sprintf(buffer, "MapNotify   = %d", MapNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case MapRequest:
+//         {
+//             int len =  sprintf(buffer, "MapRequest   = %d", MapRequest);
+//             show(buffer, len);
+//             break;
+//         }
+//         case ReparentNotify:
+//         {
+//             int len =  sprintf(buffer, "ReparentNotify   = %d", ReparentNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case ConfigureNotify:
+//         {
+//             int len =  sprintf(buffer, "ConfigureNotify   = %d", ConfigureNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case ConfigureRequest:
+//         {
+//             int len =  sprintf(buffer, "ConfigureRequest   = %d", ConfigureRequest);
+//             show(buffer, len);
+//             break;
+//         }
+//         case GravityNotify:
+//         {
+//             int len =  sprintf(buffer, "GravityNotify   = %d", GravityNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case ResizeRequest:
+//         {
+//             int len =  sprintf(buffer, "ResizeRequest   = %d", ResizeRequest);
+//             show(buffer, len);
+//             break;
+//         }
+//         case CirculateNotify:
+//         {
+//             int len =  sprintf(buffer, "CirculateNotify   = %d", CirculateNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case CirculateRequest:
+//         {
+//             int len =  sprintf(buffer, "CirculateRequest   = %d", CirculateRequest);
+//             show(buffer, len);
+//             break;
+//         }
+//         case PropertyNotify:
+//         {
+// //            typedef struct {
+// //                int type;
+// //                unsigned long serial;	/* # of last request processed by server */
+// //                Bool send_event;	/* true if this came from a SendEvent request */
+// //                Display *display;	/* Display the event was read from */
+// //                Window window;
+// //                Atom atom;
+// //                Time time;
+// //                int state;		/* NewValue, Deleted */
+// //            } XPropertyEvent;
+//             int len =  sprintf(buffer, "[PropertyNotify = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][atom = %d][state = %u]", PropertyNotify, e->xproperty.type, e->xproperty.serial, e->xproperty.send_event, e->xproperty.display, e->xproperty.window, e->xproperty.atom, e->xproperty.state);
+//             show(buffer, len);
+//             break;
+//         }
+//         case SelectionClear:
+//         {
+//             int len =  sprintf(buffer, "SelectionClear   = %d", SelectionClear);
+//             show(buffer, len);
+//             break;
+//         }
+//         case SelectionRequest:
+//         {
+//             int len =  sprintf(buffer, "SelectionRequest   = %d", SelectionRequest);
+//             show(buffer, len);
+//             break;
+//         }
+//         case SelectionNotify:
+//         {
+//             int len =  sprintf(buffer, "SelectionNotify   = %d", SelectionNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case ColormapNotify:
+//         {
+//             int len =  sprintf(buffer, "ColormapNotify   = %d", ColormapNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case ClientMessage:
+//         {
+//             int len =  sprintf(buffer, "ClientMessagreal_glutSwapBufferse   = %d", ClientMessage);
+//             show(buffer, len);
+//             break;
+//         }
+//         case MappingNotify:
+//         {
+//             int len =  sprintf(buffer, "MappingNotify   = %d", MappingNotify);
+//             show(buffer, len);
+//             break;
+//         }
+//         case GenericEvent:
+//         {
+//             int len =  sprintf(buffer, "GenericEvent   = %d", GenericEvent);
+//             show(buffer, len);
+//             break;
+//         }
+//         case LASTEvent:
+//         {
+//             int len =  sprintf(buffer, "LASTEvent   = %d", LASTEvent);
+//             show(buffer, len);
+//             break;
+//         }
+//         default:
+//         {
+//             char buffer[1024] = {0};
+//             int len =  sprintf(buffer, "unknow type = %u\n", e->type);
+//             show(buffer, len);
+//             break;
+//         }
+//     }
+// }
+
+
+
+// void call_time_out(const char * str)
+// {
+//     struct timeval tv;
+//     struct timezone tz;
+//     struct tm * t;
+//     gettimeofday(&tv, &tz);
+//     t = localtime(&tv.tv_sec);
+//     char buffer[10240] = {0};
+//     (void) sprintf(buffer, "real_XNextEvent %s [time_now :%d-%d-%d %d:%d:%d.%ld][g_count = %lu]\n", str, 1900 + t->tm_year,
+//                    1+t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, tv.tv_usec, g_count++);
+//     (void) write(1, buffer, strlen(buffer));
+// }
+// typedef  int (*Hook_XNextEvent)( Display*	d 	/* display */, XEvent*		e/* event_return */ )   ;
+// static  Hook_XNextEvent   real_XNextEvent = NULL;
+//   int XNextEvent( Display*	d	/* display */, XEvent*		e/* event_return */ )
+//   {
+//       if (!real_XNextEvent)
+//     {
+//         real_XNextEvent = dlsym(RTLD_NEXT, "XNextEvent");
+//     }
+
+//       int ret = real_XNextEvent(d, e);
+//       {
+// //          e->xbutton.serial + g_new_seria + 1;
+// ////          e->xbutton.window = 0; //  []
+// //          e->xbutton.y_root = 0;
+// //          e->xbutton.x_root = 0;
+// ////          e->xbutton.root = 0;
+// ////          int x = e->xbutton.x_root - e->xbutton.x;
+// ////          int y = e->xbutton.y_root - e->xbutton.y;
+// ////          e->xbutton.x =   200;
+// ////          e->xbutton.y = 200;
+// ////          e->xbutton.x_root += e->xbutton.x;
+// ////          e->xbutton.y_root += e->xbutton.y;
+//         if (ButtonRelease == e->type || ButtonPress == e->type)
+//         {
+//             e->xbutton.state = 0;
+//             e->xbutton.x_root = 0;
+//             e->xbutton.y_root = 0;
+//             e->xbutton.root = 0;
+//             e->xbutton.send_event = 0;
+//             e->xbutton.same_screen = 0;
+//         }
+//           show_hook_info(d, e);
+
+
+//       }
+//       char buffer[102400] = {0};
+//       (void)sprintf(buffer, "[XNextEvent][display = %p][ ret = %u][g_count = %lu]\n", d,    ret, g_count++);
+//       (void)write(1, buffer, strlen(buffer));
+//     return ret;
+//   }
+
+//   typedef int (*Hook_XSelectInput)(  Display*	display	/* display */, Window	w	/* w */, long		event_mask/* event_mask */ )  ;
+
+//   static Hook_XSelectInput real_XSelectInput = NULL;
+
+//   int  XSelectInput( Display* display		/* display */, Window	w 	/* w */, long	event_mask	/* event_mask */ )
+//   {
+//       if (!real_XSelectInput)
+//       {
+//           real_XSelectInput = dlsym(RTLD_NEXT, "XSelectInput");
+//       }
+
+//       int size  = real_XSelectInput(display, w, event_mask);
+//       char buffer[102400] = {0};
+//       (void)sprintf(buffer, "[real_XSelectInput][display = %p][window = %u][event_mask = %lu][ret = %u][g_count = %lu]\n", display, w, event_mask, size, g_count++);
+//       (void)write(1, buffer, strlen(buffer));
+//       return size;
+//   }
+// typedef   int  (*Hook_XPending)(  Display*	display	/* display */ )  ;
+// static Hook_XPending  real_XPending = NULL;
+
+// int XdPending( Display*	display	/* display */ )
+// {
+//         if (!real_XPending)
+//         {
+//             real_XPending = dlsym(RTLD_NEXT, "XPending");
+//         }
+
+//         int size = real_XPending(display );
+// //        char buffer[102400] = {0};
+// //
+// //        (void)sprintf(buffer, "[real_XPending][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
+// //        (void)write(1, buffer, strlen(buffer));
+
+// //    XPeekEvent
+//         return size;
+// }
+
+// typedef   int (*Hook_XPeekEvent)(  Display*		  display  , XEvent*		  event_return   );
+// static Hook_XPeekEvent real_XPeekEvent = NULL;
+
+// int XPeekEvent(  Display*		  display , XEvent*		  event_return   )
+// {
+//     if (!real_XPeekEvent)
+//     {
+//         real_XPeekEvent = dlsym(RTLD_NEXT, "XPeekEvent");
+//     }
+// //    XGetEventData
+//     int size = real_XPeekEvent(display , event_return);
+//     char buffer[102400] = {0};
+
+//     (void)sprintf(buffer, "[real_XPeekEvent][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
+//     (void)write(1, buffer, strlen(buffer));
+
+// //    XPeekEvent
+//     return size;
+// }
+// typedef    Bool (*Hook_XGetEventData)( Display*			  dpy  ,  XGenericEventCookie*	  cookie );
+// static Hook_XGetEventData real_XGetEventData= NULL;
+
+// Bool ddXGetEventData( Display*			  dpy  ,  XGenericEventCookie*	  cookie )
+// {
+// //    XGetEventData
+//     if (!real_XGetEventData)
+//     {
+//         real_XGetEventData = dlsym(RTLD_NEXT, "XGetEventData");
+//     }
+// //    XGetEventData
+//     Bool size = real_XGetEventData(dpy , cookie);
+//     char buffer[102400] = {0};
+
+//     (void)sprintf(buffer, "[real_XGetEventData][display = %p][size = %d][g_count = %lu] \n", dpy, size, g_count++);
+//     (void)write(1, buffer, strlen(buffer));
+
+// //    XPeekEvent
+//     return size;
+// }
+// typedef int (*Hook_XMoveWindow)( Display*		 display  , Window		  w  , int			  x  , int			  y   );
+// static Hook_XMoveWindow real_XMoveWindow = NULL;
+// int XMoveWindow( Display*		 display  , Window		  w  , int			  x  , int			  y   )
+// {
+//     if (!real_XMoveWindow)
+//     {
+//         real_XMoveWindow = dlsym(RTLD_NEXT, "XMoveWindow");
+//     }
+// //    XGetEventData
+//     int size = real_XMoveWindow(display , w, x, y);
+//     char buffer[102400] = {0};
+
+//     (void)sprintf(buffer, "[real_XMoveWindow][display = %p][size = %d][g_count = %lu] \n", display, size, g_count++);
+//     (void)write(1, buffer, strlen(buffer));
+// //    XIfEvent()
+// //    XPeekEvent
+//     return size;
+// }
+
+// typedef   int (*Hook_XIfEvent)( Display*		  display  , XEvent*		 event_return  ,
+//         Bool (*predicate) ( Display*			  display , XEvent*			 event  , XPointer			  arg  )		 , XPointer		  arg);
+// static Hook_XIfEvent real_XIfEvent = NULL;
+
+// int  XIfEvent( Display*		  display  , XEvent*		 event_return  ,
+//                       Bool (*predicate) ( Display*			  display , XEvent*			 event  , XPointer			  arg  )		 , XPointer		  arg)
+// {
+//     if (!real_XIfEvent)
+//     {
+//         real_XIfEvent = dlsym(RTLD_NEXT, "XIfEvent");
+//     }
+// //    XGetEventData
+//     int size = real_XIfEvent(display , event_return, predicate, arg);
+//     char buffer[102400] = {0};
+
+//     (void)sprintf(buffer, "[real_XIfEvent][display = %p][size = %d][g_count = %lu] \n", display, size, g_count++);
+//     (void)write(1, buffer, strlen(buffer));
+// //    XIfEvent()
+// //    XPeekEvent
+//     return size;
+// }
+
+//  gtk_widget_add_event();
+//  gtk_widget_add_event();
+//
+static void (*real_glFinish)(void   ) = NULL;
+static void (*real_glFlush)(void   ) = NULL;
+
+typedef int EGLint;
+typedef unsigned int EGLBoolean;
+typedef unsigned int EGLenum;
+typedef void* EGLConfig;
+typedef void* EGLContext;
+typedef void* EGLDisplay;
+typedef void* EGLSurface;
+
+
+//static EGLBoolean (  * real_eglSwapBuffers)(EGLDisplay,EGLSurface) = NULL;
+static void (  * real_eglSwapBuffers)(Display *d, GLXDrawable e) = NULL;
+static EGLBoolean (  * real_eglSwapInterval)(EGLDisplay,EGLint) = NULL;
+
+static EGLBoolean (* real_eglMakeCurrent)(EGLDisplay,EGLSurface,EGLSurface,EGLContext) = NULL;
+
+static GLenum  (*real_glewInit) (void) = NULL;
+
+
+static  void     (*real_glutSwapBuffers)( void ) = NULL;
+
+
+  void      glutSwapBuffers( void )
 {
-    char buffer[102400] = {0};
 
-    switch (e->type)
-    {
-        case KeyPress:
-        {
-//            typedef struct {
-//                int type;		/* of event */
-//                unsigned long serial;	/* # of last request processed by server */
-//                Bool send_event;	/* true if this came from a SendEvent request */
-//                Display *display;	/* Display the event was read from */
-//                Window window;	        /* "event" window it is reported relative to */
-//                Window root;	        /* root window that the event occurred on */
-//                Window subwindow;	/* child window */
-//                Time time;		/* milliseconds */
-//                int x, y;		/* pointer x, y coordinates in event window */
-//                int x_root, y_root;	/* coordinates relative to root */
-//                unsigned int state;	/* key or button mask */
-//                unsigned int keycode;	/* detail */
-//                Bool same_screen;	/* same screen flag */
-//            } XKeyEvent;
-            int len = sprintf(buffer, "[KeyPress  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %p][root = %u][subwindow = %p][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
-                          e->xkey.type, display, e->xkey.serial, e->xkey.send_event, e->xkey.display, e->xkey.window, e->xkey.root, e->xkey.subwindow, e->xkey.x, e->xkey.y, e->xkey.x_root, e->xkey.y_root, e->xkey.state, e->xkey.keycode, e->xkey.same_screen);
-            show(buffer, len);
-            break;
-        }
-        case KeyRelease:
-        {
-            int len =  sprintf(buffer, "[KeyRelease  type = %u][display = %p][serial = %u][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][keycode = %u][same_screen = = %d]\n",
-                          e->xkey.type, display, e->xkey.serial, e->xkey.send_event, e->xkey.display, e->xkey.window, e->xkey.root, e->xkey.subwindow, e->xkey.x, e->xkey.y, e->xkey.x_root, e->xkey.y_root, e->xkey.state, e->xkey.keycode, e->xkey.same_screen);
-            show(buffer, len);
-            break;
-        }
-        case ButtonPress:
-        {
-            //
-//            typedef struct {
-//                int type;		/* of event */
-//                unsigned long serial;	/* # of last request processed by server */
-//                Bool send_event;	/* true if this came from a SendEvent request */
-//                Display *display;	/* Display the event was read from */
-//                Window window;	        /* "event" window it is reported relative to */
-//                Window root;	        /* root window that the event occurred on */
-//                Window subwindow;	/* child window */
-//                Time time;		/* milliseconds */
-//                int x, y;		/* pointer x, y coordinates in event window */
-//                int x_root, y_root;	/* coordinates relative to root */
-//                unsigned int state;	/* key or button mask */
-//                unsigned int button;	/* detail */
-//                Bool same_screen;	/* same screen flag */
-//            } XButtonEvent;
-            int len =  sprintf(buffer, "[ButtonPress type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %u][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
-                          e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
-            show(buffer, len);
-            break;
-        }
-        case ButtonRelease:
-        {
-            int len =  sprintf(buffer, "[ButtonRelease type = %u][display = %p][serial = %llu][send_event = %d][display = %p][window = %u][root = %u][time][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][button = %u][same_screen = %d]",
-                          e->xbutton.type, display, e->xbutton.serial, e->xbutton.send_event, e->xbutton.display, e->xbutton.window, e->xbutton.root, e->xbutton.x, e->xbutton.y, e->xbutton.x_root, e->xbutton.y_root, e->xbutton.state, e->xbutton.button, e->xbutton.same_screen);
-            show(buffer, len);
-            break;
-        }
-        case MotionNotify:
-        {
+    if (!real_glutSwapBuffers)
+   {
+       real_glutSwapBuffers = dlsym(RTLD_NEXT, "glutSwapBuffers");
+   }
+   char buffer[100];
+   (void) sprintf(buffer, "%lu glutSwapBuffers   == %p\n", gettid(),   real_glutSwapBuffers);
+   (void) write(1, buffer, strlen(buffer));
+   return real_glutSwapBuffers();
+}
+// static void (*real_glutSwapBuffers)(void) = NULL;
 
-//            typedef struct {
-//                int type;		/* of event */
-//                unsigned long serial;	/* # of last request processed by server */
-//                Bool send_event;	/* true if this came from a SendEvent request */
-//                Display *display;	/* Display the event was read from */
-//                Window window;	        /* "event" window reported relative to */
-//                Window root;	        /* root window that the event occurred on */
-//                Window subwindow;	/* child window */
-//                Time time;		/* milliseconds */
-//                int x, y;		/* pointer x, y coordinates in event window */
-//                int x_root, y_root;	/* coordinates relative to root */
-//                unsigned int state;	/* key or button mask */
-//                char is_hint;		/* detail */
-//                Bool same_screen;	/* same screen flag */
-//            } XMotionEvent;
-
-            int len =  sprintf(buffer, "[MotionNotify type = %u][ display = %p][serial = %u][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u][x = %u, y = %u][x_root = %u, y_root = %u][state = %u][is_hint = %c][same_screen = %d]\n",
-                          e->xmotion.type, display, e->xmotion.serial, e->xmotion.send_event, e->xmotion.display, e->xmotion.window, e->xmotion.root, e->xmotion.subwindow, e->xmotion.x, e->xmotion.y, e->xmotion.x_root, e->xmotion.y_root, e->xmotion.state, e->xmotion.is_hint, e->xmotion.same_screen);
-
-           show(buffer, len);
-            break;
-        }
-        case EnterNotify:
-        {
-//            typedef struct {
-//                int type;		/* of event */
-//                unsigned long serial;	/* # of last request processed by server */
-//                Bool send_event;	/* true if this came from a SendEvent request */
-//                Display *display;	/* Display the event was read from */
-//                Window window;	        /* "event" window reported relative to */
-//                Window root;	        /* root window that the event occurred on */
-//                Window subwindow;	/* child window */
-//                Time time;		/* milliseconds */
-//                int x, y;		/* pointer x, y coordinates in event window */
-//                int x_root, y_root;	/* coordinates relative to root */
-//                int mode;		/* NotifyNormal, NotifyGrab, NotifyUngrab */
-//                int detail;
-//                /*
-//                 * NotifyAncestor, NotifyVirtual, NotifyInferior,
-//                 * NotifyNonlinear,NotifyNonlinearVirtual
-//                 */
-//                Bool same_screen;	/* same screen flag */
-//                Bool focus;		/* boolean focus */
-//                unsigned int state;	/* key or button mask */
-//            } XCrossingEvent;
-            int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u]"
-                                       "[x = %u, y = %u][x_root = %u, y_root = %u][mode = %u][detail = %u][same_screen = %d][focus = %d][state = %u]",
-                                       EnterNotify, e->xcrossing.type, e->xcrossing.serial, e->xcrossing.send_event, e->xcrossing.display, e->xcrossing.window,
-                                       e->xcrossing.root, e->xcrossing.subwindow, e->xcrossing.x, e->xcrossing.y, e->xcrossing.x_root, e->xcrossing.y_root, e->xcrossing.mode, e->xcrossing.detail,
-                                       e->xcrossing.same_screen, e->xcrossing.focus, e->xcrossing.state);
-            show(buffer, len);
-            break;
-        }
-        case LeaveNotify:
-        {
-            int len =  sprintf(buffer, "[EnterNotify   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][root = %u][subwindow = %u]"
-                                       "[x = %u, y = %u][x_root = %u, y_root = %u][mode = %u][detail = %u][same_screen = %d][focus = %d][state = %u]",
-                               EnterNotify, e->xcrossing.type, e->xcrossing.serial, e->xcrossing.send_event, e->xcrossing.display, e->xcrossing.window,
-                               e->xcrossing.root, e->xcrossing.subwindow, e->xcrossing.x, e->xcrossing.y, e->xcrossing.x_root, e->xcrossing.y_root, e->xcrossing.mode, e->xcrossing.detail,
-                               e->xcrossing.same_screen, e->xcrossing.focus, e->xcrossing.state);
-            show(buffer, len);
-            break;
-        }
-        case FocusIn:
-        {
-//            typedef struct {
-//                int type;		/* FocusIn or FocusOut */
-//                unsigned long serial;	/* # of last request processed by server */
-//                Bool send_event;	/* true if this came from a SendEvent request */
-//                Display *display;	/* Display the event was read from */
-//                Window window;		/* window of event */
-//                int mode;		/* NotifyNormal, NotifyWhileGrabbed,
-//				   NotifyGrab, NotifyUngrab */
-//                int detail;
-//                /*
-//                 * NotifyAncestor, NotifyVirtual, NotifyInferior,
-//                 * NotifyNonlinear,NotifyNonlinearVirtual, NotifyPointer,
-//                 * NotifyPointerRoot, NotifyDetailNone
-//                 */
-//            } XFocusChangeEvent;
-            int len =  sprintf(buffer, "[FocusIn   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][mode = %u][detail = %u]",
-                               FocusIn, e->xfocus.type, e->xfocus.serial, e->xfocus.send_event, e->xfocus.display, e->xfocus.window, e->xfocus.mode, e->xfocus.detail);
-            show(buffer, len);
-            break;
-        }
-        case FocusOut:
-        {
-            int len =  sprintf(buffer, "[FocusIn   = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][mode = %u][detail = %u]",
-                               FocusIn, e->xfocus.type, e->xfocus.serial, e->xfocus.send_event, e->xfocus.display, e->xfocus.window, e->xfocus.mode, e->xfocus.detail);
-            show(buffer, len);
-            break;
-        }
-        case KeymapNotify:
-        {
-            int len =  sprintf(buffer, "[KeymapNotify   = %d]", KeymapNotify);
-            show(buffer, len);
-            break;
-        }
-        case Expose:
-        {
-            int len =  sprintf(buffer, "Expose   = %d", Expose);
-            show(buffer, len);
-            break;
-        }
-        case GraphicsExpose:
-        {
-            int len =  sprintf(buffer, "GraphicsExpose   = %d", GraphicsExpose);
-            show(buffer, len);
-            break;
-        }
-        case NoExpose:
-        {
-            int len =  sprintf(buffer, "NoExpose   = %d", NoExpose);
-            show(buffer, len);
-            break;
-        }
-        case VisibilityNotify:
-        {
-            int len =  sprintf(buffer, "VisibilityNotify   = %d", VisibilityNotify);
-            show(buffer, len);
-            break;
-        }
-        case CreateNotify:
-        {
-            int len =  sprintf(buffer, "CreateNotify   = %d", CreateNotify);
-            show(buffer, len);
-            break;
-        }
-        case DestroyNotify:
-        {
-            int len =  sprintf(buffer, "DestroyNotify   = %d", DestroyNotify);
-            show(buffer, len);
-            break;
-        }
-        case UnmapNotify:
-        {
-            int len =  sprintf(buffer, "UnmapNotify   = %d", UnmapNotify);
-            show(buffer, len);
-            break;
-        }
-        case MapNotify:
-        {
-            int len =  sprintf(buffer, "MapNotify   = %d", MapNotify);
-            show(buffer, len);
-            break;
-        }
-        case MapRequest:
-        {
-            int len =  sprintf(buffer, "MapRequest   = %d", MapRequest);
-            show(buffer, len);
-            break;
-        }
-        case ReparentNotify:
-        {
-            int len =  sprintf(buffer, "ReparentNotify   = %d", ReparentNotify);
-            show(buffer, len);
-            break;
-        }
-        case ConfigureNotify:
-        {
-            int len =  sprintf(buffer, "ConfigureNotify   = %d", ConfigureNotify);
-            show(buffer, len);
-            break;
-        }
-        case ConfigureRequest:
-        {
-            int len =  sprintf(buffer, "ConfigureRequest   = %d", ConfigureRequest);
-            show(buffer, len);
-            break;
-        }
-        case GravityNotify:
-        {
-            int len =  sprintf(buffer, "GravityNotify   = %d", GravityNotify);
-            show(buffer, len);
-            break;
-        }
-        case ResizeRequest:
-        {
-            int len =  sprintf(buffer, "ResizeRequest   = %d", ResizeRequest);
-            show(buffer, len);
-            break;
-        }
-        case CirculateNotify:
-        {
-            int len =  sprintf(buffer, "CirculateNotify   = %d", CirculateNotify);
-            show(buffer, len);
-            break;
-        }
-        case CirculateRequest:
-        {
-            int len =  sprintf(buffer, "CirculateRequest   = %d", CirculateRequest);
-            show(buffer, len);
-            break;
-        }
-        case PropertyNotify:
-        {
-//            typedef struct {
-//                int type;
-//                unsigned long serial;	/* # of last request processed by server */
-//                Bool send_event;	/* true if this came from a SendEvent request */
-//                Display *display;	/* Display the event was read from */
-//                Window window;
-//                Atom atom;
-//                Time time;
-//                int state;		/* NewValue, Deleted */
-//            } XPropertyEvent;
-            int len =  sprintf(buffer, "[PropertyNotify = %d][type = %u][serial = %lu][send_event = %d][display = %p][window = %u][atom = %d][state = %u]", PropertyNotify, e->xproperty.type, e->xproperty.serial, e->xproperty.send_event, e->xproperty.display, e->xproperty.window, e->xproperty.atom, e->xproperty.state);
-            show(buffer, len);
-            break;
-        }
-        case SelectionClear:
-        {
-            int len =  sprintf(buffer, "SelectionClear   = %d", SelectionClear);
-            show(buffer, len);
-            break;
-        }
-        case SelectionRequest:
-        {
-            int len =  sprintf(buffer, "SelectionRequest   = %d", SelectionRequest);
-            show(buffer, len);
-            break;
-        }
-        case SelectionNotify:
-        {
-            int len =  sprintf(buffer, "SelectionNotify   = %d", SelectionNotify);
-            show(buffer, len);
-            break;
-        }
-        case ColormapNotify:
-        {
-            int len =  sprintf(buffer, "ColormapNotify   = %d", ColormapNotify);
-            show(buffer, len);
-            break;
-        }
-        case ClientMessage:
-        {
-            int len =  sprintf(buffer, "ClientMessage   = %d", ClientMessage);
-            show(buffer, len);
-            break;
-        }
-        case MappingNotify:
-        {
-            int len =  sprintf(buffer, "MappingNotify   = %d", MappingNotify);
-            show(buffer, len);
-            break;
-        }
-        case GenericEvent:
-        {
-            int len =  sprintf(buffer, "GenericEvent   = %d", GenericEvent);
-            show(buffer, len);
-            break;
-        }
-        case LASTEvent:
-        {
-            int len =  sprintf(buffer, "LASTEvent   = %d", LASTEvent);
-            show(buffer, len);
-            break;
-        }
-        default:
-        {
-            char buffer[1024] = {0};
-            int len =  sprintf(buffer, "unknow type = %u\n", e->type);
-            show(buffer, len);
-            break;
-        }
-    }
+GLenum  glewInit (void)
+{
+   if (!real_glewInit)
+   {
+       real_glewInit = dlsym(RTLD_NEXT, "glewInit");
+   }
+   char buffer[100];
+   (void) sprintf(buffer, "%lu glewInit   == %p\n", gettid(),   real_glewInit);
+   (void) write(1, buffer, strlen(buffer));
+   return real_glewInit();
 }
 
-
-
-void call_time_out(const char * str)
+void  glFinish(void)
 {
-    struct timeval tv;
-    struct timezone tz;
-    struct tm * t;
-    gettimeofday(&tv, &tz);
-    t = localtime(&tv.tv_sec);
-    char buffer[10240] = {0};
-    (void) sprintf(buffer, "real_XNextEvent %s [time_now :%d-%d-%d %d:%d:%d.%ld][g_count = %lu]\n", str, 1900 + t->tm_year,
-                   1+t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, tv.tv_usec, g_count++);
+
+   if (!real_glFinish)
+   {
+       real_glFinish = dlsym(RTLD_NEXT, "glFinish");
+   }
+
+
+   char buffer[100];
+   (void) sprintf(buffer, "%lu real_glFinish   == %p\n", gettid(),   real_glFinish);
+   (void) write(1, buffer, strlen(buffer));
+   real_glFinish();
+}
+
+void  glFlush(void)
+{
+
+   if (!real_glFlush)
+   {
+       real_glFlush = dlsym(RTLD_NEXT, "glFlush");
+   }
+
+
+   char buffer[100];
+   (void) sprintf(buffer, "%lu glFinish   == %p\n", gettid(),   real_glFlush);
+   (void) write(1, buffer, strlen(buffer));
+   real_glFlush();
+}
+static inline int gl_error(const char *func, const char *str)
+{
+	GLenum error = glGetError();
+	if (error != 0) {
+        char buffer[100];
+        (void) sprintf(buffer, "%s: %s: %lu\n", func, str, error);
     (void) write(1, buffer, strlen(buffer));
+		 
+		return 1;
+	}
+
+	return 0;
 }
-typedef  int (*Hook_XNextEvent)( Display*	d 	/* display */, XEvent*		e/* event_return */ )   ;
-static  Hook_XNextEvent   real_XNextEvent = NULL;
-  int XNextEvent( Display*	d	/* display */, XEvent*		e/* event_return */ )
-  {
-      if (!real_XNextEvent)
-    {
-        real_XNextEvent = dlsym(RTLD_NEXT, "XNextEvent");
-    }
-
-      int ret = real_XNextEvent(d, e);
-      {
-//          e->xbutton.serial + g_new_seria + 1;
-////          e->xbutton.window = 0; //  []
-//          e->xbutton.y_root = 0;
-//          e->xbutton.x_root = 0;
-////          e->xbutton.root = 0;
-////          int x = e->xbutton.x_root - e->xbutton.x;
-////          int y = e->xbutton.y_root - e->xbutton.y;
-////          e->xbutton.x =   200;
-////          e->xbutton.y = 200;
-////          e->xbutton.x_root += e->xbutton.x;
-////          e->xbutton.y_root += e->xbutton.y;
-        if (ButtonRelease == e->type || ButtonPress == e->type)
-        {
-            e->xbutton.state = 0;
-            e->xbutton.x_root = 0;
-            e->xbutton.y_root = 0;
-            e->xbutton.root = 0;
-            e->xbutton.send_event = 0;
-            e->xbutton.same_screen = 0;
-        }
-          show_hook_info(d, e);
+static void   (*hook_glDrawPixels)(
+         GLsizei width,
+         GLsizei height,
+         GLenum  format,
+         GLenum  type,
+   const GLvoid  *pixels
+) = NULL;
 
 
-      }
-      char buffer[102400] = {0};
-      (void)sprintf(buffer, "[XNextEvent][display = %p][ ret = %u][g_count = %lu]\n", d,    ret, g_count++);
-      (void)write(1, buffer, strlen(buffer));
-    return ret;
-  }
-
-  typedef int (*Hook_XSelectInput)(  Display*	display	/* display */, Window	w	/* w */, long		event_mask/* event_mask */ )  ;
-
-  static Hook_XSelectInput real_XSelectInput = NULL;
-
-  int  XSelectInput( Display* display		/* display */, Window	w 	/* w */, long	event_mask	/* event_mask */ )
-  {
-      if (!real_XSelectInput)
-      {
-          real_XSelectInput = dlsym(RTLD_NEXT, "XSelectInput");
-      }
-
-      int size  = real_XSelectInput(display, w, event_mask);
-      char buffer[102400] = {0};
-      (void)sprintf(buffer, "[real_XSelectInput][display = %p][window = %u][event_mask = %lu][ret = %u][g_count = %lu]\n", display, w, event_mask, size, g_count++);
-      (void)write(1, buffer, strlen(buffer));
-      return size;
-  }
-typedef   int  (*Hook_XPending)(  Display*	display	/* display */ )  ;
-static Hook_XPending  real_XPending = NULL;
-
-int XdPending( Display*	display	/* display */ )
+void   glXDrawPixels(
+         GLsizei width,
+         GLsizei height,
+         GLenum  format,
+         GLenum  type,
+   const GLvoid  *pixels
+)
 {
-        if (!real_XPending)
-        {
-            real_XPending = dlsym(RTLD_NEXT, "XPending");
-        }
+    if (!hook_glDrawPixels)
+   {
+       hook_glDrawPixels = dlsym(RTLD_NEXT, "glXDrawPixels");
+   }
 
-        int size = real_XPending(display );
-//        char buffer[102400] = {0};
-//
-//        (void)sprintf(buffer, "[real_XPending][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
-//        (void)write(1, buffer, strlen(buffer));
 
-//    XPeekEvent
-        return size;
+    char buffer[100];
+   (void) sprintf(buffer, "%lu [hook_glDrawPixels   == %p][width = %u][height = %u]\n", gettid(),   hook_glDrawPixels, width, height);
+   (void) write(1, buffer, strlen(buffer));
+    hook_glDrawPixels(width, height, format, type, pixels);
 }
 
-typedef   int (*Hook_XPeekEvent)(  Display*		  display  , XEvent*		  event_return   );
-static Hook_XPeekEvent real_XPeekEvent = NULL;
+// static EGLSurface (*hook_eglCreateWindowSurface)(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint *attrib_list) = NULL;
+// EGLSurface  eglCreateWindowSurface (EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint *attrib_list)
+// {
 
-int XPeekEvent(  Display*		  display , XEvent*		  event_return   )
+// }
+
+
+static int init = 0;
+
+///////////
+GLuint fbo;
+////////////////
+GLuint pbos;
+GLuint textures;
+
+
+static inline int gl_init_fbo(void)
 {
-    if (!real_XPeekEvent)
-    {
-        real_XPeekEvent = dlsym(RTLD_NEXT, "XPeekEvent");
-    }
-//    XGetEventData
-    int size = real_XPeekEvent(display , event_return);
-    char buffer[102400] = {0};
-
-    (void)sprintf(buffer, "[real_XPeekEvent][display = %p][size = %u][g_count = %lu] \n", display, size, g_count++);
-    (void)write(1, buffer, strlen(buffer));
-
-//    XPeekEvent
-    return size;
+	glGenFramebuffers(1, &fbo);
+	return !gl_error("gl_init_fbo", "failed to initialize FBO");
 }
-typedef    Bool (*Hook_XGetEventData)( Display*			  dpy  ,  XGenericEventCookie*	  cookie );
-static Hook_XGetEventData real_XGetEventData= NULL;
 
-Bool ddXGetEventData( Display*			  dpy  ,  XGenericEventCookie*	  cookie )
+// static GLXWindow ( * hook_glXCreateWindow) (Display *dpy, GLXFBConfig config, Window win, const int *attrib_list) = NULL;
+
+// GLXWindow glXCreateWindow(Display *dpy, GLXFBConfig config, Window win, const int *attrib_list)
+// {
+//     if (!hook_glXCreateWindow)
+//     {
+//         hook_glXCreateWindow = dlsym(RTLD_NEXT, "glXCreateWindow");
+//     }
+
+//     char buffer[1024] = {0};
+    
+// (void)sprintf(buffer, "[hook_glXCreateWindow]  ======================>\n" );
+//     (void)write(1, buffer, strlen(buffer));
+//     for (int i = 0; i < sizeof(attrib_list)/ sizeof(int*); ++i )
+//     {
+//     (void)sprintf(buffer, "[hook_glXCreateWindow] [i=%u][= %u]======================>\n", i , attrib_list[i]);
+//     (void)write(1, buffer, strlen(buffer));
+//     }
+
+// }
+
+
+
+GLuint texture;
+
+    int width = 980;
+    int height = 1900;
+static void gl_copy_backbuffer(GLuint dst)
 {
-//    XGetEventData
-    if (!real_XGetEventData)
-    {
-        real_XGetEventData = dlsym(RTLD_NEXT, "XGetEventData");
-    }
-//    XGetEventData
-    Bool size = real_XGetEventData(dpy , cookie);
-    char buffer[102400] = {0};
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+	 gl_error("gl_copy_backbuffer", "failed to bind FBO");
 
-    (void)sprintf(buffer, "[real_XGetEventData][display = %p][size = %d][g_count = %lu] \n", dpy, size, g_count++);
-    (void)write(1, buffer, strlen(buffer));
+	glBindTexture(GL_TEXTURE_2D, dst);
+	 gl_error("gl_copy_backbuffer", "failed to bind texture");
 
-//    XPeekEvent
-    return size;
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			       GL_TEXTURE_2D, dst, 0);
+	gl_error("gl_copy_backbuffer", "failed to set frame buffer");
+
+	glReadBuffer(GL_BACK);
+
+ 
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	gl_error("gl_copy_backbuffer", "failed to set draw buffer");
+
+	glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	gl_error("gl_copy_backbuffer", "failed to blit");
 }
-typedef int (*Hook_XMoveWindow)( Display*		 display  , Window		  w  , int			  x  , int			  y   );
-static Hook_XMoveWindow real_XMoveWindow = NULL;
-int XMoveWindow( Display*		 display  , Window		  w  , int			  x  , int			  y   )
+//EGLBoolean glXSwapBuffers(EGLDisplay d,EGLSurface e)
+
+
+// 定义纹理id和帧缓冲id
+GLuint new_texture, new_framebuffer;
+void glXSwapBuffers(Display *d, GLXDrawable e)
 {
-    if (!real_XMoveWindow)
+    if (!real_eglSwapBuffers)
+   {
+       real_eglSwapBuffers = dlsym(RTLD_NEXT, "glXSwapBuffers");
+   }
+
+
+    if (!out_gl_ptr)
     {
-        real_XMoveWindow = dlsym(RTLD_NEXT, "XMoveWindow");
+        out_gl_ptr = fopen("./gl_out.rgba", "wb+");
     }
-//    XGetEventData
-    int size = real_XMoveWindow(display , w, x, y);
-    char buffer[102400] = {0};
+ 
 
-    (void)sprintf(buffer, "[real_XMoveWindow][display = %p][size = %d][g_count = %lu] \n", display, size, g_count++);
-    (void)write(1, buffer, strlen(buffer));
-//    XIfEvent()
-//    XPeekEvent
-    return size;
-}
-
-typedef   int (*Hook_XIfEvent)( Display*		  display  , XEvent*		 event_return  ,
-        Bool (*predicate) ( Display*			  display , XEvent*			 event  , XPointer			  arg  )		 , XPointer		  arg);
-static Hook_XIfEvent real_XIfEvent = NULL;
-
-int  XIfEvent( Display*		  display  , XEvent*		 event_return  ,
-                      Bool (*predicate) ( Display*			  display , XEvent*			 event  , XPointer			  arg  )		 , XPointer		  arg)
-{
-    if (!real_XIfEvent)
-    {
-        real_XIfEvent = dlsym(RTLD_NEXT, "XIfEvent");
-    }
-//    XGetEventData
-    int size = real_XIfEvent(display , event_return, predicate, arg);
-    char buffer[102400] = {0};
-
-    (void)sprintf(buffer, "[real_XIfEvent][display = %p][size = %d][g_count = %lu] \n", display, size, g_count++);
-    (void)write(1, buffer, strlen(buffer));
-//    XIfEvent()
-//    XPeekEvent
-    return size;
-}
-
-//  gtk_widget_add_event();
-//  gtk_widget_add_event();
-//
-//static void (*real_glFlush)(void   ) = NULL;
-//
-////static GLenum  (*real_glewInit) (void) = NULL;
-////
-////GLenum  glewInit (void)
-////{
-////    if (!real_glewInit)
-////    {
-////        real_glewInit = dlsym(RTLD_NEXT, "glewInit");
-////    }
-////    char buffer[100];
-////    (void) sprintf(buffer, "%lu glewInit   == %p\n", gettid(),   real_glewInit);
-////    (void) write(1, buffer, strlen(buffer));
-////    return real_glewInit();
-////}
-//void  glFlush(void)
-//{
-//
-//    if (!real_glFlush)
-//    {
-//        real_glFlush = dlsym(RTLD_NEXT, "glFlush");
-//    }
-//
-//
-//    char buffer[100];
-//    (void) sprintf(buffer, "%lu glFinish   == %p\n", gettid(),   real_glFlush);
+//   {
+//     unsigned int width = -1, height = -1;
+//   eglQuerySurface(d, e, EGL_WIDTH, &width);
+//   eglQuerySurface(d, e, EGL_HEIGHT, &height);
+//       char buffer[1024];
+//    (void) sprintf(buffer, "%lu [real_eglSwapBuffers    == %p][width = %u][height = %u]\n", gettid(),   real_eglSwapInterval, width, height);
 //    (void) write(1, buffer, strlen(buffer));
-//    real_glFlush();
-//}
+//   }
+
+
+
+    int size = width * height * 4;
+    // if (0 == pbos)
+    // {
+    //     pbos = 1;
+    //     GLint last_pbo;
+	//     GLint last_tex;
+    //     glGenBuffers(NUM_BUFFERS, pbos);
+    //     if (gl_error("gl_shmem_init_buffers", "failed to generate buffers")) {
+    //         return false;
+    //     }
+
+    //     glGenTextures(NUM_BUFFERS,  textures);
+    //     if (gl_error("gl_shmem_init_buffers", "failed to generate textures")) {
+    //         return false;
+    //     }
+
+    //     glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &last_pbo);
+    //     if (gl_error("gl_shmem_init_buffers",
+    //             "failed to save pixel pack buffer")) {
+    //         return false;
+    //     }
+
+    //     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_tex);
+    //     if (gl_error("gl_shmem_init_buffers", "failed to save texture")) {
+    //         return false;
+    //     }
+    //     ///////////////////
+    //     {
+
+    //         glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos );
+    //         if (gl_error("gl_shmem_init_data", "failed to bind pbo")) {
+    //             return false;
+    //         }
+
+    //         glBufferData(GL_PIXEL_PACK_BUFFER, size, 0, GL_STREAM_READ);
+    //         if (gl_error("gl_shmem_init_data", "failed to set pbo data")) {
+    //             return false;
+    //         }
+
+    //         glBindTexture(GL_TEXTURE_2D, textures);
+    //         if (gl_error("gl_shmem_init_data", "failed to set bind texture")) {
+    //             return false;
+    //         }
+
+    //         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+    //         if (gl_error("gl_shmem_init_data", "failed to set texture data"))
+    //          {
+    //             return false;
+    //         }
+    //     }
+
+    //     ///////////
+    //     glBindBuffer(GL_PIXEL_PACK_BUFFER, last_pbo);
+	//     glBindTexture(GL_TEXTURE_2D, last_tex);
+    // }
+
+
+//     static int shtex_init = 0;
+//     if (0 == shtex_init)
+//     {
+//         shtex_init = 1;
+//         glGenTextures(1, & texture);
+// 	    gl_error("gl_shtex_init_gl_tex", "failed to generate texture");
+		 
+//         gl_init_fbo();
+
+//     }
+
+//     {
+//         GLint last_fbo;
+// 	    GLint last_tex;
+//         GLint last_pbo;
+//         glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &last_fbo);
+//          gl_error("gl_shtex_capture", "failed to get last fbo");
+
+//         glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_tex);
+//          gl_error("gl_shtex_capture", "failed to get last texture") ;
+
+//         glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &last_pbo);
+// 	    gl_error("gl_shmem_capture", "failed to get last pbo");
+//         // copy backbuffer
+// gl_copy_backbuffer(texture);
+//          glBindTexture(GL_TEXTURE_2D, last_tex);
+//           glBindBuffer(GL_PIXEL_PACK_BUFFER, last_pbo);
+// 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, last_fbo);
+  
+//     }
+  
+    if (!rgba_ptr)
+    {
+        rgba_ptr = malloc(sizeof(unsigned char ) * width * height * 4);
+    }
+    memset(rgba_ptr, 0, width * height * 4);
+
+    // {
+
+
+    //     int next_tex;
+    //     GLint last_fbo;
+    //     GLint last_tex;
+    //     GLint last_pbo;
+
+    //     glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &last_fbo);
+    //     if (gl_error("gl_shmem_capture", "failed to get last fbo")) {
+    //         return;
+    //     }
+
+    //     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_tex);
+    //     if (gl_error("gl_shmem_capture", "failed to get last texture")) {
+    //         return;
+    //     }
+
+    //     glGetIntegerv(GL_PIXEL_PACK_BUFFER_BINDING, &last_pbo);
+    //     if (gl_error("gl_shmem_capture", "failed to get last pbo")) {
+    //         return;
+    //     }
+    //     glBindBuffer(GL_PIXEL_PACK_BUFFER, pbos);
+	// 	if (gl_error("gl_shmem_capture_queue_copy",
+	// 		     "failed to bind pbo")) {
+	// 		return;
+	// 	}
+    //     GLvoid *buffer = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+	// 	if (buffer) {
+			 
+	// 		shmem_copy_data(i, buffer);
+	// 	}
+    //     ////////////////////////////////////////////////////////////////////
+
+            static int init_f = 0;
+            if (0 == init_f)
+            {
+                init_f = 1;
+                // 初始化纹理
+                glGenTextures(1, &new_texture);
+                glBindTexture(GL_TEXTURE_RECTANGLE, new_texture);
+                glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+                // 初始化帧缓冲
+                glGenFramebuffers(1, &new_framebuffer);
+            }
+
+            glReadBuffer(GL_BACK);
+            gl_error("glReadBuffer", "glReadBuffer failed !!!");
+            // glGenTextures(1, &_textureInfo.texture);
+            // glGenTextures(1, & texture);
+            //  glBindTexture(GL_TEXTURE_2D, texture);
+            glBindFramebuffer(GL_FRAMEBUFFER, new_framebuffer);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, new_texture, 0);
+
+            // 渲染到帧缓冲
+            // glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            //             gl_error("glBindFramebuffer", "glBindFramebuffer failed !!!");
+            //             // 渲染代码省略
+
+            // // 将帧缓冲的数据拷贝到纹理
+            // glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            gl_error("glBindFramebuffer", "glBindFramebuffer GL_TEXTURE_2D failed !!!");
+            glBindTexture(GL_TEXTURE_RECTANGLE, new_texture);
+            gl_error("glBindTexture", "glBindTexture GL_TEXTURE_2D failed !!!");
+            glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, 0, 0, width, height);
+          //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgba_ptr);
+//            glCopyTexSubImage2D();
+           // glCopyTexSubImage2D(GL_TEXTURE_2D, GL_UNSIGNED_BYTE, width, height, 0, 0, width, height);
+        //    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+           gl_error("glCopyTexSubImage2D", "glCopyTexSubImage2D failed !!!");
+            // glBindTexture(GL_TEXTURE_2D, 0);
+            gl_error("glGenTextures", "glGenTextures GL_TEXTURE_2D failed !!!");
+        //if (out_gl_ptr)
+        {
+          //  fwrite(rgba_ptr, size, 1, out_gl_ptr);
+           // fflush(out_gl_ptr);
+        }
+    // }
+
+   
+   
+
+   struct timeval tTimeVal;
+    gettimeofday(&tTimeVal, NULL);
+    struct tm *tTM = localtime(&tTimeVal);
+    char buffer[1024] = {0};
+    (void)sprintf(buffer, "[real_eglSwapBuffers][%s][%d] ======================>[%04d-%02d-%02d %02d:%02d:%02d.%03ld.%03ld]\n",  __FUNCTION__, __LINE__, tTM->tm_year +1900, tTM->tm_mon +1, tTM->tm_mday, tTM->tm_hour, tTM->tm_min, tTM->tm_sec, tTimeVal.tv_usec/ 1000, tTimeVal.tv_usec %1000);
+    (void)write(1, buffer, strlen(buffer));
+     real_eglSwapBuffers(d, e);
+//        {
+
+//      int width;
+//     int height;
+//     width = glutGet(GLUT_WINDOW_WIDTH);
+//     height = glutGet(GLUT_WINDOW_HEIGHT);
+//     // eglQuerSyurface(d,e,EGL_WIDTH,&width);
+//     // eglQuerySurface(d,e,EGL_HEIGHT,&height);
+//     char buffer[100];
+//    (void) sprintf(buffer, "%lu [real_eglSwapBuffers    == %p][width = %u][height = %u]\n", gettid(),   real_eglSwapBuffers, width, height);
+//    (void) write(1, buffer, strlen(buffer));
+//    }
+}
+
+EGLBoolean   eglSwapInterval(EGLDisplay d,EGLint i)
+{
+  if (!real_eglSwapInterval)
+   {
+       real_eglSwapInterval = dlsym(RTLD_NEXT, "eglSwapInterval");
+   }
+   char buffer[100];
+   (void) sprintf(buffer, "%lu real_eglSwapInterval   == %p\n", gettid(),   real_eglSwapInterval);
+   (void) write(1, buffer, strlen(buffer));
+   return real_eglSwapInterval(d, i);
+}
+
+// void glutSwapBuffers(void)
+// {
+//      if (!real_glutSwapBuffers)
+//    {
+//        real_glutSwapBuffers = dlsym(RTLD_NEXT, "glutSwapBuffers");
+//    }
+
+
+//     struct timeval tTimeVal;
+//     gettimeofday(&tTimeVal, NULL);
+//     struct tm *tTM = localtime(&tTimeVal);
+//     char buffer[1024] = {0};
+//     (void)sprintf(buffer, "[real_glutSwapBuffers] ======================>[%04d-%02d-%02d %02d:%02d:%02d.%03ld.%03ld]\n",  tTM->tm_year +1900, tTM->tm_mon +1, tTM->tm_mday, tTM->tm_hour, tTM->tm_min, tTM->tm_sec, tTimeVal.tv_usec/ 1000, tTimeVal.tv_usec %1000);
+//     (void)write(1, buffer, strlen(buffer));
+//      real_glutSwapBuffers();
+// }
+
+
+// EGLBoolean glXMakeCurrent(EGLDisplay d,EGLSurface eg1 ,EGLSurface eg2,EGLContext egc)
+// {
+//  if (!real_eglMakeCurrent)
+//    {
+//        real_eglMakeCurrent = dlsym(RTLD_NEXT, "glXMakeCurrent");
+//    }
+
+
+//    char buffer[100];
+//    (void) sprintf(buffer, "%lu real_eglMakeCurrent   == %p\n", gettid(),   real_eglMakeCurrent);
+//    (void) write(1, buffer, strlen(buffer));
+//   return real_eglMakeCurrent(d, eg1, eg2, egc);
+// }
+// typedef void	(*t_glFlush)(void);
+
+
+// // for hooking
+// t_glFlush		old_glFlush = NULL;
+
+// __attribute__((constructor))
+// static void gl_hook_loaded(void)
+// {
+
+//     void *handle = NULL;
+// 	char *ptr, soname[2048];
+// 	if((ptr = getenv("LIBVIDEO")) == NULL) 
+//     {
+// 		strncpy(soname, "libGL.so.1", sizeof(soname));
+// 	} else {
+// 		strncpy(soname, ptr, sizeof(soname));
+// 	}
+//     handle = dlopen(soname, RTLD_LAZY);
+// 	if( handle == NULL) 
+//     {
+// 		//ga_error("dlopen '%s' failed: %s\n", soname, strerror(errno));
+// 		//exit(-1);
+//          char buffer[100];
+//         (void) sprintf(buffer, "dlopen '%s' failed: \n", soname );
+//         (void) write(1, buffer, strlen(buffer));
+// 	}
+//     else 
+//     {
+//          char buffer[100];
+//         (void) sprintf(buffer, "dlopen '%s' open:  \n", soname );
+//         (void) write(1, buffer, strlen(buffer));
+//         old_glFlush = (t_glFlush) dlsym(handle, "glFlush");
+
+//     }
+
+//     //if (!old_glFlush)
+//     {
+//         char buffer[100];
+//         (void) sprintf(buffer, "%lu -------gl_hook_loaded   == %p\n", gettid(),   old_glFlush);
+//         (void) write(1, buffer, strlen(buffer));
+//     }
+
+// 	// for hooking
+// 	// old_glFlush = (t_glFlush) dlsym(handle, "glFlush");
+// 	// ga_error("hook-gl: hooked.\n");
+// 	// // indirect hook
+// 	// if((ptr = getenv("HOOKVIDEO")) == NULL)
+// 	// 	goto quit;
+// 	// strncpy(soname, ptr, sizeof(soname));
+// 	// if((handle = dlopen(soname, RTLD_LAZY)) != NULL) {
+// 	// 	hook_lib_generic(soname, handle, "glFlush", (void*) hook_glFlush);
+// 	// }
+// 	// ga_error("hook-gl: hooked into %s.\n", soname);
+// }
+
 //
 //static void  (*real_glGenTextures)( GLsizei n, GLuint * textures) = NULL;
 //
@@ -3682,8 +4216,10 @@ Status dXSendEvent( Display* display ,  Window w, Bool propagate, long event_mas
 //);
 //
 //
-__attribute__((constructor))
-void  test_hook()
-{
-    FILE * out_file_ptr = fopen("chensong.log", "wb+");
-}
+// __attribute__((constructor))
+// void  test_hook()
+// {
+
+
+//     FILE * out_file_ptr = fopen("chensong.log", "wb+");
+// }

@@ -24,6 +24,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+
+#if VAAPI
 #include <va/va_x11.h>
 #include "va_display.h"
 
@@ -137,3 +139,4 @@ const VADisplayHooks va_display_hooks_x11 = {
     va_close_display_x11,
     va_put_surface_x11,
 };
+#endif

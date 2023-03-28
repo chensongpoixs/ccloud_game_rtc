@@ -16,7 +16,7 @@
 #if defined(_MSC_VER)
 #include "nv_encoder.h"
 #else 
-
+#include "cnv_encoder.h"
 #endif 
 namespace chen {
 
@@ -49,8 +49,14 @@ public:
 					return absl::make_unique<webrtc::NvEncoder>(cricket::VideoCodec(format)); 
 				}
 				else
-#else 
 
+#else
+               // if (nvenc_info.is_supported())
+               if (true)
+               {
+                    return absl::make_unique<webrtc::cnv_encoder>(cricket::VideoCodec(format));
+                }
+                 else
 #endif  
 				{
 					return webrtc::H264Encoder::Create(cricket::VideoCodec(format));

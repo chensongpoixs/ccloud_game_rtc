@@ -27,6 +27,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+#if VAAPI
+
 #ifdef IN_LIBVA
 # include "va/drm/va_drm.h"
 #else
@@ -126,3 +129,6 @@ const VADisplayHooks va_display_hooks_drm = {
     va_close_display_drm,
     va_put_surface_drm,
 };
+
+
+#endif

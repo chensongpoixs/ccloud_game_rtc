@@ -10,9 +10,9 @@
 */
 
 #include "NvEncoderGL.h"
-// #include <GL/glew.h>
+#include <GL/glew.h>
 #include "clog.h"
-#include "glad/glad.h"
+// #include "glad/glad.h"
 using namespace chen;
 NvEncoderGL::NvEncoderGL(uint32_t nWidth, uint32_t nHeight, NV_ENC_BUFFER_FORMAT eBufferFormat,
     uint32_t nExtraOutputDelay, bool bMotionEstimationOnly) :
@@ -36,14 +36,12 @@ void NvEncoderGL::ReleaseInputBuffers()
 }
 
 void NvEncoderGL::AllocateInputBuffers(int32_t numInputBuffers)
-{
-    NORMAL_EX_LOG("");
+{ 
     if (!IsHWEncoderInitialized())
     {
 
         NVENC_THROW_ERROR("Encoder device not initialized", NV_ENC_ERR_ENCODER_NOT_INITIALIZED);
-    }
-    NORMAL_EX_LOG("");
+    } 
     int numCount = m_bMotionEstimationOnly ? 2 : 1;
 
     for (int count = 0; count < numCount; count++)
@@ -52,23 +50,22 @@ void NvEncoderGL::AllocateInputBuffers(int32_t numInputBuffers)
         for (int i = 0; i < numInputBuffers; i++)
         {
             NV_ENC_INPUT_RESOURCE_OPENGL_TEX *pResource = new NV_ENC_INPUT_RESOURCE_OPENGL_TEX;
-            uint32_t tex;
-NORMAL_EX_LOG("");
-            glGenTextures(1, &tex);
-            NORMAL_EX_LOG("");
-            glBindTexture(GL_TEXTURE_RECTANGLE, tex);
-NORMAL_EX_LOG("");
+            uint32_t tex; 
+            glGenTextures(1, &tex); 
+            glBindTexture(GL_TEXTURE_RECTANGLE, tex); 
             uint32_t chromaHeight = GetNumChromaPlanes(GetPixelFormat()) * GetChromaHeight(GetPixelFormat(), GetMaxEncodeHeight());
             if (GetPixelFormat() == NV_ENC_BUFFER_FORMAT_YV12 || GetPixelFormat() == NV_ENC_BUFFER_FORMAT_IYUV)
-                chromaHeight = GetChromaHeight(GetPixelFormat(), GetMaxEncodeHeight());
-NORMAL_EX_LOG("");
-            glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_R8,
-                GetWidthInBytes(GetPixelFormat(), GetMaxEncodeWidth()),
-                GetMaxEncodeHeight() + chromaHeight,
-                0, GL_RED, GL_UNSIGNED_BYTE, NULL);
-NORMAL_EX_LOG("");
-            glBindTexture(GL_TEXTURE_RECTANGLE, 0);
-NORMAL_EX_LOG("");
+            {
+                chromaHeight = GetChromaHeight(GetPixelFormat(), GetMaxEncodeHeight()); 
+            }
+            glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_R8, GetWidthInBytes(GetPixelFormat(), GetMaxEncodeWidth()),
+                GetMaxEncodeHeight() + chromaHeight, 0, GL_RED, GL_UNSIGNED_BYTE, NULL); 
+            glBindTexture(GL_TEXTURE_RECTANGLE, 0); 
+            // 初始化帧缓冲
+            // glGenFramebuffers(1, &pResource->framebuffer);
+            // glBindFramebuffer(GL_FRAMEBUFFER, pResource->framebuffer);
+            // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, tex, 0);
+
             pResource->texture = tex;
             pResource->target = GL_TEXTURE_RECTANGLE;
             inputFrames.push_back(pResource);

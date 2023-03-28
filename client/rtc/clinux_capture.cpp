@@ -36,7 +36,7 @@ purpose:		linux_app_capture
 #include <functional>
 #include "cgl_egl_common.h"
 #include "NvEncoderGL.h"
-#include "NvEncoderCLIOptions.h"
+// #include "NvEncoderCLIOptions.h"
 #include "cgl_global.h"
 #include "cclient.h"
 #include "third_party/libyuv/include/libyuv.h"
@@ -340,8 +340,12 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
         const xcb_setup_t *setup = xcb_get_setup(m_connection_ptr);
         xcb_screen_iterator_t screen_iter = xcb_setup_roots_iterator(setup);
         xcb_screen_t *screen = screen_iter.data;
+        // Subscribe to Events
+		uint32_t vals[1] = {StructureNotifyMask | ExposureMask | VisibilityChangeMask};
+		xcb_change_window_attributes(m_connection_ptr, m_win, XCB_CW_EVENT_MASK,  vals);
         // request redirection of window
         //这个代码将窗口内容重定向的离屏缓存并且跟踪 damage 信号，
+        
         xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
  
         _init_window();
@@ -352,8 +356,11 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
 
         xcb_flush(m_connection_ptr);
 
+        m_video_width = m_win_width;
+        m_video_height = m_win_height;
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         
+
         std::chrono::steady_clock::time_point cur_time_ms;
         std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
         std::chrono::steady_clock::duration dur;
@@ -418,9 +425,20 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
             }
             else 
             {
-                if (_check_xcomp_window_exists())
+                xcb_generic_event_t *event;
+                bool ret = false;
+                while (!ret &&(event = xcb_poll_for_queued_event(m_connection_ptr)))
+                {
+                    ret = _watcher_process(event);
+                }
+                if (ret)
                 {
                     WARNING_EX_LOG("window exits ---> ");
+
+
+                    uint32_t valsff[1] = {0};
+		            xcb_change_window_attributes(m_connection_ptr, m_win, XCB_CW_EVENT_MASK, valsff);
+
                      _get_all_window_info();
                     if (!_find_window_name(m_win_name.c_str()))
                     {
@@ -430,28 +448,30 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
                     } 
                     s_input_device.set_main_window(m_win);
             
-                    comp_ver_cookie = xcb_composite_query_version(m_connection_ptr, 0, 2);
-                    comp_ver_reply = xcb_composite_query_version_reply(m_connection_ptr, comp_ver_cookie, &err);
-                    if (comp_ver_reply)
-                    {
-                        if (comp_ver_reply->minor_version < 2)
-                        {
-                            ERROR_EX_LOG("query composite failure: server returned v%d.%d", comp_ver_reply->major_version, comp_ver_reply->minor_version);
-                            free(comp_ver_reply);
-                            false;
-                        }
-                        free(comp_ver_reply);
-                    }
-                    else if (err)
-                    {
-                        ERROR_EX_LOG( "xcb error: %d\n", err->error_code);
-                        free(err);
-                        break;
-                    }
+//                    comp_ver_cookie = xcb_composite_query_version(m_connection_ptr, 0, 2);
+//                    comp_ver_reply = xcb_composite_query_version_reply(m_connection_ptr, comp_ver_cookie, &err);
+//                    if (comp_ver_reply)
+//                    {
+//                        if (comp_ver_reply->minor_version < 2)
+//                        {
+//                            ERROR_EX_LOG("query composite failure: server returned v%d.%d", comp_ver_reply->major_version, comp_ver_reply->minor_version);
+//                            free(comp_ver_reply);
+//                            false;
+//                        }
+//                        free(comp_ver_reply);
+//                    }
+//                    else if (err)
+//                    {
+//                        ERROR_EX_LOG( "xcb error: %d\n", err->error_code);
+//                        free(err);
+//                        break;
+//                    }
 
-                     setup = xcb_get_setup(m_connection_ptr);
-                     screen_iter = xcb_setup_roots_iterator(setup);
-                     screen = screen_iter.data;
+//                     setup = xcb_get_setup(m_connection_ptr);
+//                     screen_iter = xcb_setup_roots_iterator(setup);
+//                     screen = screen_iter.data;
+ 
+		            xcb_change_window_attributes(m_connection_ptr, m_win, XCB_CW_EVENT_MASK,  vals);
                     // request redirection of window
                     //这个代码将窗口内容重定向的离屏缓存并且跟踪 damage 信号，
                     xcb_composite_redirect_window(m_connection_ptr, m_win, XCB_COMPOSITE_REDIRECT_AUTOMATIC);
@@ -473,11 +493,49 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
                 if (gi_reply)
                 {
                     uint8_t *data = xcb_get_image_data(gi_reply);
-                    libyuv::ConvertToI420(data, 0, i420_buffer_->MutableDataY(),
-                    i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
-                    i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
-                    i420_buffer_->StrideV(), 0, 0, m_win_width, m_win_height, m_win_width,
-                    m_win_height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
+                    if (m_win_width != m_video_width || m_win_height != m_video_height)
+                    {
+                        rtc::scoped_refptr<webrtc::I420Buffer> i420_buffer_temp  = webrtc::I420Buffer::Create(m_win_width, m_win_height);
+                        libyuv::ConvertToI420(data, 0, i420_buffer_temp->MutableDataY(),
+                                            i420_buffer_temp->StrideY(), i420_buffer_temp->MutableDataU(),
+                                            i420_buffer_temp->StrideU(), i420_buffer_temp->MutableDataV(),
+                                            i420_buffer_temp->StrideV(), 0, 0, m_win_width, m_win_height, m_win_width,
+                                            m_win_height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
+                        libyuv:: I420Scale(i420_buffer_temp->MutableDataY(),
+                                           i420_buffer_temp->StrideY(), i420_buffer_temp->MutableDataU(),
+                                           i420_buffer_temp->StrideU(), i420_buffer_temp->MutableDataV(),
+                                           i420_buffer_temp->StrideV(),
+                                           m_win_width,
+                                           m_win_height,
+                                           i420_buffer_->MutableDataY(),
+                                           i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
+                                           i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
+                                           i420_buffer_->StrideV(),
+                                        m_video_width,
+                                        m_video_height,
+                                           libyuv::kFilterNone);
+                    }
+                    else 
+                    {
+                        libyuv::ConvertToI420(data, 0, i420_buffer_->MutableDataY(),
+                                            i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
+                                            i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
+                                            i420_buffer_->StrideV(), 0, 0, m_win_width, m_win_height, m_win_width,
+                                            m_win_height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
+                    }
+                    
+
+            //         libyuv::int ARGBToI420(data, 0,);
+            //             //const uint8_t* src_argb,
+            // //    int src_stride_argb,
+            // //    uint8_t* dst_y,
+            // //    int dst_stride_y,
+            // //    uint8_t* dst_u,
+            // //    int dst_stride_u,
+            // //    uint8_t* dst_v,
+            // //    int dst_stride_v,
+            // //    int width,
+            // //    int height)
 
                        webrtc::VideoFrame captureFrame = webrtc::VideoFrame::Builder()
                         .set_video_frame_buffer(i420_buffer_)
@@ -696,6 +754,7 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
                 m_win_width = gg_reply-> width;
                 m_win_height = gg_reply->height;
                 m_win_depth = gg_reply->depth;
+                s_input_device.set_point(m_win_width, m_win_height);
             }
             
             free(gg_reply);
@@ -750,6 +809,38 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
         return exists;
 
         //return true;
+    }
+
+    bool clinux_capture::_watcher_process(xcb_generic_event_t *ev)
+    {
+        if (!ev)
+		{
+            return false;
+        }
+
+	 
+        xcb_window_t win = 0;
+
+        switch (ev->response_type & ~0x80) {
+        case XCB_CONFIGURE_NOTIFY:
+            win = ((xcb_configure_notify_event_t *)ev)->event;
+            break;
+        case XCB_MAP_NOTIFY:
+            win = ((xcb_map_notify_event_t *)ev)->event;
+            break;
+        case XCB_EXPOSE:
+            win = ((xcb_expose_event_t *)ev)->window;
+            break;
+        case XCB_VISIBILITY_NOTIFY:
+            win = ((xcb_visibility_notify_event_t *)ev)->window;
+            break;
+        case XCB_DESTROY_NOTIFY:
+            win = ((xcb_destroy_notify_event_t *)ev)->event;
+            break;
+        }; 
+
+
+        return win == m_win;
     }
 }
 #endif

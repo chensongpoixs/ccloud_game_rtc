@@ -190,6 +190,7 @@ class cnv_encoder : public H264Encoder {
 
   int num_temporal_layers_;
   uint8_t tl0sync_limit_;
+  void * m_cuContext ;
 };
 
 }  // namespace webrtc

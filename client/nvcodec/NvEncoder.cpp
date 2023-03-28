@@ -41,6 +41,7 @@ NvEncoder::NvEncoder(NV_ENC_DEVICE_TYPE eDeviceType, void *pDevice, uint32_t nWi
     m_bMotionEstimationOnly(bMotionEstimationOnly), 
     m_nExtraOutputDelay(nExtraOutputDelay), 
     m_hEncoder(nullptr)
+    , m_forceIDR(false)
 {
     LoadNvEncApi();
 
@@ -455,6 +456,18 @@ void NvEncoder::DoEncode(NV_ENC_INPUT_PTR inputBuffer, std::vector<std::vector<u
     {
         picParams = *pPicParams;
     }
+    static int count = 0;
+    // if (m_forceIDR)
+    // {
+        if (++count > 30)
+        {
+   picParams.encodePicFlags |= NV_ENC_PIC_FLAG_FORCEIDR; // 立即刷新帧IDR
+            count = 0;
+           }
+         
+    //     m_forceIDR = false;
+    // }
+    
     picParams.version = NV_ENC_PIC_PARAMS_VER;
     picParams.pictureStruct = NV_ENC_PIC_STRUCT_FRAME;
     picParams.inputBuffer = inputBuffer;
