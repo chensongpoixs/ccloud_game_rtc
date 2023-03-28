@@ -120,7 +120,7 @@ namespace chen {
 	void ctransport::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state)
 	{
 		NORMAL_EX_LOG("OnSignalingChange new_state = %d", new_state);
-		if (m_client_ptr && new_state == webrtc::PeerConnectionInterface::kClosed)
+		if (m_client_ptr && (new_state == webrtc::PeerConnectionInterface::kClosed ||  new_state == webrtc::PeerConnectionInterface::kHaveRemotePrAnswer))
 		{
 			m_client_ptr->webrtc_connect_failed_callback();
 		}
@@ -144,7 +144,7 @@ namespace chen {
 	void ctransport::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state)
 	{
 		NORMAL_EX_LOG("OnSignalingChange new_state = %d", new_state);
-		if (m_client_ptr && new_state == webrtc::PeerConnectionInterface::kIceConnectionClosed)
+		if (m_client_ptr && new_state == new_state == webrtc::PeerConnectionInterface::kClosed ||  new_state == webrtc::PeerConnectionInterface::kHaveRemotePrAnswer)
 		{
 			m_client_ptr->webrtc_connect_failed_callback();
 		}
