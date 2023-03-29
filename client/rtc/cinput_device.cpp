@@ -283,7 +283,7 @@ void show(const char * str, size_t len)
 //    (void) sprintf(buffer, "real_XNextEvent %s [time_now :%d-%d-%d %d:%d:%d.%ld]\n", str, 1900 + t->tm_year,
 //                   1+t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, tv.tv_usec);
     using namespace chen;
-    ERROR_EX_LOG("=================[%s]", std::string(str, len).c_str());
+    WARNING_EX_LOG("=================[%s]", std::string(str, len).c_str());
 }
 void show_hook_info(Display *display, const XEvent* e)
 {
@@ -630,19 +630,19 @@ void show_hook_info(Display *display, const XEvent* e)
 
 
 
-//int XNextEvent( Display*	d	/* display */, XEvent*		e/* event_return */ )
-//{
-////    g_display_ptr = d;
-//    if (!real_XNextEvent)
-//    {
-//        real_XNextEvent = reinterpret_cast<Hook_XNextEvent>(dlsym(RTLD_NEXT, "XNextEvent"));
-//    }
-//
-//    int ret = real_XNextEvent(d, e);
-//    show_hook_info(d, e);
-//
-//    return ret;
-//}
+int XNextEvent( Display*	d	/* display */, XEvent*		e/* event_return */ )
+{
+//    g_display_ptr = d;
+   if (!real_XNextEvent)
+   {
+       real_XNextEvent = reinterpret_cast<Hook_XNextEvent>(dlsym(RTLD_NEXT, "XNextEvent"));
+   }
+
+   int ret = real_XNextEvent(d, e);
+   show_hook_info(d, e);
+
+   return ret;
+}
 
 
 
@@ -1872,7 +1872,7 @@ static uint32 g_key_state = 0;
               Status status =  XSendEvent(g_display_ptr, g_main_window, True, MotionNotify, &xmouse);
 //                XSync(g_display_ptr, true);
               int xflush =  XFlush(g_display_ptr);
-                NORMAL_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
+                WARNING_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
 
             }
             else
@@ -2007,44 +2007,71 @@ static uint32 g_key_state = 0;
 
         {
 //            xcb_get_extension_data
+            // Window root = DefaultRootWindow(g_display_ptr);
             XEvent  xButton;
             xButton.xbutton.type = ButtonPress;
             xButton.xbutton.x = PosX;
             xButton.xbutton.y = PosY;
+
             xButton.xbutton.x_root = PosX;
             xButton.xbutton.y_root = PosY;
-            xButton.xbutton.send_event = False;
+            // xButton.xbutton.send_event = 0;
             xButton.xbutton.same_screen = True;
-            xButton.xbutton.button = Delta > 0 ? Button4 : Button5;
+            xButton.xbutton.button = Delta  > 0 ? Button4 : Button5;
 //            xButton.xbutton.button = Button4;
             xButton.xbutton.time = CurrentTime;
             xButton.xbutton.window = g_main_window;
+            // xButton.xbutton.subwindow = root;
+        	xButton.xbutton.state = g_key_state;
+            if (Delta  > 0 )
+            {
+                g_key_state |= Button4Mask ;
+            }
+            else
+            {
+                g_key_state |= Button5Mask ;
+            }
+			xButton.xbutton.state = g_key_state;
             if (g_main_window && g_display_ptr)
             {
-                Status status = XSendEvent(g_display_ptr, g_main_window, True, ButtonPress , &xButton);
+                Status status = XSendEvent(g_display_ptr, g_main_window /*PointerWindow*/ /*g_main_window*/, True, ButtonPressMask , &xButton);
                 int xflush = XFlush(g_display_ptr);
-                NORMAL_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
+                WARNING_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
             }
-
-            XEvent  xWheel;
-            xWheel.xbutton.type = ButtonRelease;
-            xWheel.xbutton.display = g_display_ptr;
+			// std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			WARNING_EX_LOG("[Delta = %u][key_state  = %u]",Delta, g_key_state);
+              XEvent  xWheel;
+              xWheel.xbutton.type = ButtonRelease;
+            // // xWheel.xbutton.display = g_display_ptr;
             xWheel.xbutton.x = PosX;
             xWheel.xbutton.y = PosY;
             xWheel.xbutton.x_root = PosX;
             xWheel.xbutton.y_root = PosY;
-            xWheel.xbutton.send_event = False;
+            // xWheel.xbutton.send_event = Flase;
             xWheel.xbutton.same_screen = True;
-            xWheel.xbutton.button = Delta > 0 ? Button4 : Button5;
-//            xWheel.xbutton.button = Button4;
+            xWheel.xbutton.button = Delta  > 0 ? Button4 : Button5;
+           xWheel.xbutton.button = Button4;
             xWheel.xbutton.time = CurrentTime;
-            xWheel.xbutton.window = g_main_window;
-            if (g_main_window && g_display_ptr)
+              xWheel.xbutton.window = g_main_window;
+            if (Delta  > 0 )
             {
-                Status status =     XSendEvent(g_display_ptr, g_main_window, False, ButtonRelease , &xWheel);
-                int xflush = XFlush(g_display_ptr);
-                NORMAL_EX_LOG("BUttonRelease [status = %u][xflush = %u]", status, xflush);
+                g_key_state &= ~Button4Mask ;
             }
+            else
+            {
+                g_key_state &= ~Button5Mask ;
+            }
+
+            xButton.xbutton.state = g_key_state;
+
+        	
+			
+           if (g_main_window && g_display_ptr)
+           {
+               Status status =     XSendEvent(g_display_ptr, g_main_window, False, ButtonReleaseMask , &xWheel);
+               int xflush = XFlush(g_display_ptr);
+               WARNING_EX_LOG("BUttonRelease [status = %u][xflush = %u]", status, xflush);
+           }
         }
 
 #else
