@@ -493,37 +493,40 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
                 if (gi_reply)
                 {
                     uint8_t *data = xcb_get_image_data(gi_reply);
-                    if (m_win_width != m_video_width || m_win_height != m_video_height)
-                    {
-                        rtc::scoped_refptr<webrtc::I420Buffer> i420_buffer_temp  = webrtc::I420Buffer::Create(m_win_width, m_win_height);
-                        libyuv::ConvertToI420(data, 0, i420_buffer_temp->MutableDataY(),
-                                            i420_buffer_temp->StrideY(), i420_buffer_temp->MutableDataU(),
-                                            i420_buffer_temp->StrideU(), i420_buffer_temp->MutableDataV(),
-                                            i420_buffer_temp->StrideV(), 0, 0, m_win_width, m_win_height, m_win_width,
-                                            m_win_height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
-                        libyuv:: I420Scale(i420_buffer_temp->MutableDataY(),
-                                           i420_buffer_temp->StrideY(), i420_buffer_temp->MutableDataU(),
-                                           i420_buffer_temp->StrideU(), i420_buffer_temp->MutableDataV(),
-                                           i420_buffer_temp->StrideV(),
-                                           m_win_width,
-                                           m_win_height,
-                                           i420_buffer_->MutableDataY(),
-                                           i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
-                                           i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
-                                           i420_buffer_->StrideV(),
-                                        m_video_width,
-                                        m_video_height,
-                                           libyuv::kFilterNone);
-                    }
-                    else 
-                    {
-                        libyuv::ConvertToI420(data, 0, i420_buffer_->MutableDataY(),
-                                            i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
-                                            i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
-                                            i420_buffer_->StrideV(), 0, 0, m_win_width, m_win_height, m_win_width,
-                                            m_win_height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
-                    }
-                    
+//                     if (m_win_width != m_video_width || m_win_height != m_video_height)
+//                     {
+//                         rtc::scoped_refptr<webrtc::I420Buffer> i420_buffer_temp  = webrtc::I420Buffer::Create(m_win_width, m_win_height);
+//                         libyuv::ConvertToI420(data, 0, i420_buffer_temp->MutableDataY(),
+//                                             i420_buffer_temp->StrideY(), i420_buffer_temp->MutableDataU(),
+//                                             i420_buffer_temp->StrideU(), i420_buffer_temp->MutableDataV(),
+//                                             i420_buffer_temp->StrideV(), 0, 0, m_win_width, m_win_height, m_win_width,
+//                                             m_win_height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
+//                         libyuv:: I420Scale(i420_buffer_temp->MutableDataY(),
+//                                            i420_buffer_temp->StrideY(), i420_buffer_temp->MutableDataU(),
+//                                            i420_buffer_temp->StrideU(), i420_buffer_temp->MutableDataV(),
+//                                            i420_buffer_temp->StrideV(),
+//                                            m_win_width,
+//                                            m_win_height,
+//                                            i420_buffer_->MutableDataY(),
+//                                            i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
+//                                            i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
+//                                            i420_buffer_->StrideV(),
+//                                         m_video_width,
+//                                         m_video_height,
+//                                            libyuv::kFilterNone);
+                        libyuv::ARGBScale(data, m_win_width * 4,
+                                          m_win_width, m_win_height, i420_buffer_->MutableDataY(), m_video_width * 4, m_video_width, m_win_height, libyuv::kFilterNone);
+//                     }
+//                     else
+//                     {
+//                         memcpy(i420_buffer_->MutableDataY(), data, m_win_width * m_win_height * 3);
+////                         libyuv::ConvertToI420(data, 0, i420_buffer_->MutableDataY(),
+////                                             i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),
+////                                             i420_buffer_->StrideU(), i420_buffer_->MutableDataV(),
+////                                             i420_buffer_->StrideV(), 0, 0, m_win_width, m_win_height, m_win_width,
+////                                             m_win_height, libyuv::kRotate0, libyuv::FOURCC_ARGB);
+//                     }
+
 
             //         libyuv::int ARGBToI420(data, 0,);
             //             //const uint8_t* src_argb,

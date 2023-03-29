@@ -1117,7 +1117,7 @@ int32_t cnv_encoder::InitEncode(const VideoCodec* inst,
     configurations_[i].max_bps = codec_.maxBitrate * 1000;
     configurations_[i].target_bps = codec_.startBitrate * 1000;
 
-    encoders_[i] = new NvEncoderCuda  (m_cuContext, configurations_[i].width, configurations_[i].height, NV_ENC_BUFFER_FORMAT_IYUV);
+    encoders_[i] = new NvEncoderCuda  (m_cuContext, configurations_[i].width, configurations_[i].height,NV_ENC_BUFFER_FORMAT_ARGB /* NV_ENC_BUFFER_FORMAT_IYUV*/);
     NORMAL_EX_LOG("");
     NV_ENC_INITIALIZE_PARAMS initializeParams = { NV_ENC_INITIALIZE_PARAMS_VER };
     NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
