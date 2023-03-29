@@ -1872,7 +1872,7 @@ static uint32 g_key_state = 0;
               Status status =  XSendEvent(g_display_ptr, g_main_window, True, MotionNotify, &xmouse);
 //                XSync(g_display_ptr, true);
               int xflush =  XFlush(g_display_ptr);
-                WARNING_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
+                // WARNING_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
 
             }
             else
@@ -2036,10 +2036,10 @@ static uint32 g_key_state = 0;
             {
                 Status status = XSendEvent(g_display_ptr, g_main_window /*PointerWindow*/ /*g_main_window*/, True, ButtonPressMask , &xButton);
                 int xflush = XFlush(g_display_ptr);
-                WARNING_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
+                // WARNING_EX_LOG("ButtonPress [status = %u][xflush = %u]", status, xflush);
             }
 			// std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			WARNING_EX_LOG("[Delta = %u][key_state  = %u]",Delta, g_key_state);
+			// WARNING_EX_LOG("[Delta = %u][key_state  = %u]",Delta, g_key_state);
               XEvent  xWheel;
               xWheel.xbutton.type = ButtonRelease;
             // // xWheel.xbutton.display = g_display_ptr;
@@ -2070,7 +2070,7 @@ static uint32 g_key_state = 0;
            {
                Status status =     XSendEvent(g_display_ptr, g_main_window, False, ButtonReleaseMask , &xWheel);
                int xflush = XFlush(g_display_ptr);
-               WARNING_EX_LOG("BUttonRelease [status = %u][xflush = %u]", status, xflush);
+            //    WARNING_EX_LOG("BUttonRelease [status = %u][xflush = %u]", status, xflush);
            }
         }
 
