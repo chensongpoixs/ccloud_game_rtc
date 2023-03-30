@@ -81,3 +81,9 @@ xinput set-prop 12 'Device Enabled' 1
 # 或
 xinput set-prop 12 154 1
 ```
+
+
+
+https://xcb.freedesktop.org/manual/group__XCB__Input__API.html
+
+
