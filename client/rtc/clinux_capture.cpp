@@ -296,16 +296,17 @@ static int silence_x11_errors(Display *display, XErrorEvent *error)
         ////////////////////////////////////////////////////////////////////////////////////////////////////
        
         int count = 0;
-        while (count++ < 2)
+        while (count++ < 5)
         {
             NORMAL_EX_LOG("linux capture sleep !!!");
-            sleep(1);
+            ::sleep(1);
         }
         _get_all_window_info();
         if (!_find_window_name(m_win_name.c_str()))
         {
             _show_all_window_info();
             ERROR_EX_LOG("not find window_name = %s", m_win_name.c_str());
+            abort();
             return ;
         }
         set_global_display(m_display_ptr);
