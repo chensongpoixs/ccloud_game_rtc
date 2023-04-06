@@ -97,7 +97,7 @@ namespace chen {
 
 #if defined(_MSC_VER)
 #define WINDOW_MAIN()		HWND mwin = FindMainWindow()
-#define WINDOW_CHILD()	HWND childwin = MainChildPoint(mwin, pt)
+#define WINDOW_CHILD()	HWND childwin = MainChildPoint(mwin, pt); MOUSE_INPUT(mwin);
 #define WINDOW_BNTTON_DOWN(v)  uint32 active_type = WM_LBUTTONDOWN;					 \
 	switch (vec.button)																 \
 	{                                                                             	 \
@@ -385,7 +385,7 @@ namespace chen {
 			}
 			
 		}
-		//NORMAL_EX_LOG("[hook_RealGetKeyState][][key = %u][ret = %u]", key,  static_cast<int>(ret));
+		// NORMAL_EX_LOG("[hook_RealGetKeyState][][key = %u][ret = %u]", key,  static_cast<int>(ret));
 		return ret;
 	}
 	static inline SHORT hook_GetAsyncKeyState(int  Key)
@@ -401,7 +401,7 @@ namespace chen {
 			
 		}
 		
-	//	NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
+	 	//NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
 		return ret;
 	}
 	//static inline 
@@ -733,7 +733,7 @@ namespace chen {
 			//}
 			//else
 			{
-				MESSAGE(mwin, WM_SYSKEYDOWN, KeyCode, 0);
+				MESSAGE(mwin, WM_KEYDOWN, KeyCode, 0);
 			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
 			//	//keybd_event(16, 0, 0, 0);//按下Shift键
@@ -754,7 +754,7 @@ namespace chen {
 			//}
 			//else
 			{
-				MESSAGE(mwin, WM_SYSKEYDOWN, KeyCode, 0);
+				MESSAGE(mwin, WM_KEYDOWN, KeyCode, 0);
 			}
 			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
@@ -820,7 +820,7 @@ namespace chen {
 			//}
 			//else
 			{
-				MESSAGE(mwin, WM_SYSKEYUP, KeyCode, 0);
+				MESSAGE(mwin, WM_KEYUP, KeyCode, 0);
 			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
 			//	//keybd_event(16, 0, 0, 0);//按下Shift键
@@ -840,7 +840,7 @@ namespace chen {
 			//}
 			//else
 			{
-				MESSAGE(mwin, WM_SYSKEYUP, KeyCode, 0);
+				MESSAGE(mwin, WM_KEYUP, KeyCode, 0);
 			}
 			
 			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
