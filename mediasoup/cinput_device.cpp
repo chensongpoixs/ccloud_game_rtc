@@ -97,7 +97,7 @@ namespace chen {
 
 #if defined(_MSC_VER)
 #define WINDOW_MAIN()		HWND mwin = FindMainWindow()
-#define WINDOW_CHILD()	HWND childwin = MainChildPoint(mwin, pt); MOUSE_INPUT(mwin);
+#define WINDOW_CHILD()	HWND childwin = MainChildPoint(mwin, pt); 
 #define WINDOW_BNTTON_DOWN(v)  uint32 active_type = WM_LBUTTONDOWN;					 \
 	switch (vec.button)																 \
 	{                                                                             	 \
@@ -385,7 +385,7 @@ namespace chen {
 			}
 			
 		}
-		// NORMAL_EX_LOG("[hook_RealGetKeyState][][key = %u][ret = %u]", key,  static_cast<int>(ret));
+		 NORMAL_EX_LOG("[hook_RealGetKeyState][][key = %u][ret = %u]", key,  static_cast<int>(ret));
 		return ret;
 	}
 	static inline SHORT hook_GetAsyncKeyState(int  Key)
@@ -401,7 +401,7 @@ namespace chen {
 			
 		}
 		
-	 	//NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
+	 	NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
 		return ret;
 	}
 	//static inline 
@@ -697,6 +697,14 @@ namespace chen {
 		KeyDownEvent.SetKeyDown(KeyCode, Repeat != 0);
 		NORMAL_LOG("OnKeyDown==KeyCode = %u, Repeat = %u", KeyCode, Repeat);
 		#if defined(_MSC_VER)
+		if (KeyCode < 58 && KeyCode > 47 && g_ctrl)
+		{
+			return true;
+		}
+		if (KeyCode < 105 && KeyCode > 96 && g_ctrl)
+		{
+			return true;
+		}
 		WINDOW_MAIN();
 		// TODO@chensong 2022-01-20  keydown -> keycode -> repeat 
 		/*if (mwin)
@@ -733,7 +741,8 @@ namespace chen {
 			//}
 			//else
 			{
-				MESSAGE(mwin, WM_KEYDOWN, KeyCode, 0);
+				MOUSE_INPUT(childwin);
+				MESSAGE(childwin, WM_KEYDOWN, KeyCode, 0);
 			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
 			//	//keybd_event(16, 0, 0, 0);//按下Shift键
@@ -754,6 +763,7 @@ namespace chen {
 			//}
 			//else
 			{
+				MOUSE_INPUT(mwin);
 				MESSAGE(mwin, WM_KEYDOWN, KeyCode, 0);
 			}
 			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
@@ -805,6 +815,14 @@ namespace chen {
 		KeyUpEvent.SetKeyUp(KeyCode);
 		NORMAL_LOG("OnKeyUp==KeyCode = %u", KeyCode);
 		#if defined(_MSC_VER)
+		if (KeyCode < 58 && KeyCode > 47 && g_ctrl)
+		{
+			return true;
+		}
+		if (KeyCode < 105 && KeyCode > 96 && g_ctrl)
+		{
+			return true;
+		}
 		WINDOW_MAIN();
 		
 		
@@ -820,7 +838,8 @@ namespace chen {
 			//}
 			//else
 			{
-				MESSAGE(mwin, WM_KEYUP, KeyCode, 0);
+				MOUSE_INPUT(childwin);
+				MESSAGE(childwin, WM_KEYUP, KeyCode, 0);
 			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
 			//	//keybd_event(16, 0, 0, 0);//按下Shift键
@@ -840,7 +859,8 @@ namespace chen {
 			//}
 			//else
 			{
-				MESSAGE(mwin, WM_KEYUP, KeyCode, 0);
+				MOUSE_INPUT(childwin);
+				MESSAGE(childwin, WM_KEYUP, KeyCode, 0);
 			}
 			
 			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
@@ -910,10 +930,12 @@ namespace chen {
 		WINDOW_CHILD();
 		if (childwin)
 		{
+			MOUSE_INPUT(childwin);
 			MESSAGE(childwin, WM_CHAR, Character, 1);
 		}
 		else if (mwin)
 		{
+			MOUSE_INPUT(mwin);
 			//MESSAGE(mwin, WM_PR, Character, 0);
 			MESSAGE(mwin, WM_CHAR, Character, 1);
 		}
@@ -1073,6 +1095,7 @@ namespace chen {
 
 		if (mwin)
 		{
+			MOUSE_INPUT(mwin);
 			//CliENTTOSCREENPOINT(m_main_win, PosX, PosY);
 			MESSAGE(mwin, active_type, MAKEWPARAM(0,0), MAKELPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
 		}
@@ -1128,6 +1151,7 @@ namespace chen {
 		if (mwin)
 		{
 			{
+				MOUSE_INPUT(mwin);
 				//CliENTTOSCREENPOINT(m_main_win, PosX, PosY);
 				MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKELPARAM(PosX, PosY));
 			}//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
@@ -1184,7 +1208,7 @@ namespace chen {
 		#if defined(_MSC_VER)
 
 		WINDOW_MAIN();
-		//MOUSE_INPUT(mwin);
+		MOUSE_INPUT(mwin);
 		/*registerinputdevice(mwin);
 		SetForegroundWindow(mwin);
 		SetActiveWindow(mwin);*/
@@ -1314,12 +1338,12 @@ namespace chen {
 				}
 				//::GlobalUnlock(raw_input_ptr);
 
-				//UINT dataSz{ 0 };
+				//UINT dataSz{ 0 };				 MOUSE_INPUT(mwin);
 				//Send the message ///*Raw input handle*/
 				MESSAGE(mwin, WM_INPUT, (WPARAM)RIM_INPUT, MAKELPARAM(CursorPoint.x, CursorPoint.y));  //TODO: Handle to raw input 
 			}
 			
-			
+			MOUSE_INPUT(mwin);
 			MESSAGE(mwin, WM_MOUSEMOVE /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY) , MAKELPARAM(PosX, PosY));
 			//MESSAGE(mwin, WM_INPUT /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY), MAKELPARAM(CursorPoint.x, CursorPoint.y));
 
@@ -1440,6 +1464,7 @@ namespace chen {
 		NORMAL_EX_LOG(" PosX = %d, PoxY = %d", PosX, PosY);
 		if (mwin)
 		{
+			MOUSE_INPUT(mwin);
 			//CliENTTOSCREENPOINT(mwin, PosX, PosY);
 			//::PostMessage(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
 			MESSAGE(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
