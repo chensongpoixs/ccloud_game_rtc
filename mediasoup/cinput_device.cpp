@@ -385,7 +385,7 @@ namespace chen {
 			}
 			
 		}
-		 NORMAL_EX_LOG("[hook_RealGetKeyState][][key = %u][ret = %u]", key,  static_cast<int>(ret));
+		// NORMAL_EX_LOG("[hook_RealGetKeyState][][key = %u][ret = %u]", key,  static_cast<int>(ret));
 		return ret;
 	}
 	static inline SHORT hook_GetAsyncKeyState(int  Key)
@@ -401,7 +401,7 @@ namespace chen {
 			
 		}
 		
-	 	NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
+	 //	NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
 		return ret;
 	}
 	//static inline 
@@ -697,11 +697,11 @@ namespace chen {
 		KeyDownEvent.SetKeyDown(KeyCode, Repeat != 0);
 		NORMAL_LOG("OnKeyDown==KeyCode = %u, Repeat = %u", KeyCode, Repeat);
 		#if defined(_MSC_VER)
-		if (KeyCode < 58 && KeyCode > 47 && g_ctrl)
+		if (KeyCode < 58 && KeyCode > 47 && !g_ctrl)
 		{
 			return true;
 		}
-		if (KeyCode < 105 && KeyCode > 96 && g_ctrl)
+		if (KeyCode < 105 && KeyCode > 96 && !g_ctrl)
 		{
 			return true;
 		}
@@ -815,11 +815,11 @@ namespace chen {
 		KeyUpEvent.SetKeyUp(KeyCode);
 		NORMAL_LOG("OnKeyUp==KeyCode = %u", KeyCode);
 		#if defined(_MSC_VER)
-		if (KeyCode < 58 && KeyCode > 47 && g_ctrl)
+		if (KeyCode < 58 && KeyCode > 47 && !g_ctrl)
 		{
 			return true;
 		}
-		if (KeyCode < 105 && KeyCode > 96 && g_ctrl)
+		if (KeyCode < 105 && KeyCode > 96 && !g_ctrl)
 		{
 			return true;
 		}
