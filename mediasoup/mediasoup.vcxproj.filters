@@ -84,6 +84,9 @@
     </ClInclude>
     <ClInclude Include="build_version.h" />
     <ClInclude Include="cmediasoup_input_device_event.h" />
+    <ClInclude Include="crtc_client.h" />
+    <ClInclude Include="crtc_publisher.h" />
+    <ClInclude Include="crtc_media_mgr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />
@@ -144,6 +147,9 @@
       <Filter>NvCodec\NvEncoder</Filter>
     </ClCompile>
     <ClCompile Include="external_video_encoder_factory.cc" />
+    <ClCompile Include="crtc_client.cpp" />
+    <ClCompile Include="crtc_publisher.cpp" />
+    <ClCompile Include="crtc_media_mgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="client.cfg" />

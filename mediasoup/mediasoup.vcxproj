@@ -43,6 +43,9 @@
     <ClInclude Include="cproducer.h" />
     <ClInclude Include="cprotocol.h" />
     <ClInclude Include="crecv_transport.h" />
+    <ClInclude Include="crtc_client.h" />
+    <ClInclude Include="crtc_media_mgr.h" />
+    <ClInclude Include="crtc_publisher.h" />
     <ClInclude Include="csend_transport.h" />
     <ClInclude Include="csession_description.h" />
     <ClInclude Include="csingleton.h" />
@@ -98,6 +101,9 @@
     <ClCompile Include="cosd_util.cpp" />
     <ClCompile Include="cproducer.cpp" />
     <ClCompile Include="crecv_transport.cpp" />
+    <ClCompile Include="crtc_client.cpp" />
+    <ClCompile Include="crtc_media_mgr.cpp" />
+    <ClCompile Include="crtc_publisher.cpp" />
     <ClCompile Include="csend_transport.cpp" />
     <ClCompile Include="csession_description.cpp" />
     <ClCompile Include="ctime_api.cpp" />
