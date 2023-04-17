@@ -300,6 +300,14 @@ namespace chen {
 						m_rtc_publisher->set_remoter_description(response["data"]["sdp"]);
 					}
 				}
+				else if (msg_id == 212)
+				{
+					if (response.find("data") != response.end())
+					{
+						std::string  datachannel = response["data"];
+						s_input_device.OnMessage(datachannel);
+					}
+				}
 			 
 
 			} 

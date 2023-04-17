@@ -49,6 +49,7 @@ namespace chen {
 	public:
 
 		bool OnMessage(const std::string & consumer_id, const webrtc::DataBuffer& Buffer);
+		bool OnMessage(const std::string & datachannel);
 	public:
 		
 		/*

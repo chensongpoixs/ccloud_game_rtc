@@ -651,6 +651,44 @@ namespace chen {
 		//return true;
 	}
 
+	bool cinput_device::OnMessage(const std::string & datachannel)
+	{
+		 
+		const uint8 * Data = (const uint8*)(datachannel.c_str());
+		uint32 Size = datachannel.size();
+
+		GET(EToStreamMsg, MsgType);
+
+		M_INPUT_DEVICE_MAP::iterator iter = m_input_device.find(MsgType);
+		if (iter == m_input_device.end())
+		{
+			//RTC_LOG(LS_ERROR) << "input_device not find id = " << MsgType;
+			//log --->  not find type 
+			ERROR_EX_LOG("input_device msg_type = %d not find failed !!!", MsgType);
+			return false;
+		}
+
+		 
+		std::chrono::steady_clock::time_point cur_time_ms;
+		std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
+		std::chrono::steady_clock::duration dur;
+		std::chrono::microseconds microseconds;
+		uint32_t elapse = 0;
+		 
+
+		(this->*(iter->second))(Data, Size);
+		cur_time_ms = std::chrono::steady_clock::now();
+		dur = cur_time_ms - pre_time;
+		microseconds = std::chrono::duration_cast<std::chrono::microseconds>(dur);
+		elapse = static_cast<uint32_t>(microseconds.count());
+		if (elapse > 900)
+		{
+			WARNING_EX_LOG("input_device  microseconds = %lu", microseconds);
+		}
+		return true;
+		return true;
+	}
+
 
 	bool cinput_device::OnRequestQualityControl(const uint8*& Data, uint32 size)
 	{
