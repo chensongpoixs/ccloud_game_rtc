@@ -304,8 +304,10 @@ namespace chen {
 				{
 					if (response.find("data") != response.end())
 					{
-						std::string  datachannel = response["data"];
-						s_input_device.OnMessage(datachannel);
+						 
+						 
+
+						s_input_device.OnMessage(response["data"]);
 					}
 				}
 			 

@@ -20,7 +20,7 @@ purpose:		input_device
 #include <UserEnv.h>
 #include <mutex>
 #include <detours.h>
-
+#include "cint2str.h"
 //void CallMessage(HWND hwnd, int nMsgId, int wParam, int lParam)
 //
 //{
@@ -145,8 +145,14 @@ namespace chen {
 			break;																	 \
 	}
 #endif //#if defined(_MSC_VER)
+
 #define REGISTER_INPUT_DEVICE(type, handler_ptr) if (false == m_input_device.insert(std::make_pair(type, handler_ptr)).second){	 ERROR_EX_LOG("[type = %s][handler_ptr = %s]", #type, #handler_ptr);	return false;}
-	
+
+#define REGISTER_RTC_INPUT_DEVICE(type, handler_ptr) if (false == m_rtc_input_device.insert(std::make_pair(type, handler_ptr)).second){	 ERROR_EX_LOG("[type = %s][handler_ptr = %s]", #type, #handler_ptr);	return false;}
+
+
+
+
 	static HWND g_main_mouse_down_up = NULL;
 	static HWND g_child_mouse_down_up = NULL;
 ///	cinput_device   g_input_device_mgr;
@@ -558,11 +564,30 @@ namespace chen {
 		REGISTER_INPUT_DEVICE(MouseMove, &cinput_device::OnMouseMove);
 		REGISTER_INPUT_DEVICE(MouseWheel, &cinput_device::OnMouseWheel);
 		REGISTER_INPUT_DEVICE(MouseDoubleClick, &cinput_device::OnMouseDoubleClick);
+
+
+
+		///////////////////
+		REGISTER_RTC_INPUT_DEVICE(RequestQualityControl, &cinput_device::OnRtcKeyChar);
+		REGISTER_RTC_INPUT_DEVICE(KeyDown, &cinput_device::OnRtcKeyDown);
+		REGISTER_RTC_INPUT_DEVICE(KeyUp, &cinput_device::OnRtcKeyUp);
+		REGISTER_RTC_INPUT_DEVICE(KeyPress, &cinput_device::OnRtcKeyPress);
+		REGISTER_RTC_INPUT_DEVICE(MouseEnter, &cinput_device::OnRtcMouseEnter);
+		REGISTER_RTC_INPUT_DEVICE(MouseLeave, &cinput_device::OnRtcMouseLeave);
+		REGISTER_RTC_INPUT_DEVICE(MouseDown, &cinput_device::OnRtcMouseDown);
+		REGISTER_RTC_INPUT_DEVICE(MouseUp, &cinput_device::OnRtcMouseUp);
+		REGISTER_RTC_INPUT_DEVICE(MouseMove, &cinput_device::OnRtcMouseMove);
+		REGISTER_RTC_INPUT_DEVICE(MouseWheel, &cinput_device::OnRtcMouseWheel);
+		REGISTER_RTC_INPUT_DEVICE(MouseDoubleClick, &cinput_device::OnRtcMouseDoubleClick);
+
+
+
 		return true;
 	}
 	void cinput_device::Destroy()
 	{
 		m_input_device.clear();
+		m_rtc_input_device.clear();
 		m_all_consumer.clear();
 	}
 	bool cinput_device::set_point(uint32 x, uint32 y)
@@ -651,20 +676,34 @@ namespace chen {
 		//return true;
 	}
 
-	bool cinput_device::OnMessage(const std::string & datachannel)
+	bool cinput_device::OnMessage(const nlohmann::json & datachannel)
 	{
 		 
-		const uint8 * Data = (const uint8*)(datachannel.c_str());
-		uint32 Size = datachannel.size();
+		/*const uint8 * Data = (const uint8*)(datachannel.c_str());
+		uint32 Size = datachannel.size();*/
 
-		GET(EToStreamMsg, MsgType);
+		//std::string hex = hexmem((const void *)Data, (size_t)Size);
+		//NORMAL_EX_LOG("hex = %s", hex.c_str);
+		//GET(EToStreamMsg, MsgType);
 
-		M_INPUT_DEVICE_MAP::iterator iter = m_input_device.find(MsgType);
-		if (iter == m_input_device.end())
+		 
+		if (datachannel.find("type") == datachannel.end())
+		{
+			WARNING_EX_LOG("not find msg_type [data = %s]", datachannel.dump().c_str());
+			return false;
+		}
+		if (!datachannel["type"].is_number() )
+		{
+			WARNING_EX_LOG("  find 'delta_x' or 'delta_y' or 'x' or'y'  [data = %s]", datachannel.dump().c_str());
+			return false;
+		}
+		EToStreamMsg msg_type = datachannel["type"].get<EToStreamMsg>();
+		M_RTC_INPUT_DEVICE_MAP::iterator iter = m_rtc_input_device.find(msg_type);
+		if (iter == m_rtc_input_device.end())
 		{
 			//RTC_LOG(LS_ERROR) << "input_device not find id = " << MsgType;
 			//log --->  not find type 
-			ERROR_EX_LOG("input_device msg_type = %d not find failed !!!", MsgType);
+			ERROR_EX_LOG("rtc input_device msg_type = %d not find failed !!!", msg_type);
 			return false;
 		}
 
@@ -676,7 +715,7 @@ namespace chen {
 		uint32_t elapse = 0;
 		 
 
-		(this->*(iter->second))(Data, Size);
+		(this->*(iter->second))(datachannel);
 		cur_time_ms = std::chrono::steady_clock::now();
 		dur = cur_time_ms - pre_time;
 		microseconds = std::chrono::duration_cast<std::chrono::microseconds>(dur);
@@ -719,6 +758,10 @@ namespace chen {
 		//}
 
 		return true;
+	}
+	bool cinput_device::OnRtcKeyChar(const nlohmann::json & data)
+	{
+		return false;
 	}
 	/**
 	* 按下键
@@ -840,6 +883,118 @@ namespace chen {
 		return true;
 	}
 
+	bool cinput_device::OnRtcKeyDown(const nlohmann::json & data)
+	{
+		//GET(FKeyCodeType, KeyCode);
+		//GET(FRepeatType, Repeat);
+		 
+		if (data.find("keyCode") == data.end() || data.find("repeat") == data.end())
+		{
+			WARNING_EX_LOG("not find 'keycode' or 'repeat' [data = %s]", data.dump().c_str());
+			return false;
+		}
+		if (!data["keyCode"].is_number() || !data["repeat"].is_number())
+		{
+			WARNING_EX_LOG("  find 'delta_x' or 'delta_y' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		FKeyCodeType KeyCode = data["keyCode"].get<FKeyCodeType>();
+		FRepeatType  Repeat = data["repeat"].get<FKeyCodeType>();
+		//checkf(Size == 0, TEXT("%d"), Size);
+		//UE_LOG(PixelStreamerInput, Verbose, TEXT("key down: %d, repeat: %d"), KeyCode, Repeat);
+		// log key down -> repeat keyCode Repeat 
+		FEvent KeyDownEvent(EventType::KEY_DOWN);
+		KeyDownEvent.SetKeyDown(KeyCode, Repeat != 0);
+		NORMAL_LOG("OnKeyDown==KeyCode = %u, Repeat = %u", KeyCode, Repeat);
+#if defined(_MSC_VER)
+		if (KeyCode < 58 && KeyCode > 47 && !g_ctrl)
+		{
+			return true;
+		}
+		if (KeyCode < 105 && KeyCode > 96 && !g_ctrl)
+		{
+			return true;
+		}
+		WINDOW_MAIN();
+		// TODO@chensong 2022-01-20  keydown -> keycode -> repeat 
+		/*if (mwin)
+		{
+			::PostMessageW(mwin, WM_KEYDOWN, KeyCode, Repeat != 0);
+		}*/
+
+
+		SET_POINT();
+		WINDOW_CHILD();
+		if (VK_CONTROL == KeyCode)
+		{
+			g_ctrl = 4294967168;
+		}
+		/*else if (32 == KeyCode)
+		{
+			g_ctrl = 0;
+		}*/
+		if (childwin)
+		{
+			//PostMessageW
+			/*
+			这个 KeyDown与 KeyUP 是有讲究哈 ^_^
+			发送1次按键结果出现2次按键的情况
+发送一次WM_KEYDOWN及一次WM_KEYUP结果出现了2次按键，原因是最后一个参数lParam不规范导致，此参数0到15位为该键在键盘上的重复次数，经常设为1，即按键1次；16至23位为键盘的扫描码，通过API函数MapVirtualKey可以得到；24位为扩展键，即某些右ALT和CTRL；29一般为0；30位-[原状态]已按下为1否则0（KEYUP要设为1）；31位-[状态切换]（KEYDOWN设为0，KEYUP要设为1）。
+资料显示第30位对于keydown在和shift等结合的时候通常要设置为1，未经验证。
+
+
+			*/
+
+			//{//MAKELPARAM(PosX, PosY)
+			//	keybd_event(VK_CONTROL, 0, 0, 0);
+			//	//MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
+			//}
+			//else
+			{
+				MOUSE_INPUT(childwin);
+				MESSAGE(childwin, WM_KEYDOWN, KeyCode, 0);
+			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
+			//{
+			//	//keybd_event(16, 0, 0, 0);//按下Shift键
+			//	//keybd_event('A', 0, 0, 0);//按下a键
+			//	//keybd_event('A', 0, KEYEVENTF_KEYUP, 0);//松开a键
+			//	//keybd_event(16, 0, KEYEVENTF_KEYUP, 0);//松开Shift键
+			//	keybd_event(KeyCode, 0, 0, 0);
+			//	SendInput();
+			//}
+
+		}
+		else  if (mwin)
+		{
+			//if (VK_CONTROL == KeyCode)
+			//{
+			//	keybd_event(VK_CONTROL, 0, 0, 0);
+			//	//MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
+			//}
+			//else
+			{
+				MOUSE_INPUT(mwin);
+				MESSAGE(mwin, WM_KEYDOWN, KeyCode, 0);
+			}
+			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
+			//{
+			//	//keybd_event(16, 0, 0, 0);//按下Shift键
+			//	//keybd_event('A', 0, 0, 0);//按下a键
+			//	//keybd_event('A', 0, KEYEVENTF_KEYUP, 0);//松开a键
+			//	//keybd_event(16, 0, KEYEVENTF_KEYUP, 0);//松开Shift键
+			//	keybd_event(KeyCode, 0, 0, 0);
+			//}
+		}
+		else
+		{
+			WARNING_EX_LOG("not find main window failed !!!");
+			return false;
+		}
+#endif //#if defined(_MSC_VER)
+		 
+		return true;
+	}
+
 	/**
 	* 松开键
 	*/
@@ -943,6 +1098,99 @@ namespace chen {
 		//}
 		return true;
 	}
+	bool cinput_device::OnRtcKeyUp(const nlohmann::json & data)
+	{
+
+		if (data.find("keyCode") == data.end() || data.find("repeat") == data.end())
+		{
+			WARNING_EX_LOG("not find 'keycode' or 'repeat' [data = %s]", data.dump().c_str());
+			return false;
+		}
+		if (!data["keyCode"].is_number() || !data["repeat"].is_number())
+		{
+			WARNING_EX_LOG("  find 'delta_x' or 'delta_y' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		FKeyCodeType KeyCode = data["keyCode"].get<FKeyCodeType>();
+		FRepeatType  Repeat = data["repeat"].get<FKeyCodeType>();
+		FEvent KeyUpEvent(EventType::KEY_UP);
+		KeyUpEvent.SetKeyUp(KeyCode);
+		NORMAL_LOG("OnKeyUp==KeyCode = %u", KeyCode);
+#if defined(_MSC_VER)
+		if (KeyCode < 58 && KeyCode > 47 && !g_ctrl)
+		{
+			return true;
+		}
+		if (KeyCode < 105 && KeyCode > 96 && !g_ctrl)
+		{
+			return true;
+		}
+		WINDOW_MAIN();
+
+
+		SET_POINT();
+		WINDOW_CHILD();
+
+		if (childwin)
+		{
+			//if (VK_CONTROL == KeyCode)
+			//{
+			//	keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+			//	//MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
+			//}
+			//else
+			{
+				MOUSE_INPUT(childwin);
+				MESSAGE(childwin, WM_KEYUP, KeyCode, 0);
+			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
+			//{
+			//	//keybd_event(16, 0, 0, 0);//按下Shift键
+			//	//keybd_event('A', 0, 0, 0);//按下a键
+			//	//keybd_event('A', 0, KEYEVENTF_KEYUP, 0);//松开a键
+			//	//keybd_event(16, 0, KEYEVENTF_KEYUP, 0);//松开Shift键
+			//	keybd_event(KeyCode, 0, KEYEVENTF_KEYUP, 0);
+			//}
+		}
+		else  if (mwin)
+		{
+
+			//if (VK_CONTROL == KeyCode)
+			//{
+			//	keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+			//	//MESSAGE(mwin, WM_KEYUP, KeyCode, 1);
+			//}
+			//else
+			{
+				MOUSE_INPUT(childwin);
+				MESSAGE(childwin, WM_KEYUP, KeyCode, 0);
+			}
+
+			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
+			//{
+			//	//keybd_event(16, 0, 0, 0);//按下Shift键
+			//	//keybd_event('A', 0, 0, 0);//按下a键
+			//	//keybd_event('A', 0, KEYEVENTF_KEYUP, 0);//松开a键
+			//	//keybd_event(16, 0, KEYEVENTF_KEYUP, 0);//松开Shift键
+			//	keybd_event(KeyCode, 0, KEYEVENTF_KEYUP, 0);
+			//}
+		}
+		else
+		{
+			WARNING_EX_LOG("not find main window failed !!!");
+			return false;
+		}
+		if (VK_CONTROL == KeyCode)
+		{
+			g_ctrl = 0;
+		}
+		/*else if (32 == KeyCode)
+		{
+			g_ctrl = 4294967168;
+		}*/
+#endif //#if defined(_MSC_VER)
+	 
+		return true;
+	}
 	/**
 	*keydown：按下键盘键
 	*	keypress：紧接着keydown事件触发（只有按下字符键时触发）
@@ -1003,6 +1251,50 @@ namespace chen {
 		return true;
 	}
 
+	bool cinput_device::OnRtcKeyPress(const nlohmann::json & data)
+	{
+		if (data.find("keyCode") == data.end() )
+		{
+			WARNING_EX_LOG("not find 'keycode'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		if (!data["keyCode"].is_number()  )
+		{
+			WARNING_EX_LOG("  find 'delta_x' or 'delta_y' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		FCharacterType Character = data["keyCode"].get<FCharacterType>();
+
+		FEvent KeyUpEvent(EventType::KEY_PRESS);
+		KeyUpEvent.SetKeyUp(Character);
+		NORMAL_LOG("OnKeyPress==KeyCode = %u", Character);
+#if defined(_MSC_VER)
+		WINDOW_MAIN();
+
+
+
+		SET_POINT();
+		WINDOW_CHILD();
+		if (childwin)
+		{
+			MOUSE_INPUT(childwin);
+			MESSAGE(childwin, WM_CHAR, Character, 1);
+		}
+		else if (mwin)
+		{
+			MOUSE_INPUT(mwin);
+			//MESSAGE(mwin, WM_PR, Character, 0);
+			MESSAGE(mwin, WM_CHAR, Character, 1);
+		}
+		else
+		{
+			WARNING_EX_LOG("not find main window failed !!!");
+			return false;
+		}
+#endif //#if defined(_MSC_VER)
+		return false;
+	}
+
 	bool cinput_device::OnMouseEnter(const uint8*& Data,   uint32 size)
 	{
 		// TODO@chensong 2022-01-20  OnMouseEnter -->>>>> net 
@@ -1039,6 +1331,11 @@ namespace chen {
 
 		return true;
 		 
+	}
+
+	bool cinput_device::OnRtcMouseEnter(const nlohmann::json & data)
+	{
+		return false;
 	}
 
 	/** 
@@ -1080,6 +1377,11 @@ namespace chen {
 
 #endif // _MSC_VER
 		return true; 
+	}
+
+	bool cinput_device::OnRtcMouseLeave(const nlohmann::json & data)
+	{
+		return false;
 	}
  
 	
@@ -1148,6 +1450,74 @@ namespace chen {
 	
 	}
 
+	bool cinput_device::OnRtcMouseDown(const nlohmann::json & data)
+	{
+		if (data.find("button") == data.end() || data.find("x") == data.end() || data.find("y") == data.end())
+		{
+			WARNING_EX_LOG("not find 'button' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		if (!data["button"].is_number() || !data["y"].is_number() ||
+			!data["x"].is_number())
+		{
+			WARNING_EX_LOG("  find 'delta_x' or 'delta_y' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		FButtonType Button = data["button"].get<FButtonType>();
+		FPosType PosX = data["x"].get<FPosType>();
+		FPosType PosY = data["y"].get<FPosType>();
+		 
+		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseDown at (%d, %d), button %d"), PosX, PosY, Button);
+		// log mousedown -> log posX , poxY -> Button 
+		//NORMAL_EX_LOG("Button = %d, PosX = %d, PoxY = %d", Button, PosX, PosY );
+		_UnquantizeAndDenormalize(PosX, PosY);
+
+		FEvent MouseDownEvent(EventType::MOUSE_DOWN);
+		MouseDownEvent.SetMouseClick(Button, PosX, PosY);
+		uint32 active_type;
+
+		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
+		//ProcessEvent(MouseDownEvent);
+
+		g_width = PosX;
+		g_height = PosY;
+
+		/*
+		PosX = g_width;
+		PosY = g_height;*/
+		NORMAL_EX_LOG("g_width = %d, g_height = %d, active_type = %d, PosX = %d, PoxY = %d", g_width, g_height, active_type, PosX, PosY);
+		//g_move_init = true;
+#if defined(_MSC_VER)
+		WINDOW_MAIN();
+		//MOUSE_INPUT(mwin);
+		/*registerinputdevice(mwin);
+		SetForegroundWindow(mwin);
+		SetActiveWindow(mwin);*/
+		g_main_mouse_down_up = mwin;
+		SET_POINT();
+		//WINDOW_CHILD();
+		//WINDOW_BNTTON_DOWN(vec);
+		/*if (mwin)
+		{
+		::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM(PosX, PosY));
+		}*/
+
+		if (mwin)
+		{
+			MOUSE_INPUT(mwin);
+			//CliENTTOSCREENPOINT(m_main_win, PosX, PosY);
+			MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKELPARAM(PosX, PosY));//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+		}
+		else
+		{
+			WARNING_EX_LOG("not find main window failed !!!");
+			// log -> error 
+			return false;
+		}
+#endif//#if defined(_MSC_VER)
+		return true;
+	}
+
 	/** 
 	*松开鼠标
 	* 
@@ -1208,6 +1578,79 @@ namespace chen {
 		} 
 		#endif //#if defined(_MSC_VER)
 		return true;
+	}
+
+	bool cinput_device::OnRtcMouseUp(const nlohmann::json & data)
+	{
+		if (data.find("button") == data.end() || data.find("x") == data.end() || data.find("y") == data.end())
+		{
+			WARNING_EX_LOG("not find 'button' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		if (!data["button"].is_number() || !data["y"].is_number() ||
+			!data["x"].is_number())
+		{
+			WARNING_EX_LOG("  find 'delta_x' or 'delta_y' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		FButtonType Button = data["button"].get<FButtonType>();
+		FPosType PosX = data["x"].get<FPosType>();
+		FPosType PosY = data["y"].get<FPosType>();
+		/*	GET(FButtonType, Button);
+			GET(FPosType, PosX);
+			GET(FPosType, PosY);
+			checkf(Size == 0, TEXT("%d"), Size);*/
+		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseUp at (%d, %d), button %d"), PosX, PosY, Button);
+		// log mouseup posx, posy, button 
+		//NORMAL_EX_LOG("Button = %u, PosX = %d, PoxY = %d ", Button, PosX, PosY );
+		_UnquantizeAndDenormalize(PosX, PosY);
+		//NORMAL_EX_LOG("PosX = %d, PoxY = %d", PosX, PosY );
+		FEvent MouseDownEvent(EventType::MOUSE_UP);
+		MouseDownEvent.SetMouseClick(Button, PosX, PosY);
+		uint32  active_type;
+		MouseDownEvent.GetMouseClick(active_type, PosX, PosY);
+
+		g_width = PosX;
+		g_height = PosY;
+		/*
+		PosX = g_width;
+		PosY = g_height;*/
+		NORMAL_EX_LOG("g_width = %d, g_height = %d, active_type = %d, PosX = %d, PoxY = %d", g_width, g_height, active_type, PosX, PosY);
+		//ProcessEvent(MouseDownEvent);
+		//g_move_init = false;
+#if defined(_MSC_VER)
+		WINDOW_MAIN();
+		//MOUSE_INPUT(mwin);
+		/*registerinputdevice(mwin);
+		SetForegroundWindow(mwin);
+		SetActiveWindow(mwin);*/
+		/*SET_POINT();
+		WINDOW_CHILD();*/
+		//WINDOW_BNTTON_UP(vec);
+
+		if (mwin)
+		{
+			{
+				MOUSE_INPUT(mwin);
+				//CliENTTOSCREENPOINT(m_main_win, PosX, PosY);
+				MESSAGE(mwin, active_type, MAKEWPARAM(0, 0), MAKELPARAM(PosX, PosY));
+			}//::PostMessageW(mwin, WM_KEYUP, KeyCode, 1);
+
+
+		}
+		/*if (mwin)
+		{
+			::PostMessageW(mwin, active_type, MAKEWPARAM(0, 0), MAKEWPARAM( PosX, PosY));
+		}*/
+		else
+		{
+			WARNING_EX_LOG("not find main window failed !!!");
+			// log -> error 
+			return false;
+		}
+#endif //#if defined(_MSC_VER)
+		return true;
+		return false;
 	}
 
 
@@ -1417,6 +1860,225 @@ namespace chen {
 		//ProcessEvent(MouseMoveEvent);
 		return true;
 	}
+	bool cinput_device::OnRtcMouseMove(const nlohmann::json & data)
+	{
+		if (data.find("delta_x") == data.end() || data.find("delta_y") == data.end() || data.find("x") == data.end() || data.find("y") == data.end())
+		{
+			WARNING_EX_LOG("not find 'delta_x' or 'delta_y' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		 if (!data["x"].is_number() || !data["y"].is_number() || 
+			 !data["delta_x"].is_number() || !data["delta_y"].is_number())
+		{
+			WARNING_EX_LOG("  find 'delta_x' or 'delta_y' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		} 
+		 
+		FPosType PosX = data["x"].get<FPosType>();
+		FPosType PosY = data["y"].get<FPosType>();
+		FDeltaType DeltaX = data["delta_x"].get<FDeltaType>();
+		FDeltaType DeltaY = data["delta_y"].get<FDeltaType>();
+			/*GET(FPosType, PosX);
+			GET(FPosType, PosY);
+			GET(FDeltaType, DeltaX);
+			GET(FDeltaType, DeltaY);
+			checkf(Size == 0, TEXT("%d"), Size);*/
+		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseMove to (%d, %d), delta (%d, %d)"), PosX, PosY, DeltaX, DeltaY);
+		// log mousemove to posx, posy, [DeltaX, DeltaY]
+		//NORMAL_EX_LOG("PosX = %d, PoxY = %d, DeltaY = %d", PosX, PosY, DeltaY);
+
+		//RTC_LOG(LS_INFO) << "mousemove -->  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
+		_UnquantizeAndDenormalize(PosX, PosY);
+		_UnquantizeAndDenormalize(DeltaX, DeltaY);
+		//RTC_LOG(LS_INFO) << "mousemove <==>  PosX = " << PosX << ", PoxY = " << PosY << ", DeltaY = " << DeltaY;
+		NORMAL_EX_LOG("g_width = %d, g_height = %d, ---> PosX = %d, PoxY = %d, DeltaY = %d", g_width, g_height, PosX, PosY, DeltaY);
+
+		FEvent MouseMoveEvent(EventType::MOUSE_MOVE);
+		MouseMoveEvent.SetMouseDelta(PosX, PosY, DeltaX, DeltaY);
+		int32_t width = g_width;
+		int32_t height = g_height;
+		g_width = PosX;
+		g_height = PosY;
+
+		/*
+		PosX = g_width;
+		PosY = g_height;*/
+
+#if defined(_MSC_VER)
+
+		WINDOW_MAIN();
+		MOUSE_INPUT(mwin);
+		/*registerinputdevice(mwin);
+		SetForegroundWindow(mwin);
+		SetActiveWindow(mwin);*/
+		//WINDOW_BNTTON_UP(vec);
+
+		if (mwin)
+		{
+			//TRACKMOUSEEVENT tme;
+			//tme.cbSize = sizeof(tme);	//结构体缓冲区大小
+			//tme.dwFlags = TME_HOVER;	//注册WM_MOUSEHOVER消息
+			//tme.dwHoverTime = 1; //WM_MOUSEHOVER消息触发间隔时间
+			//tme.hwndTrack = mwin; //当前窗口句柄
+			//::TrackMouseEvent(&tme); //注册发送消息
+
+			POINT CursorPoint;
+			CursorPoint.x = PosX;
+			CursorPoint.y = PosY;
+			::ClientToScreen(mwin, &CursorPoint);
+			//::SetFocus(mwin);
+			//INPUT input[4];
+			//hwndConsole = GetConsoleWindow();
+			//hwndTX = FindWindow(TEXT("TXGuiFoundation"), TEXT("N3verL4nd"));
+			/*if (hwndTX != NULL)
+			{
+				for (int i = 0; i < 10; i++)
+				{
+					SendMessage(hwndTX, WM_CHAR, 'A', 0);
+				}*/
+
+				//SetForegroundWindow(hwndTX);
+				//memset(input, 0, sizeof(input));
+				/*input[0].type = input[1].type = input[2].type = input[3].type = INPUT_KEYBOARD;
+				input[0].ki.wVk = input[2].ki.wVk = VK_MENU;
+				input[1].ki.wVk = input[3].ki.wVk = 0x53;
+				input[2].ki.dwFlags = input[3].ki.dwFlags = KEYEVENTF_KEYUP;*/
+				//SendInput(4, input, sizeof(INPUT));
+				//SetForegroundWindow(hwndConsole);
+			/*{
+				INPUT Input = { 0 };
+				Input.type = INPUT_MOUSE;
+				Input.mi.dx = CursorPoint.x;
+				Input.mi.dy = CursorPoint.y;
+				Input.mi.mouseData = 0;
+				Input.mi.dwFlags = MOUSEEVENTF_MOVE;
+				Input.mi.time = 0;
+				Input.mi.dwExtraInfo = 0;
+				SendInput(1, &Input, sizeof(INPUT));
+			}*/
+			// TODO@chensong 20220612 完全为了兼容Win的input设备
+			//mouse_event();
+			//
+			//GetDesktopWindow()->GetActiveWindow() 
+				//GetForegroundWindow();
+			//SetForegroundWindow(mwin);
+			/*INPUT input;
+			input.type = INPUT_HARDWARE;
+			input.hi.uMsg = WM_INPUT;
+			input.hi.wParamL = MAKEWPARAM(DeltaX, DeltaY);
+			input.hi.wParamH = MAKELPARAM(CursorPoint.x, CursorPoint.y);*/
+			//static int x = 0;
+			//static int y = 0;
+			//int xx = CursorPoint.x ;
+			//int yy = CursorPoint.y ;
+			//input.mi.dx = xx - x;
+			//input.mi.dy = yy - y;
+			//x = xx;
+			//y = yy;
+			//input.mi.mouseData = 0;
+			//input.mi.dwFlags = /*MOUSEEVENTF_ABSOLUTE |*/ MOUSEEVENTF_MOVE;   //MOUSEEVENTF_ABSOLUTE 代表决对位置  MOUSEEVENTF_MOVE代表移动事件
+			//input.mi.time = 0;
+			//input.mi.dwExtraInfo = 0;
+			//SendInput(1, &input, sizeof(INPUT));
+
+			//::SetCursorPos(CursorPoint.x, CursorPoint.y);
+		//	MESSAGE(mwin, WM_INPUT/*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY), MAKELPARAM(CursorPoint.x, CursorPoint.y));
+		//try sending 'W' 
+			RAWINPUT raw = { 0 };
+			//char c = 'W';
+			//header 
+			/*raw.header.dwSize = sizeof(raw);
+			raw.header.dwType = RIM_TYPEMOUSE;
+			raw.header.wParam = MAKEWPARAM(DeltaX, DeltaY);*/ //(wParam & 0xff =0 => 0) 
+			//raw.header.hDevice = hDevice;
+			//data 
+			//raw.data.mouse.lLastX = DeltaX;
+			//raw.data.mouse.lLastY = DeltaY;
+			//raw.data.mouse.usFlags
+			//raw.data.keyboard.Reserved = 0;
+			//raw.data.keyboard.Flags = RI_KEY_MAKE;  //Key down 
+			//raw.data.keyboard.MakeCode = static_cast<WORD>(MapVirtualKeyEx(c, MAPVK_VK_TO_VSC, GetKeyboardLayout(0)));
+			//raw.data.keyboard.Message = WM_KEYDOWN;
+			//raw.data.keyboard.VKey = VkKeyScanEx(c, GetKeyboardLayout(0));
+			//raw.data.keyboard.ExtraInformation = 0;   //??? 			//HGLOBAL raw_input_ptr = ::GlobalAlloc(GHND, sizeof(RAWINPUT));
+			// *pRaw = reinterpret_cast<RAWINPUT*>(::GlobalLock(raw_input_ptr));
+			//if (pRaw)
+			{
+				//char c = 'W';
+			//header
+				RAWINPUT pRaw;
+				pRaw.header.dwSize = sizeof(RAWINPUT);
+				pRaw.header.dwType = RIM_TYPEMOUSE;
+				pRaw.header.wParam = 0; //(wParam & 0xff =0 => 0)
+				pRaw.header.hDevice = 0;
+
+				//data
+				pRaw.data.mouse.lLastX = g_width - width;
+				pRaw.data.mouse.lLastY = g_height - height;
+				//pRaw->data.keyboard.Reserved = 0;
+				//pRaw->data.keyboard.Flags = RI_KEY_MAKE;
+				//pRaw->data.keyboard.MakeCode = static_cast<WORD>(MapVirtualKeyEx(c, MAPVK_VK_TO_VSC, GetKeyboardLayout(0)));
+				//pRaw->data.keyboard.Message = WM_KEYDOWN;
+				//pRaw->data.keyboard.VKey = VkKeyScanEx(c, GetKeyboardLayout(0));
+				//pRaw->data.keyboard.ExtraInformation = 0;
+				//memcpy(g_hrawinput[g_write_index % RAW_INPUT_SIZE], &pRaw, sizeof(RAWINPUT));
+				//g_hrawinput[g_write_index % RAW_INPUT_SIZE] = pRaw;
+
+				{
+					clock_guard lock(g_mutex);
+					/*if (g_hrawinput.size() > 300)
+					{
+						g_hrawinput.clear();
+					}*/
+					//g_hrawinput.push_back(pRaw);
+					//DEBUG_LOG("MAKELPARAM(CursorPoint.x, CursorPoint.y) = %u", MAKELPARAM(CursorPoint.x, CursorPoint.y));
+					g_hrawinput[MAKELPARAM(CursorPoint.x, CursorPoint.y)] = pRaw;
+					//g_write_index++;
+				}
+				//::GlobalUnlock(raw_input_ptr);
+
+				//UINT dataSz{ 0 };				MOUSE_INPUT(mwin);
+				//Send the message ///*Raw input handle*/
+				MESSAGE(mwin, WM_INPUT, (WPARAM)RIM_INPUT, MAKELPARAM(CursorPoint.x, CursorPoint.y));  //TODO: Handle to raw input 
+			}
+
+			MOUSE_INPUT(mwin);
+			MESSAGE(mwin, WM_MOUSEMOVE /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY), MAKELPARAM(PosX, PosY));
+			//MESSAGE(mwin, WM_INPUT /*WM_MOUSEMOVE*//*WM_INPUT 、 WM_NCMOUSEMOVE UE4 move dug TODO@chensong 20220611 */ /*WM_MOUSEMOVE*/, MAKEWPARAM(DeltaX, DeltaY), MAKELPARAM(CursorPoint.x, CursorPoint.y));
+
+
+			//WM_MOUSEHOVER
+			//WM_MOUSELEAVE
+			//RAWINPUT raw = { 0 };
+			//char c = 'W';
+			////header
+			//raw.header.dwSize = sizeof(raw);
+			//raw.header.dwType = RIM_TYPEKEYBOARD;
+			//raw.header.wParam = 0; //(wParam & 0xff =0 => 0)
+			//raw.header.hDevice = hDevice;
+
+			//data
+			//raw.data.keyboard.Reserved = 0;
+			//raw.data.keyboard.Flags = RI_KEY_MAKE;      //Key down
+			//raw.data.keyboard.MakeCode = static_cast<WORD>(MapVirtualKeyEx(c, MAPVK_VK_TO_VSC, GetKeyboardLayout(0)));
+			//raw.data.keyboard.Message = WM_KEYDOWN;
+			//raw.data.keyboard.VKey = VkKeyScanEx(c, GetKeyboardLayout(0));
+			//raw.data.keyboard.ExtraInformation = 0;         //???
+
+			//Send the message
+			//SendMessage(mwin, WM_INPUT, 0, (LPARAM)raw/*Raw input handle*/);
+		}
+		else
+		{
+			// log -> error 
+			WARNING_EX_LOG("not find main window failed !!!");
+			return false;
+		}
+#endif // #if defined(_MSC_VER)
+		//ProcessEvent(MouseMoveEvent);
+		return true;
+		return false;
+	}
 	/** 
 	* 鼠标双击
 	*/
@@ -1477,6 +2139,11 @@ namespace chen {
 		return true;
 	}
 
+	bool cinput_device::OnRtcMouseDoubleClick(const nlohmann::json & data)
+	{
+		return false;
+	}
+
 	/** 
 	* 鼠标的滚轮滚动 
 	*/
@@ -1514,6 +2181,57 @@ namespace chen {
 			return false;
 		}
 		#endif // #if defined(_MSC_VER)
+		return true;
+	}
+
+	bool cinput_device::OnRtcMouseWheel(const nlohmann::json & data)
+	{
+		if (data.find("delta") == data.end()  || data.find("x") == data.end() || data.find("y") == data.end())
+		{
+			WARNING_EX_LOG("not find 'delta'   or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		if (!data["x"].is_number() || !data["y"].is_number() ||
+			!data["delta"].is_number() )
+		{
+			WARNING_EX_LOG("  find 'delta_x' or 'delta_y' or 'x' or'y'  [data = %s]", data.dump().c_str());
+			return false;
+		}
+		FDeltaType Delta = data["delta"].get<FDeltaType>();
+		FPosType PosX = data["x"].get<FPosType>();
+		FPosType PosY = data["y"].get<FPosType>();
+		/*GET(FDeltaType, Delta);
+		GET(FPosType, PosX);
+		GET(FPosType, PosY);
+		checkf(Size == 0, TEXT("%d"), Size);*/
+		//UE_LOG(PixelStreamerInput, Verbose, TEXT("mouseWheel, delta %d"), Delta);
+		// mouseWheel delta -> 
+		_UnquantizeAndDenormalize(PosX, PosY);
+
+		FEvent MouseWheelEvent(EventType::MOUSE_WHEEL);
+		MouseWheelEvent.SetMouseWheel(Delta, PosX, PosY);
+		//ProcessEvent(MouseWheelEvent);
+		g_width = PosX;
+		g_height = PosY;
+		/*PosX = g_width;
+		PosY = g_height;*/
+#if defined(_MSC_VER)
+		WINDOW_MAIN();
+		NORMAL_EX_LOG(" PosX = %d, PoxY = %d", PosX, PosY);
+		if (mwin)
+		{
+			MOUSE_INPUT(mwin);
+			//CliENTTOSCREENPOINT(mwin, PosX, PosY);
+			//::PostMessage(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
+			MESSAGE(mwin, WM_MOUSEWHEEL, MAKEWPARAM(0, Delta) /* ascii码 */, MAKELPARAM(PosX, PosY));
+		}
+		else
+		{
+			WARNING_EX_LOG("not find main window failed !!!");
+			// log error 
+			return false;
+		}
+#endif // #if defined(_MSC_VER)
 		return true;
 	}
 

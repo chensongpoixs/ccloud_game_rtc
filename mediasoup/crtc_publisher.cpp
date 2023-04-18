@@ -42,7 +42,7 @@ purpose:		api_rtc_publish
 
 #include "api/rtp_transceiver_interface.h"
 #include "media/base/rid_description.h"
-
+#include "cinput_device.h"
 namespace chen {
 
 	class DummySetSessionDescriptionObserver
@@ -157,6 +157,7 @@ namespace chen {
 	{
 		if (m_video_track_source_ptr)
 		{
+			s_input_device.set_point(width, height);
 			m_video_track_source_ptr->OnFrameTexture(texture, fmt, width, height);
 		}
 	}
