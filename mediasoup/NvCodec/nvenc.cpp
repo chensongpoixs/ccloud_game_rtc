@@ -76,7 +76,7 @@ struct nvenc_data
 	uint32_t height    = 0;
 	uint32_t framerate = 0;
 	uint32_t bitrate   = 0;
-	uint32_t gop       = 0;
+	uint32_t gop       =  0/*NVENC_INFINITE_GOPLENGTH*/;
 	std::string codec;
 	DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
 	NvEncoderD3D11 *nvenc = nullptr;
@@ -320,7 +320,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	enc->framerate = config->framerate;
 	enc->format = config->format;
 	enc->codec = config->codec;
-	enc->gop = config->gop;
+	enc->gop = NVENC_INFINITE_GOPLENGTH; // config->gop;
 	enc->bitrate = config->bitrate;
 
 	NV_ENC_BUFFER_FORMAT eBufferFormat = NV_ENC_BUFFER_FORMAT_NV12;
@@ -454,7 +454,7 @@ int nvenc_encode_texture(void *nvenc_data, ID3D11Texture2D *texture,int * ready,
 	//NORMAL_EX_LOG("");
 	ID3D11Texture2D *encoder_texture = reinterpret_cast<ID3D11Texture2D*>(input_frame->inputPtr);
 	//*ready = 1;
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	enc->d3d11_context->CopyResource(encoder_texture, texture);
 	//*ready = 0;
 	//NORMAL_EX_LOG("");
@@ -490,29 +490,29 @@ int nvenc_encode_texture_unlock_lock(void *nvenc_data, ID3D11Texture2D *texture 
 {
 	using namespace chen;
 	uint32_t packet_size = 0;
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	if (nvenc_data == nullptr)
 	{
 		ERROR_EX_LOG("nvenc_data == nullptr");
 		return -1;
 	}
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	if (enc->nvenc == nullptr)
 	{
 		ERROR_EX_LOG("evenc ");
 		return -1;
 	}
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	std::vector<std::vector<uint8_t>> packet;
 	const NvEncInputFrame* input_frame = enc->nvenc->GetNextInputFrame();
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	ID3D11Texture2D *encoder_texture = reinterpret_cast<ID3D11Texture2D*>(input_frame->inputPtr);
 	//*ready = 1;
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex)
 	{
 		HRESULT hr = keyed_mutex->AcquireSync(lock_key, 3);
@@ -528,7 +528,7 @@ int nvenc_encode_texture_unlock_lock(void *nvenc_data, ID3D11Texture2D *texture 
 		keyed_mutex->ReleaseSync(unlock_key);
 	}
 	//*ready = 0;
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	try
 	{
 		enc->nvenc->EncodeFrame(out_buf, &packet_size);
@@ -574,13 +574,13 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 	ID3D11Texture2D* input_texture = enc->input_texture;
 	IDXGIKeyedMutex* keyed_mutex = enc->keyed_mutex;
 	int frame_size = 0;
-	NORMAL_EX_LOG("[enc->input_handle = %p][handle = %p]", enc->input_handle, handle);
+	//NORMAL_EX_LOG("[enc->input_handle = %p][handle = %p]", enc->input_handle, handle);
 	if (enc->input_handle != handle) {
 		if (enc->input_texture) {
 			enc->input_texture->Release();
 			enc->input_texture = nullptr;
 		}
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		if (enc->keyed_mutex) {
 			enc->keyed_mutex->Release();
 			enc->keyed_mutex = nullptr;
@@ -591,7 +591,7 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 		if (FAILED(hr)) {
 			return -1;
 		}
-		NORMAL_EX_LOG("");
+	//	NORMAL_EX_LOG("");
 		input_texture = enc->input_texture;
 		//NORMAL_EX_LOG("");
 		//if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
@@ -611,10 +611,10 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 			//}
 		}
 		
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		enc->input_handle = handle;
 	}
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	if (input_texture != nullptr)
 	{
 		/*if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
@@ -629,12 +629,12 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 			}
 		}*/
 		
-		NORMAL_EX_LOG("");
+	//	NORMAL_EX_LOG("");
 		//video_data_ptr->ready = 1;
 		//int ready = 0;
 		frame_size = nvenc_encode_texture_unlock_lock(enc, input_texture , out_buf, out_buf_size, lock_key, unlock_key, keyed_mutex);
 		//video_data_ptr->ready = 0;
-		NORMAL_EX_LOG("");
+	//	NORMAL_EX_LOG("");
 		/*if (g_cfg.get_uint32(ECI_GpuVideoLock) > 0)
 		{
 			if (lock_key >= 0 && unlock_key >= 0 && keyed_mutex) {
@@ -643,23 +643,30 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 		}*/
 		
 	}
-	NORMAL_EX_LOG("");
+	//NORMAL_EX_LOG("");
 	return frame_size;
 }
 
 int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 {
-	if (nvenc_data == nullptr) {
+	if (nvenc_data == nullptr) 
+	{
 		return 0;
 	}
 	using namespace chen;
 	//NORMAL_EX_LOG("----------->");
 	//return 0;
-	if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcAvgRate))
+	/*if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcMaxRate))
 	{
-		WARNING_EX_LOG("[bitrate_bps = %u ]too big [defalut bitrate = %u]", bitrate_bps/ 1000, g_cfg.get_uint32(ECI_RtcAvgRate));
-		bitrate_bps = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;
+		NORMAL_EX_LOG("[bitrate_bps = %u ]too big [defalut max bitrate = %u]", bitrate_bps/ 1000, g_cfg.get_uint32(ECI_RtcMaxRate));
+		bitrate_bps = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;
 	}
+	else if ((bitrate_bps / 1000) < g_cfg.get_uint32(ECI_RtcAvgRate))
+	{
+		WARNING_EX_LOG("[bitrate_bps = %u ]too big [defalut avg bitrate = %u]", bitrate_bps / 1000, g_cfg.get_uint32(ECI_RtcAvgRate));
+		bitrate_bps = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;
+	}*/
+	 
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
@@ -691,9 +698,10 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 	
 	if (framerate < g_cfg.get_uint32(ECI_RtcFrames))
 	{
-		WARNING_EX_LOG("framerate = %u", framerate);
+		WARNING_EX_LOG("framerate = %u", framerate); 
 	}
-	//NORMAL_EX_LOG("----------->");
+	return 0;
+ 	//NORMAL_EX_LOG("----------->");
 	return 0;
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 

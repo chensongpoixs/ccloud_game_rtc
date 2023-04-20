@@ -12,12 +12,28 @@ bin/x64/Debug/mediasoupd.exe
 bin/x64/Debug/mediasoupd.exp
 bin/x64/Debug/mediasoupd.ilk
 bin/x64/Debug/mediasoupd.lib
-bin/x64/Debug/mediasoupd.pdb
+bin/x64/Debug/*
 bin/x64/Debug/rtcd.exp
 bin/x64/Debug/rtcd.lib
 bin/x64/Debug/rtcd.pdb
 bin/x64/Release/rtc.dll
 bin/x64/Release/rtc.exe
 bin/x64/Release/rtc.exp
-bin/x64/Release/rtc.lib
+bin/x64/Release/*
 mediasoup/client (2).cfg
+bin/x64/Debug/rtcd.dll
+demo_ffmpeg_vaapi_gl-master_0614.zip
+bin/*.7z
+bin/x64/Debug/*
+demo_ffmpeg_vaapi_gl-master_0614/*
+demo_ffmpeg_vaapi_gl-master_0614/demo_ffmpeg_vaapi_gl-master/externals/cglm-0.7.6/docs/source/mat4.rst
+glad/*
+vaapi_demo/*
+vaapi_demo.c
+mediasoup/webrtc_m83.sdp
+old_cloud_game_rtc.sln
+old_cloud_game_rtc (2).sln
+glad.tar.gz
+rtc.sln
+h264encode.c
+WebServers/*

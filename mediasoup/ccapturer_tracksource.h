@@ -85,9 +85,10 @@ namespace chen {
 			{
 				i420_buffer_ = webrtc::I420Buffer::Create(width, height);
 			}
+			
 			i420_buffer_->set_texture(texture);
 			g_dxgi_format = static_cast<DXGI_FORMAT>(fmt);
-			NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
+			//NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
 			//::memcpy(i420_buffer_->MutableDataY(), rgba, width * height * 4);
 			//libyuv::ConvertToI420(rgba, 0, i420_buffer_->MutableDataY(),
 			//	i420_buffer_->StrideY(), i420_buffer_->MutableDataU(),

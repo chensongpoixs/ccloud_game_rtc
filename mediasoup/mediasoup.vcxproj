@@ -28,6 +28,7 @@
     <ClInclude Include="cclient.h" />
     <ClInclude Include="cconfig.h" />
     <ClInclude Include="cdataconsumer.h" />
+    <ClInclude Include="cdata_channel.h" />
     <ClInclude Include="cdesktop_capture.h" />
     <ClInclude Include="cdevice.h" />
     <ClInclude Include="cinput_device.h" />
@@ -36,13 +37,16 @@
     <ClInclude Include="cint_point.h" />
     <ClInclude Include="clog.h" />
     <ClInclude Include="clog_define.h" />
+    <ClInclude Include="cmediasoup_input_device_event.h" />
     <ClInclude Include="cmediasoup_mgr.h" />
     <ClInclude Include="cnet_types.h" />
     <ClInclude Include="cosd_util.h" />
     <ClInclude Include="cproducer.h" />
     <ClInclude Include="cprotocol.h" />
     <ClInclude Include="crecv_transport.h" />
-    <ClInclude Include="crtc_mgr.h" />
+    <ClInclude Include="crtc_client.h" />
+    <ClInclude Include="crtc_media_mgr.h" />
+    <ClInclude Include="crtc_publisher.h" />
     <ClInclude Include="csend_transport.h" />
     <ClInclude Include="csession_description.h" />
     <ClInclude Include="csingleton.h" />
@@ -87,6 +91,7 @@
     <ClCompile Include="cclient.cpp" />
     <ClCompile Include="cconfig.cpp" />
     <ClCompile Include="cdataconsumer.cpp" />
+    <ClCompile Include="cdata_channel.cpp" />
     <ClCompile Include="cdesktop_capture.cpp" />
     <ClCompile Include="cdevice.cpp" />
     <ClCompile Include="cinput_device.cpp" />
@@ -98,7 +103,9 @@
     <ClCompile Include="cosd_util.cpp" />
     <ClCompile Include="cproducer.cpp" />
     <ClCompile Include="crecv_transport.cpp" />
-    <ClCompile Include="crtc_mgr.cpp" />
+    <ClCompile Include="crtc_client.cpp" />
+    <ClCompile Include="crtc_media_mgr.cpp" />
+    <ClCompile Include="crtc_publisher.cpp" />
     <ClCompile Include="csend_transport.cpp" />
     <ClCompile Include="csession_description.cpp" />
     <ClCompile Include="ctime_api.cpp" />
@@ -143,7 +150,7 @@
     <ProjectGuid>{DBAF2E5E-C6B3-444F-9FAE-5EF6CA95A9FA}</ProjectGuid>
     <RootNamespace>mediasoup</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
-    <ProjectName>cloud_game_rtc</ProjectName>
+    <ProjectName>rtc</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -162,7 +169,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -191,15 +198,15 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;C:\Work\mediaserver\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;C:\Program Files\CUDA\cuda_cudart\cudart\include;.\NvCodec;$(IncludePath)</IncludePath>
+    <IncludePath>D:\Work\cabroad_server\Server\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;C:\Work\mediaserver\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;C:\Program Files\CUDA\cuda_cudart\cudart\include;.\NvCodec;$(IncludePath)</IncludePath>
     <LibraryPath>$(C_INCLUDE)\webrtc\lib\x64\debug;$(LibraryPath)</LibraryPath>
     <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>rtcd</TargetName>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>$(ProjectDir)..\vsout\$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-    <IncludePath>$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;..\..\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;$(CUDA_PATH)\include;.\NvCodec;$(IncludePath)</IncludePath>
+    <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;D:\Work\cabroad_server\Server\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;C:\Program Files\CUDA\cuda_cudart\cudart\include;.\NvCodec;$(IncludePath)</IncludePath>
     <LibraryPath>$(C_INCLUDE)\webrtc\lib\x64\release;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <TargetName>rtc</TargetName>
@@ -227,7 +234,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>C:\Work\mediaserver\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvcuvid.lib;C:\Work\mediaserver\cmediasoup_push\mediasoup\NvCodec\Lib\x64\nvencodeapi.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cuda.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudadevrt.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudart.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\cudart_static.lib;C:\Program Files\CUDA\cuda_cudart\cudart\lib\x64\OpenCL.lib;C:\Work\mediaserver\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\lib\detours.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>D:\Work\cabroad_server\Server\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\lib\detours.lib;NvCodec\Lib\x64\nvencodeapi.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -264,11 +271,12 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>NvCodec\Lib\x64\nvcuvid.lib;NvCodec\Lib\x64\nvencodeapi.lib;..\..\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\lib\detours.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>NvCodec\Lib\x64\nvencodeapi.lib;D:\Work\cabroad_server\Server\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\lib\detours.lib;gdiplus.lib;webrtc.lib;advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;d3d11.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>build_version.bat</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

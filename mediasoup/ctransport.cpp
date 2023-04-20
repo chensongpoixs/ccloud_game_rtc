@@ -59,7 +59,7 @@ namespace chen {
 			nullptr /*default_adm*/,
 			webrtc::CreateBuiltinAudioEncoderFactory(),
 			webrtc::CreateBuiltinAudioDecoderFactory(),
-			CreateBuiltinExternalVideoEncoderFactory(),
+			/* webrtc::CreateBuiltinVideoEncoderFactory()*/ 	 CreateBuiltinExternalVideoEncoderFactory(),
 			webrtc::CreateBuiltinVideoDecoderFactory(),
 			nullptr /*audio_mixer*/,
 			nullptr /*audio_processing*/);
@@ -121,9 +121,17 @@ namespace chen {
 	void ctransport::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state)
 	{
 		NORMAL_EX_LOG("OnSignalingChange new_state = %d", new_state);
-		if (m_client_ptr && new_state == webrtc::PeerConnectionInterface::kClosed)
+		if (m_client_ptr && (new_state == webrtc::PeerConnectionInterface::kClosed || new_state == webrtc::PeerConnectionInterface::kHaveRemotePrAnswer))
 		{
 			m_client_ptr->webrtc_connect_failed_callback();
+		}
+		else if (!m_client_ptr)
+		{
+			WARNING_EX_LOG("client ptr = NULL  --->");
+		}
+		else if (m_client_ptr && new_state == webrtc::PeerConnectionInterface::kHaveRemoteOffer)
+		{
+			m_client_ptr->set_p2p_connect();
 		}
 	}
 
@@ -145,9 +153,13 @@ namespace chen {
 	void ctransport::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state)
 	{
 		NORMAL_EX_LOG("OnSignalingChange new_state = %d", new_state);
-		if (m_client_ptr && new_state == webrtc::PeerConnectionInterface::kClosed)
+		if (m_client_ptr && (new_state == webrtc::PeerConnectionInterface::kClosed || new_state == webrtc::PeerConnectionInterface::kHaveRemotePrAnswer))
 		{
 			m_client_ptr->webrtc_connect_failed_callback();
+		}
+		else if (m_client_ptr && new_state == webrtc::PeerConnectionInterface::kHaveRemoteOffer)
+		{
+			m_client_ptr->set_p2p_connect();
 		}
 	}
 
