@@ -208,6 +208,18 @@ namespace chen {
 		{
 			return;  // Already added tracks.
 		}
+		webrtc::DataChannelInit dataChannelInit;
+		dataChannelInit.ordered = true;
+		dataChannelInit.protocol = "UDP/DTLS/SCTP";
+		dataChannelInit.negotiated = false;
+		dataChannelInit.id = 0;
+		rtc::scoped_refptr<webrtc::DataChannelInterface> webrtcDataChannel  = peer_connection_->CreateDataChannel("rtc", &dataChannelInit);
+		if (!webrtcDataChannel.get())
+		{
+			WARNING_EX_LOG("create data channel failed !!!");
+			 
+		}
+		m_data_channel_ptr = new rtc::RefCountedObject<cdata_channel>(webrtcDataChannel);
 		///////////////////////////////////////////////AUDIO///////////////////////////////////////////////////////////
 		rtc::scoped_refptr<webrtc::AudioSourceInterface> audio_source_ptr = peer_connection_factory_->CreateAudioSource(cricket::AudioOptions());
 

@@ -28,6 +28,7 @@
     <ClInclude Include="cclient.h" />
     <ClInclude Include="cconfig.h" />
     <ClInclude Include="cdataconsumer.h" />
+    <ClInclude Include="cdata_channel.h" />
     <ClInclude Include="cdesktop_capture.h" />
     <ClInclude Include="cdevice.h" />
     <ClInclude Include="cinput_device.h" />
@@ -90,6 +91,7 @@
     <ClCompile Include="cclient.cpp" />
     <ClCompile Include="cconfig.cpp" />
     <ClCompile Include="cdataconsumer.cpp" />
+    <ClCompile Include="cdata_channel.cpp" />
     <ClCompile Include="cdesktop_capture.cpp" />
     <ClCompile Include="cdevice.cpp" />
     <ClCompile Include="cinput_device.cpp" />

@@ -87,6 +87,7 @@
     <ClInclude Include="crtc_client.h" />
     <ClInclude Include="crtc_publisher.h" />
     <ClInclude Include="crtc_media_mgr.h" />
+    <ClInclude Include="cdata_channel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="casync_log.cpp" />
@@ -150,6 +151,7 @@
     <ClCompile Include="crtc_client.cpp" />
     <ClCompile Include="crtc_publisher.cpp" />
     <ClCompile Include="crtc_media_mgr.cpp" />
+    <ClCompile Include="cdata_channel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="client.cfg" />
