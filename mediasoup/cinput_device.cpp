@@ -2308,19 +2308,19 @@ namespace chen {
 				}
 				else if (count > 3000)
 				{
-					ms = 30;
+					ms = 10;
 				}
 				else if (count > 1000)
 				{
-					ms = 40;
+					ms = 20;
 				}
 				else if (count > 500)
 				{
-					ms = 60;
+					ms = 30;
 				}
 				else
 				{
-					ms = 100;
+					ms = 50;
 				}
 				count = 0;
 				std::this_thread::sleep_for(std::chrono::milliseconds(ms));
