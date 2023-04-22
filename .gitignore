@@ -37,3 +37,6 @@ glad.tar.gz
 rtc.sln
 h264encode.c
 WebServers/*
+rtc_player/log/20221123124306_rtc_native.log
+rtc_player/log/20221123124402_rtc_native.log
+rtc_player/log/20221123124619_rtc_native.log
