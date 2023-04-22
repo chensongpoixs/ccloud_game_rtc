@@ -157,10 +157,12 @@ namespace chen {
 	static HWND g_child_mouse_down_up = NULL;
 ///	cinput_device   g_input_device_mgr;
 	cinput_device::cinput_device() 
-		:  m_input_device()
+		: m_stoped(false)
+		, m_input_device()
 		,  m_int_point()
 		, m_all_consumer()
 		, m_mouse_id("")
+		, m_input_list()
 #if defined(_MSC_VER)
 		, m_main_win(NULL)
 #endif //#if defined(_MSC_VER)
@@ -581,14 +583,29 @@ namespace chen {
 		REGISTER_RTC_INPUT_DEVICE(MouseDoubleClick, &cinput_device::OnRtcMouseDoubleClick);
 
 
-
+		std::thread td(&cinput_device::_work_pthread, this);
+		m_thread.swap(td);
 		return true;
 	}
 	void cinput_device::Destroy()
 	{
+		m_stoped = true;
+		if (m_thread.joinable())
+		{
+			m_thread.join();
+		}
 		m_input_device.clear();
 		m_rtc_input_device.clear();
 		m_all_consumer.clear();
+		
+		{
+			std::lock_guard<std::mutex>  lock(m_input_mutex);
+			m_input_device.clear();
+		}
+	}
+	void cinput_device::startup()
+	{
+		
 	}
 	bool cinput_device::set_point(uint32 x, uint32 y)
 	{
@@ -726,6 +743,14 @@ namespace chen {
 		}
 		return true;
 		return true;
+	}
+
+	void cinput_device::insert_message(const webrtc::DataBuffer & Buffer)
+	{
+		{
+			std::lock_guard<std::mutex> lock(m_input_mutex);
+			m_input_list.push_back(Buffer);
+		}
 	}
 
 
@@ -2254,5 +2279,55 @@ namespace chen {
 	{ 
 		InOutX = InOutX / 32767.0f * m_int_point.X;
 		InOutY = InOutY / 32767.0f * m_int_point.Y;
+	}
+	void cinput_device::_work_pthread()
+	{
+		std::list< webrtc::DataBuffer>  temp_list;
+		uint32   ms = 50;
+		uint32   count = 0;
+		while (!m_stoped)
+		{
+		
+			{
+				std::lock_guard<std::mutex>  lock(m_input_mutex);
+				if (!m_input_list.empty())
+				{
+					temp_list = (m_input_list);
+					m_input_list.clear();
+				}
+			}
+
+			while (!temp_list.empty())
+			{
+				OnMessage("", temp_list.front());
+				temp_list.pop_front();
+				++count;
+			}
+			if (m_input_list.empty())
+			{
+				if (count > 5000)
+				{
+					ms = 5;
+				}
+				else if (count > 3000)
+				{
+					ms = 10;
+				}
+				else if (count > 1000)
+				{
+					ms = 20;
+				}
+				else if (count > 500)
+				{
+					ms = 30;
+				}
+				else
+				{
+					ms = 50;
+				}
+				count = 0;
+				std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+			}
+		}
 	}
 }

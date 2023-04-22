@@ -210,7 +210,7 @@ namespace chen {
 		}
 		webrtc::DataChannelInit dataChannelInit;
 		dataChannelInit.ordered = true;
-		dataChannelInit.protocol = "UDP/DTLS/SCTP";
+		dataChannelInit.protocol = "UDP";
 		dataChannelInit.negotiated = false;
 		dataChannelInit.id = 0;
 		rtc::scoped_refptr<webrtc::DataChannelInterface> webrtcDataChannel  = peer_connection_->CreateDataChannel("rtc", &dataChannelInit);

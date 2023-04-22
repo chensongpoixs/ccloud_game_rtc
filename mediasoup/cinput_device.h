@@ -18,6 +18,8 @@ purpose:		input_device
 #include <set>
 #include "json.hpp"
 #include <unordered_map>
+#include <list>
+#include <mutex>
 namespace chen {
 	 
 
@@ -50,10 +52,12 @@ namespace chen {
 
 		bool set_point(uint32 x, uint32 y);
 		void Destroy();
+		void startup();
 	public:
 
 		bool OnMessage(const std::string & consumer_id, const webrtc::DataBuffer& Buffer);
 		bool OnMessage(const nlohmann::json & datachannel);
+		void insert_message(const webrtc::DataBuffer& Buffer);
 	public:
 		
 		/*
@@ -128,15 +132,22 @@ namespace chen {
 
 		void _UnquantizeAndDenormalize(int16& InOutX, int16& InOutY);
 	private:
+		void _work_pthread();
+	private:
 		cinput_device(const cinput_device&);
 		cinput_device& operator =(const cinput_device&);
 		
 	private:
+		bool								m_stoped;
 		M_INPUT_DEVICE_MAP					m_input_device;
 		M_RTC_INPUT_DEVICE_MAP				m_rtc_input_device;
 		FIntPoint							m_int_point;
 		std::map<std::string, std::map<uint32, cmouse_info>>	m_all_consumer; 
 		std::string							m_mouse_id; //当前操作的id
+		std::list< webrtc::DataBuffer>		m_input_list;
+		std::mutex							m_input_mutex;
+
+		std::thread							m_thread;
 #if defined(_MSC_VER)
 		HWND								m_main_win;
 #endif // #if defined(_MSC_VER)
