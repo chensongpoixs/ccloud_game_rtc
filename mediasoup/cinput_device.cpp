@@ -2307,8 +2307,8 @@ namespace chen {
 				std::lock_guard<std::mutex>  lock(m_input_mutex);
 				if (!m_input_list.empty())
 				{
-					temp_list = (m_input_list);
-					m_input_list.clear();
+					temp_list.swap (m_input_list);
+					//m_input_list.clear();
 				}
 			}
 
