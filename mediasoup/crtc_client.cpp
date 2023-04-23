@@ -59,11 +59,7 @@ namespace chen {
 			fp = NULL;
 		}
 	}
-	crtc_client::crtc_client()
-		: m_stoped(false)
-		, m_status(ERtc_None)
-	{
-	}
+	 	
 	crtc_client::~crtc_client()
 	{
 	}
@@ -135,13 +131,16 @@ namespace chen {
 				if (!m_websocket_mgr.init(ws_url))
 				{
 					//RTC_LOG(LS_ERROR) << "weboscket connect failed !!! url = " << ws_url;
-					WARNING_EX_LOG("weboscket connect url = %s failed !!!   ", ws_url.c_str());
+					WARNING_EX_LOG("weboscket connect url = %s [count = %u]failed !!!   ", ws_url.c_str(), ++m_websocket_timer);
 					m_status = ERtc_Reset;
-					//++m_websocket_timer;
-					/*if (m_websocket_timer > g_cfg.get_uint32(ECI_WebSocketTimers))
+					 
+					 if (m_websocket_timer > g_cfg.get_uint32(ECI_WebSocketTimers))
 					{
-						_mediasoup_status_callback(EMediasoup_WebSocket_Init, 1);
-					}*/
+						 abort();
+						 assert(1);
+						//_mediasoup_status_callback(EMediasoup_WebSocket_Init, 1);
+					} 
+
 					continue;;
 				}
 
@@ -153,7 +152,7 @@ namespace chen {
 				m_status = ERtc_WebSocket;
 				m_rtc_publisher = new rtc::RefCountedObject<chen::crtc_publisher>(this);
 				m_rtc_publisher->create_offer();
-				
+				m_websocket_timer = 0;
 				// 1.1 获取服务器的处理能力
 				// 2. connect failed wait 5s..
 				break;
@@ -194,7 +193,7 @@ namespace chen {
 				break;
 			}
 			case ERtc_Reset:
-			case EMediasoup_Destory:
+			case ERtc_Destory:
 			{
 				 
 				m_websocket_mgr.destroy();
@@ -275,6 +274,11 @@ namespace chen {
 			{"data" , data }
 		};
 		m_websocket_mgr.send(request_data.dump());
+	}
+
+	void crtc_client::connect_rtc_failed()
+	{
+		m_status = ERtc_Reset;
 	}
 
 	void crtc_client::_presssmsg(std::list<std::string> & msgs)

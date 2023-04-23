@@ -52,7 +52,14 @@ namespace chen {
 	class crtc_client  : public crtc_publisher::clistener
 	{
 	public:
-		explicit crtc_client();
+		explicit crtc_client() : m_stoped(false)
+			, m_status(ERtc_None) 
+			, m_rtc_publisher(NULL)
+			, m_room_name("")
+			, m_user_name("")
+			, m_websocket_timer(0)
+		{
+		}
 	    	~crtc_client();
 	public:
 		bool init(uint32 gpu_index);
@@ -65,6 +72,7 @@ namespace chen {
 		bool  rtc_texture(void * texture, uint32 fmt, int32_t width, int32_t height);
 	public :
 		virtual void send_create_offer_sdp(const std::string & sdp, bool create = true);
+		virtual void connect_rtc_failed();
 	private:
 		void _presssmsg(std::list<std::string> & msgs);
 	protected:
@@ -75,6 +83,7 @@ namespace chen {
 		rtc::scoped_refptr < chen::crtc_publisher>				m_rtc_publisher;
 		std::string												m_room_name;
 		std::string												m_user_name;
+		uint32													m_websocket_timer;
 	};
 
 #define  s_rtc_client chen::csingleton<crtc_client>::get_instance()

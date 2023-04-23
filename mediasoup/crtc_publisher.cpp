@@ -182,6 +182,15 @@ namespace chen {
 			m_video_track_source_ptr->OnFrame(frame);
 		}
 	}
+	void crtc_publisher::OnSignalingChange(webrtc::PeerConnectionInterface::SignalingState new_state)
+	{
+		NORMAL_EX_LOG("OnSignalingChange new_state = %d", new_state);
+		if (  (new_state == webrtc::PeerConnectionInterface::kClosed || new_state == webrtc::PeerConnectionInterface::kHaveRemotePrAnswer))
+		{
+			m_callback_ptr->connect_rtc_failed();
+		}
+		 
+	}
 	void crtc_publisher::OnAddTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver, const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>& streams)
 	{
 		     
@@ -190,6 +199,16 @@ namespace chen {
 	}
 	void crtc_publisher::OnRemoveTrack(rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver)
 	{
+	}
+	 
+	void crtc_publisher::OnIceConnectionChange(webrtc::PeerConnectionInterface::IceConnectionState new_state)
+	{
+		NORMAL_EX_LOG("OnIceConnectionChange new_state = %d", new_state);
+		if (    (new_state == webrtc::PeerConnectionInterface::kClosed || new_state == webrtc::PeerConnectionInterface::kHaveRemotePrAnswer))
+		{
+			m_callback_ptr->connect_rtc_failed();
+		}
+		 
 	}
 	void crtc_publisher::OnIceCandidate(const webrtc::IceCandidateInterface * candidate)
 	{
@@ -209,11 +228,13 @@ namespace chen {
 	}
 	void crtc_publisher::OnFailure(webrtc::RTCError error)
 	{
-
+		WARNING_EX_LOG("[error = %s]", error.message());
+		m_callback_ptr->connect_rtc_failed();
 	}
 	void crtc_publisher::OnFailure(const std::string & error)
 	{
-
+		WARNING_EX_LOG("[error = %s]", error.c_str());
+		m_callback_ptr->connect_rtc_failed();
 	}
 
 	void crtc_publisher::_add_tracks()

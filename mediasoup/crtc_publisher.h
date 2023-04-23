@@ -42,7 +42,7 @@ namespace chen {
 			virtual ~clistener() = default;
 		public:
 			virtual void send_create_offer_sdp(const std::string & sdp, bool create = true) = 0;
-			
+			virtual void connect_rtc_failed() = 0;
 		protected:
 		private:
 		};
@@ -71,26 +71,26 @@ namespace chen {
 	  // PeerConnectionObserver implementation.
 	  //
 
-		void OnSignalingChange(
-			webrtc::PeerConnectionInterface::SignalingState new_state) override {}
+	virtual	void OnSignalingChange(
+			webrtc::PeerConnectionInterface::SignalingState new_state) override;
 
 
 		// 好家伙  webrtc封装太好 ^_^  接口定义 PeerConnectionObserver
-		void OnAddTrack(
+	virtual	void OnAddTrack(
 			rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver,
 			const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>>&
 			streams) override;
-		void OnRemoveTrack(
+	virtual	void OnRemoveTrack(
 			rtc::scoped_refptr<webrtc::RtpReceiverInterface> receiver) override;
-		void OnDataChannel(
+	virtual	void OnDataChannel(
 			rtc::scoped_refptr<webrtc::DataChannelInterface> channel) override {}
-		void OnRenegotiationNeeded() override {}
-		void OnIceConnectionChange(
-			webrtc::PeerConnectionInterface::IceConnectionState new_state) override {}
-		void OnIceGatheringChange(
+	virtual	void OnRenegotiationNeeded() override {}
+	virtual	void OnIceConnectionChange(
+			webrtc::PeerConnectionInterface::IceConnectionState new_state) override;
+	virtual	void OnIceGatheringChange(
 			webrtc::PeerConnectionInterface::IceGatheringState new_state) override {}
-		void OnIceCandidate(const webrtc::IceCandidateInterface* candidate) override;
-		void OnIceConnectionReceivingChange(bool receiving) override {}
+	virtual	void OnIceCandidate(const webrtc::IceCandidateInterface* candidate) override;
+	virtual	void OnIceConnectionReceivingChange(bool receiving) override {}
 
 
 	protected:
