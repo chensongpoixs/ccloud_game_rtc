@@ -2298,11 +2298,16 @@ namespace chen {
 	void cinput_device::_work_pthread()
 	{
 		std::list< webrtc::DataBuffer>  temp_list;
-		uint32   ms = 50;
-		uint32   count = 0;
+		static const uint32 TICK_TIME = 50;
+		std::chrono::steady_clock::time_point cur_time_ms;
+		std::chrono::steady_clock::time_point pre_time = std::chrono::steady_clock::now();
+		std::chrono::steady_clock::duration dur;
+		std::chrono::milliseconds ms;
+		uint32_t elapse = 0;
+
 		while (!m_stoped)
 		{
-		
+			pre_time = std::chrono::steady_clock::now();
 			{
 				std::lock_guard<std::mutex>  lock(m_input_mutex);
 				if (!m_input_list.empty())
@@ -2316,32 +2321,19 @@ namespace chen {
 			{
 				OnMessage("", temp_list.front());
 				temp_list.pop_front();
-				++count;
+				 
 			}
 			if (m_input_list.empty())
 			{
-				if (count > 5000)
+				 
+				cur_time_ms = std::chrono::steady_clock::now();
+				dur = cur_time_ms - pre_time;
+				ms = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+				elapse = static_cast<uint32_t>(ms.count());
+				if (elapse < TICK_TIME)
 				{
-					ms = 5;
+					std::this_thread::sleep_for(std::chrono::milliseconds(TICK_TIME - elapse));
 				}
-				else if (count > 3000)
-				{
-					ms = 10;
-				}
-				else if (count > 1000)
-				{
-					ms = 20;
-				}
-				else if (count > 500)
-				{
-					ms = 30;
-				}
-				else
-				{
-					ms = 50;
-				}
-				count = 0;
-				std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 			}
 		}
 	}
