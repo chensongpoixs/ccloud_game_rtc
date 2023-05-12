@@ -822,7 +822,7 @@ namespace chen {
 		{
 			return true;
 		}
-		if (KeyCode < 105 && KeyCode > 96 && !g_ctrl)
+		if (KeyCode < 106 && KeyCode > 96 && !g_ctrl)
 		{
 			return true;
 		}
@@ -954,7 +954,7 @@ namespace chen {
 		{
 			return true;
 		}
-		if (KeyCode < 105 && KeyCode > 96 && !g_ctrl)
+		if (KeyCode < 106 && KeyCode > 96 && !g_ctrl)
 		{
 			return true;
 		}
@@ -1055,7 +1055,7 @@ namespace chen {
 		{
 			return true;
 		}
-		if (KeyCode < 105 && KeyCode > 96 && !g_ctrl)
+		if (KeyCode < 106 && KeyCode > 96 && !g_ctrl)
 		{
 			return true;
 		}
