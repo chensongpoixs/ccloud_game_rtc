@@ -826,6 +826,11 @@ namespace chen {
 		{
 			return true;
 		}
+
+		/*if (KeyCode == 17 && g_ctrl != 0)
+		{
+			return true;
+		}*/
 		WINDOW_MAIN();
 		// TODO@chensong 2022-01-20  keydown -> keycode -> repeat 
 		/*if (mwin)
@@ -866,7 +871,7 @@ namespace chen {
 			//else
 			{
 				MOUSE_INPUT(childwin);
-				MESSAGE(childwin, WM_KEYDOWN, KeyCode, 0);
+				MESSAGE(childwin, WM_KEYDOWN, KeyCode, Repeat);
 			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
 			//	//keybd_event(16, 0, 0, 0);//按下Shift键
@@ -888,7 +893,7 @@ namespace chen {
 			//else
 			{
 				MOUSE_INPUT(mwin);
-				MESSAGE(mwin, WM_KEYDOWN, KeyCode, 0);
+				MESSAGE(mwin, WM_KEYDOWN, KeyCode, Repeat);
 			}
 			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
@@ -1059,6 +1064,10 @@ namespace chen {
 		{
 			return true;
 		}
+		/*if (KeyCode == 17 && g_ctrl == 0)
+		{
+			return true;
+		}*/
 		WINDOW_MAIN();
 		
 		
@@ -1250,6 +1259,10 @@ namespace chen {
 		FEvent KeyUpEvent(EventType::KEY_PRESS);
 		KeyUpEvent.SetKeyUp(Character);
 		NORMAL_LOG("OnKeyPress==KeyCode = %u", Character);
+		if (Character == 10 && g_ctrl != 0)
+		{
+			Character = 109;
+		}
 #if defined(_MSC_VER)
 		WINDOW_MAIN();
 

@@ -392,7 +392,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	initializeParams.enableSubFrameWrite = 0;
 	
 	initializeParams.tuningInfo = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
-	initializeParams.frameRateNum = 60;
+	initializeParams.frameRateNum = g_cfg.get_uint32(ECI_Video_Fps);
 
 
 	///////////////
@@ -422,7 +422,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 #define DEFAULT_BITRATE (1000000u)
 	uint32_t const MinQP = static_cast<uint32_t>(1);
 	uint32_t const MaxQP = static_cast<uint32_t>(51);
-	RateControlParams.rateControlMode = NV_ENC_PARAMS_RC_VBR;
+	RateControlParams.rateControlMode = g_cfg.get_uint32(ECI_EnableEncoderCbr) > 0 ?  NV_ENC_PARAMS_RC_CBR: NV_ENC_PARAMS_RC_VBR; // NV_ENC_PARAMS_RC_VBR; // NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ
 	RateControlParams.averageBitRate = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;// DEFAULT_BITRATE;
 	RateControlParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;// DEFAULT_BITRATE; // Not used for CBR
 	RateControlParams.multiPass = NV_ENC_TWO_PASS_FULL_RESOLUTION;
@@ -669,8 +669,11 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 		return 0;
 	}
 	using namespace chen;
-	//NORMAL_EX_LOG("----------->");
-	//return 0;
+	NORMAL_EX_LOG("------bitrate_bps = %u----->", bitrate_bps);
+	if (g_cfg.get_uint32(ECI_EnableEncoderCbr) > 0)
+	{ 
+		return 0;
+	}
 	/*if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcMaxRate))
 	{
 		NORMAL_EX_LOG("[bitrate_bps = %u ]too big [defalut max bitrate = %u]", bitrate_bps/ 1000, g_cfg.get_uint32(ECI_RtcMaxRate));
@@ -696,7 +699,7 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 		NV_ENC_CONFIG encodeConfig = { NV_ENC_CONFIG_VER };
 		reconfigureParams.reInitEncodeParams.encodeConfig = &encodeConfig;
 		enc->nvenc->GetInitializeParams(&reconfigureParams.reInitEncodeParams);
-		reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.averageBitRate = bitrate_bps; // bitrate_bps;
+		reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.averageBitRate = bitrate_bps;// 6000 * 1000;//bitrate_bps ; // bitrate_bps;
 		reconfigureParams.reInitEncodeParams.encodeConfig->rcParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000; // bitrate_bps;
 		enc->nvenc->Reconfigure(&reconfigureParams);
 	}
@@ -711,13 +714,17 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 	}
 	using namespace chen;
 	
-	if (framerate < g_cfg.get_uint32(ECI_RtcFrames))
+	//if (framerate < g_cfg.get_uint32(ECI_RtcFrames))
 	{
-		WARNING_EX_LOG("framerate = %u", framerate); 
+		NORMAL_EX_LOG("framerate = %u", framerate);
 	}
-	return 0;
+	if (g_cfg.get_uint32(ECI_EnableEncoderCbr) > 0)
+	{
+		return 0;
+	}
+	//return 0;
  	//NORMAL_EX_LOG("----------->");
-	return 0;
+	//return 0;
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
 	std::lock_guard<std::mutex> locker(enc->mutex);
