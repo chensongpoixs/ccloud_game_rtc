@@ -36,6 +36,7 @@ purpose:		assertion macros
 #include "cinput_device.h"
 #include "NvCodec/nvenc.h"
 #include "build_version.h"
+#include "rtc_base/logging.h"
 namespace chen {
 
 	///////////////////////////////////////mediasoup///////////////////////////////////////////////////////
@@ -151,6 +152,12 @@ namespace chen {
 			fp = NULL;
 		}
 	}
+
+
+	static void rtc_log_file(const char * data, size_t len)
+	{
+		SYSTEM_LOG("[rtc]%s", data);
+	}
 	bool cclient::init(uint32 gpu_index)
 	{
 		
@@ -160,6 +167,8 @@ namespace chen {
 			std::cerr << " log init failed !!!";
 			return false;
 		}
+		 
+		
 		show_work_dir();
 		 
 		SYSTEM_LOG("Log init ...\n");
@@ -180,6 +189,11 @@ namespace chen {
 
 		SYSTEM_LOG("set level = %u", g_cfg.get_uint32(ECI_LogLevel));
 		
+
+		if (g_cfg.get_uint32(ECI_EnableRtcLog))
+		{
+			rtc::register_log_callback(&rtc_log_file);
+		}
 		if (!s_input_device.init())
 		{
 			ERROR_EX_LOG("init input_device mouble !!!  ");

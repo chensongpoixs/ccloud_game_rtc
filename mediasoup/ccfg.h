@@ -52,6 +52,7 @@ namespace chen {
 		ECI_EncoderLowLatency,
 		ECI_GpuVideoLock,
 		ECI_EnableEncoderCbr, 
+		ECI_EnableRtcLog,
 	//	ECI_Time_Zone,
 	//	ECI_Time_Adjust,
 	//	ECI_Log_DB_Host,

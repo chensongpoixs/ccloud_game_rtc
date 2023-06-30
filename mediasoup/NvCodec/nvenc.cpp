@@ -392,7 +392,7 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	initializeParams.enableSubFrameWrite = 0;
 	
 	initializeParams.tuningInfo = NV_ENC_TUNING_INFO_ULTRA_LOW_LATENCY;
-	initializeParams.frameRateNum = g_cfg.get_uint32(ECI_Video_Fps);
+	initializeParams.frameRateNum = 60;
 
 
 	///////////////
@@ -420,8 +420,8 @@ static bool nvenc_init(void *nvenc_data, void *encoder_config)
 	//initializeParams.encodeConfig->rcParams.qpMapMode = NV_ENC_QP_MAP_DELTA;
 	NV_ENC_RC_PARAMS& RateControlParams = initializeParams.encodeConfig->rcParams;
 #define DEFAULT_BITRATE (1000000u)
-	uint32_t const MinQP = static_cast<uint32_t>(1);
-	uint32_t const MaxQP = static_cast<uint32_t>(51);
+	uint32_t const MinQP = static_cast<uint32_t>(24);
+	uint32_t const MaxQP = static_cast<uint32_t>(37);
 	RateControlParams.rateControlMode = g_cfg.get_uint32(ECI_EnableEncoderCbr) > 0 ?  NV_ENC_PARAMS_RC_CBR: NV_ENC_PARAMS_RC_VBR; // NV_ENC_PARAMS_RC_VBR; // NV_ENC_PARAMS_RC_CBR_LOWDELAY_HQ
 	RateControlParams.averageBitRate = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;// DEFAULT_BITRATE;
 	RateControlParams.maxBitRate = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;// DEFAULT_BITRATE; // Not used for CBR
@@ -590,7 +590,9 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 	IDXGIKeyedMutex* keyed_mutex = enc->keyed_mutex;
 	int frame_size = 0;
 	//NORMAL_EX_LOG("[enc->input_handle = %p][handle = %p]", enc->input_handle, handle);
-	if (enc->input_handle != handle) {
+	if (enc->input_handle != handle) 
+	{
+		WARNING_EX_LOG("[enc->input_handle = %p][handle = %p][handle = %u]", enc->input_handle, handle, handle);
 		if (enc->input_texture) {
 			enc->input_texture->Release();
 			enc->input_texture = nullptr;
@@ -603,7 +605,9 @@ int nvenc_encode_handle(void *nvenc_data, HANDLE handle, int lock_key, int unloc
 		//NORMAL_EX_LOG("");
 		HRESULT hr = enc->d3d11_device->OpenSharedResource((HANDLE)(uintptr_t)handle, __uuidof(ID3D11Texture2D),
 			reinterpret_cast<void **>(&enc->input_texture));
-		if (FAILED(hr)) {
+		if (FAILED(hr)) 
+		{
+			WARNING_EX_LOG("[handle = %p]OpenSharedResource  failed !!!", handle);
 			return -1;
 		}
 	//	NORMAL_EX_LOG("");
@@ -674,7 +678,7 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 	{ 
 		return 0;
 	}
-	/*if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcMaxRate))
+	if ((bitrate_bps / 1000) > g_cfg.get_uint32(ECI_RtcMaxRate))
 	{
 		NORMAL_EX_LOG("[bitrate_bps = %u ]too big [defalut max bitrate = %u]", bitrate_bps/ 1000, g_cfg.get_uint32(ECI_RtcMaxRate));
 		bitrate_bps = g_cfg.get_uint32(ECI_RtcMaxRate) * 1000;
@@ -683,7 +687,7 @@ int nvenc_set_bitrate(void *nvenc_data, uint32_t bitrate_bps)
 	{
 		WARNING_EX_LOG("[bitrate_bps = %u ]too big [defalut avg bitrate = %u]", bitrate_bps / 1000, g_cfg.get_uint32(ECI_RtcAvgRate));
 		bitrate_bps = g_cfg.get_uint32(ECI_RtcAvgRate) * 1000;
-	}*/
+	}
 	 
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;
 
@@ -722,7 +726,7 @@ int nvenc_set_framerate(void *nvenc_data, uint32_t framerate)
 	{
 		return 0;
 	}
-	//return 0;
+	return 0;
  	//NORMAL_EX_LOG("----------->");
 	//return 0;
 	struct nvenc_data *enc = (struct nvenc_data *)nvenc_data;

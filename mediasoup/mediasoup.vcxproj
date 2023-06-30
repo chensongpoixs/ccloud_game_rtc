@@ -206,8 +206,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IntDir>..\vsout\$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(C_INCLUDE)/webrtc/include;$(C_INCLUDE)/webrtc/include\third_party\abseil-cpp;$(C_INCLUDE)/webrtc/include\third_party\libyuv\include;D:\Work\cabroad_server\Server\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;C:\Program Files\CUDA\cuda_cudart\cudart\include;.\NvCodec;$(IncludePath)</IncludePath>
-    <LibraryPath>$(C_INCLUDE)\webrtc\lib\x64\release;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\dep\webrtc\include;D:\dep\webrtc\include\third_party\abseil-cpp;D:\dep\webrtc\include\third_party\libyuv\include;D:\Work\cabroad_server\Server\cd3d10_d3d11_d3d12_dxgi_opengl\OpenGL_Hook\capture_window\include;C:\Program Files\CUDA\cuda_cudart\cudart\include;.\NvCodec;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\dep\webrtc\lib\x64\release;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <TargetName>rtc</TargetName>
   </PropertyGroup>

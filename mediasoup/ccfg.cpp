@@ -52,9 +52,9 @@ namespace chen {
 		set_uint32(ECI_OsgWebrtcFrame, "osg_webrtc_frame", 3);
 		set_uint32(ECI_DesktopCapture, "desktop_capture", 0);
 		set_uint32(ECI_WebSocketTimers, "websocket_timer", 3);
-		set_uint32(ECI_RtcAvgRate, "rtc_avg_rate", 6000);
+		set_uint32(ECI_RtcAvgRate, "rtc_avg_rate", 8000);
 		set_uint32(ECI_RtcMaxRate, "rtc_max_rate", 10000);
-		set_uint32(ECI_RtcFrames, "rtc_frame", 50);
+		set_uint32(ECI_RtcFrames, "rtc_frame", 30);
 		
 		set_uint32(ECI_EncoderArraySize, "encoder_array_size", 3);
 
@@ -66,6 +66,7 @@ namespace chen {
 		set_uint32(ECI_EncoderLowLatency, "nvenc_low_latency", 3);
 		set_uint32(ECI_GpuVideoLock, "gpu_video_lock", 1);
 		set_uint32(ECI_EnableEncoderCbr, "enable_encoder_cbr", 0);
+		set_uint32(ECI_EnableRtcLog, "enable_rtc_log", 0);
 #if _DEBUG
 		set_uint32(ECI_LogLevel, "log_level", ELogLevel_Num);
 #endif // _DEBUG
