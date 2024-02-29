@@ -21,9 +21,9 @@
 #include <iostream>
 #include <string>
 #include "cmediasoup_mgr.h"
-
-
-
+#include <detours.h>
+#include "cinput_device.h"
+#include <shellapi.h>
  
 cmediasoup::cmediasoup_mgr g_mediasoup_mgr;
 
@@ -38,7 +38,7 @@ void signalHandler(int signum)
 
 
 
-int  testffmain(int argc, char *argv[])
+int  yymain(int argc, char *argv[])
 {
 	signal(SIGINT, signalHandler);
 	signal(SIGTERM, signalHandler);
@@ -52,11 +52,161 @@ int  testffmain(int argc, char *argv[])
 		, const char* roomName, const char* clientName
 	
 	*/
-	g_mediasoup_mgr.startup("127.0.0.1", 8888, "chensong33", "chensong33");
+	g_mediasoup_mgr.startup("192.168.1.175", 8888, "chensong33", "chensong33");
 	while (!stoped)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	g_mediasoup_mgr.destroy();
 	return 0;
+}
+
+static  HMODULE  userdll32_ptr = NULL;
+
+typedef BOOL(WINAPI* PFN_EnumDisplaySettingsA)(_In_opt_ LPCSTR lpszDeviceName, _In_ DWORD iModeNum, _Inout_ DEVMODEA* lpDevMode);
+PFN_EnumDisplaySettingsA RealEnumDisplaySettingsA;
+typedef BOOL(WINAPI* PFN_EnumDisplaySettingsW)(_In_opt_ LPCSTR lpszDeviceName, _In_ DWORD iModeNum, _Inout_ DEVMODEA* lpDevMode);
+PFN_EnumDisplaySettingsW RealEnumDisplaySettingsW;
+
+std::string WcharTochar(const std::wstring& wp, size_t m_encode = CP_ACP)
+{
+	std::string str;
+	int32_t len = WideCharToMultiByte(m_encode, 0, wp.c_str(), wp.size(), NULL, 0, NULL, NULL);
+	str.resize(len);
+	WideCharToMultiByte(m_encode, 0, wp.c_str(), wp.size(), (LPSTR)(str.data()), len, NULL, NULL);
+	return str;
+}
+static BOOL hook_EnumDisplaySettingsA(_In_opt_ LPCSTR lpszDeviceName, _In_ DWORD iModeNum, _Inout_ DEVMODEA* lpDevMode)
+{
+
+	BOOL ret = RealEnumDisplaySettingsA(lpszDeviceName, iModeNum, lpDevMode);
+	if (ret)
+	{
+		//::GetCommandLineA();
+		LPWSTR* szArglist;
+		int nArgs;
+		szArglist = ::CommandLineToArgvW(GetCommandLineW(), &nArgs);
+		int32_t width = 1920;
+		int32_t height = 1080;
+		if (nArgs > 14)
+		{
+			// 0 0 1920 1040
+			// 11 12 13 14
+			width = ::atoi((const char*)(WcharTochar(szArglist[13]).c_str()));
+			height = ::atoi((const char*)(WcharTochar(szArglist[14]).c_str()));
+			//NORMAL_EX_LOG("width  = %u, height = %u", width, height);
+			lpDevMode->dmPelsWidth = width;
+			lpDevMode->dmPelsHeight = height;
+		}
+
+	}
+	return ret;
+}
+static BOOL hook_EnumDisplaySettingsW(_In_opt_ LPCSTR lpszDeviceName, _In_ DWORD iModeNum, _Inout_ DEVMODEA* lpDevMode)
+{
+
+	BOOL ret = RealEnumDisplaySettingsW(lpszDeviceName, iModeNum, lpDevMode);
+	if (ret)
+	{
+		LPWSTR* szArglist;
+		int nArgs;
+		szArglist = ::CommandLineToArgvW(GetCommandLineW(), &nArgs);
+		int32_t width = 1920;
+		int32_t height = 1080;
+
+		if (nArgs > 14)
+		{
+			// 0 0 1920 1040
+			// 11 12 13 14
+			width = ::atoi((const char*)(WcharTochar(szArglist[13]).c_str()));
+			height = ::atoi((const char*)(WcharTochar(szArglist[14]).c_str()));
+			//NORMAL_EX_LOG("width  = %u, height = %u", width, height);
+			lpDevMode->dmPelsWidth = width;
+			lpDevMode->dmPelsHeight = height;
+		}
+
+	}
+	return ret;
+}
+static inline HMODULE get_system_module(const char* system_path, const char* module)
+{
+	char base_path[MAX_PATH];
+
+	strcpy(base_path, system_path);
+	strcat(base_path, "\\");
+	strcat(base_path, module);
+	return GetModuleHandleA(base_path);
+}
+void load_seecen()
+{
+	if (userdll32_ptr)
+	{
+		return;
+	}
+	char system_path[MAX_PATH] = { 0 };
+
+	UINT ret = GetSystemDirectoryA(system_path, MAX_PATH);
+	if (!ret)
+	{
+		//ERROR_EX_LOG("Failed to get windows system path: %lu\n", GetLastError());
+		//return false;
+	}
+	userdll32_ptr = get_system_module(system_path, "user32.dll");
+	if (!userdll32_ptr)
+	{
+		return;
+	}
+	void* EnumDisplaySettingsA_proc = GetProcAddress(userdll32_ptr, "EnumDisplaySettingsA");
+	void* EnumDisplaySettingsW_proc = GetProcAddress(userdll32_ptr, "EnumDisplaySettingsW");
+	{
+		//	SYSTEM_LOG("    input device  begin ... ");
+		DetourTransactionBegin();
+
+		if (EnumDisplaySettingsA_proc)
+		{
+			RealEnumDisplaySettingsA = (PFN_EnumDisplaySettingsA)EnumDisplaySettingsA_proc;
+			DetourAttach((PVOID*)&RealEnumDisplaySettingsA,
+				hook_EnumDisplaySettingsA);
+		}
+		if (EnumDisplaySettingsW_proc)
+		{
+			RealEnumDisplaySettingsW = (PFN_EnumDisplaySettingsW)EnumDisplaySettingsW_proc;
+			DetourAttach((PVOID*)&RealEnumDisplaySettingsW,
+				hook_EnumDisplaySettingsW);
+		}
+		const LONG error = DetourTransactionCommit();
+		const bool success = error == NO_ERROR;
+	}
+}
+__declspec(dllexport)
+BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID unused1)
+{
+
+	if (reason == DLL_PROCESS_ATTACH)
+	{
+
+		//load_seecen();
+		wchar_t name[MAX_PATH];
+		 
+		/* this prevents the library from being automatically unloaded
+		 * by the next FreeLibrary call */
+		GetModuleFileNameW(hinst, name, MAX_PATH);
+		LoadLibraryW(name);
+		 
+		load_seecen();
+
+
+
+	}
+	else if (reason == DLL_PROCESS_DETACH) {
+
+
+		 
+
+		//free_hook();
+	}
+
+	(void)unused1;
+	return true;
+	return true;
 }

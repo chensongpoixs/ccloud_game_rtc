@@ -163,6 +163,7 @@ namespace chen {
 		std::mutex							m_input_mutex;
 
 		std::thread							m_thread;
+		std::atomic_bool					m_init;
 #if defined(_MSC_VER)
 		HWND								m_main_win;
 #endif // #if defined(_MSC_VER)

@@ -66,7 +66,7 @@ namespace cmediasoup
 		void webrtc_resume();
 		bool webrtc_video_staus() const { return m_webrtc_pause; }
 		bool  mediasoup_run();
-		
+		//void init_input_device();
 #if defined(_MSC_VER)
 
 

@@ -36,7 +36,7 @@ purpose:		nvenc
 //#include "Utils/AppEncUtils.h"
 namespace chen {
 	uint32 g_gpu_index;
-	DXGI_FORMAT g_dxgi_format;
+	DXGI_FORMAT g_dxgi_format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	static const std::unordered_map<uint32, GUID> g_encoder_preset = {
 	{1, NV_ENC_PRESET_P1_GUID},
 	{2, NV_ENC_PRESET_P2_GUID},

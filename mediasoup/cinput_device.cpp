@@ -36,6 +36,7 @@ purpose:		input_device
 #include <mutex>
 #include <detours.h>
 #include "cint2str.h"
+#include <shellapi.h>
 //void CallMessage(HWND hwnd, int nMsgId, int wParam, int lParam)
 //
 //{
@@ -167,7 +168,15 @@ namespace chen {
 
 
 
+//struct c_init_input_device
+//{
+//	c_init_input_device()
+//	{
+//		s_input_device.init();
+//	}
+//};
 
+    //static   c_init_input_device input_device_init;
 	static HWND g_main_mouse_down_up = NULL;
 	static HWND g_child_mouse_down_up = NULL;
 ///	cinput_device   g_input_device_mgr;
@@ -178,6 +187,7 @@ namespace chen {
 		, m_all_consumer()
 		, m_mouse_id("")
 		, m_input_list()
+		, m_init(false)
 #if defined(_MSC_VER)
 		, m_main_win(NULL)
 #endif //#if defined(_MSC_VER)
@@ -254,6 +264,11 @@ namespace chen {
 
 	typedef SHORT (WINAPI* PFN_GetAsyncKeyState)( _In_ int vKey);
 	PFN_GetAsyncKeyState  RealGetAsyncKeyState;
+
+	typedef BOOL(WINAPI* PFN_EnumDisplaySettingsA)(_In_opt_ LPCSTR lpszDeviceName, _In_ DWORD iModeNum, _Inout_ DEVMODEA* lpDevMode);
+	PFN_EnumDisplaySettingsA RealEnumDisplaySettingsA;
+	typedef BOOL(WINAPI* PFN_EnumDisplaySettingsW)(_In_opt_ LPCSTR lpszDeviceName, _In_ DWORD iModeNum, _Inout_ DEVMODEA* lpDevMode);
+	PFN_EnumDisplaySettingsW RealEnumDisplaySettingsW;
 	///////////////////////////////////////////////////////////////////////////////
 	 
 
@@ -427,10 +442,77 @@ namespace chen {
 	 //	NORMAL_EX_LOG("[key = %u][ret = %u]", Key, ret);
 		return ret;
 	}
+
+	std::string WcharTochar(const std::wstring& wp, size_t m_encode = CP_ACP)
+	{
+		std::string str;
+		int32 len = WideCharToMultiByte(m_encode, 0, wp.c_str(), wp.size(), NULL, 0, NULL, NULL);
+		str.resize(len);
+		WideCharToMultiByte(m_encode, 0, wp.c_str(), wp.size(), (LPSTR)(str.data()), len, NULL, NULL);
+		return str;
+	}
+	static BOOL hook_EnumDisplaySettingsA(_In_opt_ LPCSTR lpszDeviceName, _In_ DWORD iModeNum, _Inout_ DEVMODEA* lpDevMode)
+	{
+		NORMAL_EX_LOG("");
+		BOOL ret = RealEnumDisplaySettingsA(lpszDeviceName, iModeNum, lpDevMode);
+		if (ret)
+		{
+			//::GetCommandLineA();
+			LPWSTR* szArglist;
+			int nArgs;
+			szArglist = ::CommandLineToArgvW(GetCommandLineW(), &nArgs);
+			int32 width = 1920;
+			int32 height = 1080;
+			if (nArgs > 14)
+			{
+				// 0 0 1920 1040
+				// 11 12 13 14
+				width = ::atoi((const char*)(WcharTochar(szArglist[13]).c_str()));
+				height = ::atoi((const char*)(WcharTochar(szArglist[14]).c_str()));
+				NORMAL_EX_LOG("width  = %u, height = %u", width, height);
+				lpDevMode->dmPelsWidth = width;
+				lpDevMode->dmPelsHeight = height;
+			}
+			
+		}
+		return ret;
+	}
+	static BOOL hook_EnumDisplaySettingsW(_In_opt_ LPCSTR lpszDeviceName, _In_ DWORD iModeNum, _Inout_ DEVMODEA* lpDevMode)
+	{
+		NORMAL_EX_LOG("");
+		BOOL ret = RealEnumDisplaySettingsW(lpszDeviceName, iModeNum, lpDevMode);
+		if (ret)
+		{
+			LPWSTR* szArglist;
+			int nArgs;
+			szArglist = ::CommandLineToArgvW(GetCommandLineW(), &nArgs);
+			int32 width = 1920;
+			int32 height = 1080;
+
+			if (nArgs > 14)
+			{
+				// 0 0 1920 1040
+				// 11 12 13 14
+				width = ::atoi((const char*)(WcharTochar(szArglist[13]).c_str()));
+				height = ::atoi((const char*)(WcharTochar(szArglist[14]).c_str()));
+				NORMAL_EX_LOG("width  = %u, height = %u", width, height);
+				lpDevMode->dmPelsWidth = width;
+				lpDevMode->dmPelsHeight = height;
+			}
+			
+		}
+		return ret;
+	}
 	//static inline 
 
 	bool cinput_device::init()
 	{
+		if (m_init)
+		{
+			return true;
+
+		}
+		m_init = true;
 		//g_hrawinput.resize(RAW_INPUT_SIZE);
 		 // win
 		char system_path[MAX_PATH] = {0};
@@ -455,6 +537,10 @@ namespace chen {
 		void* set_cursor_pos_proc = GetProcAddress(user32dll, "SetCursorPos");
 		void * get_key_state_proc = GetProcAddress(user32dll, "GetKeyState"); //hook_RealGetKeyState
 		void* get_async_key_state_proc = GetProcAddress(user32dll, "GetAsyncKeyState");
+
+
+		//void* EnumDisplaySettingsA_proc = GetProcAddress(user32dll, "EnumDisplaySettingsA");
+		//void* EnumDisplaySettingsW_proc = GetProcAddress(user32dll, "EnumDisplaySettingsW");
 		/// <summary>
 		/// ///////////////////
 		/// </summary>
@@ -504,7 +590,18 @@ namespace chen {
 					hook_GetKeyState);
 			}
 
-
+			 /*if (EnumDisplaySettingsA_proc)
+			{
+				RealEnumDisplaySettingsA = (PFN_EnumDisplaySettingsA)EnumDisplaySettingsA_proc;
+				DetourAttach((PVOID*)&RealEnumDisplaySettingsA,
+					hook_EnumDisplaySettingsA);
+			}
+			if (EnumDisplaySettingsW_proc)
+			{
+				RealEnumDisplaySettingsW = (PFN_EnumDisplaySettingsW)EnumDisplaySettingsW_proc;
+				DetourAttach((PVOID*)&RealEnumDisplaySettingsW,
+					hook_EnumDisplaySettingsW);
+			} */
 			/*if (register_class_a_proc)
 			{
 				RealRegisterClassA = (PFN_RegisterClassA)register_class_a_proc;
@@ -871,7 +968,7 @@ namespace chen {
 			//else
 			{
 				MOUSE_INPUT(childwin);
-				MESSAGE(childwin, WM_KEYDOWN, KeyCode, Repeat);
+				MESSAGE(childwin, WM_KEYDOWN, KeyCode, 3224961025/*Repeat*/);
 			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
 			//	//keybd_event(16, 0, 0, 0);//按下Shift键
@@ -893,7 +990,7 @@ namespace chen {
 			//else
 			{
 				MOUSE_INPUT(mwin);
-				MESSAGE(mwin, WM_KEYDOWN, KeyCode, Repeat);
+				MESSAGE(mwin, WM_KEYDOWN, KeyCode, 3224961025/*Repeat*/);
 			}
 			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
@@ -1084,7 +1181,7 @@ namespace chen {
 			//else
 			{
 				MOUSE_INPUT(childwin);
-				MESSAGE(childwin, WM_KEYUP, KeyCode, 0);
+				MESSAGE(childwin, WM_KEYUP, KeyCode, 3224961025);
 			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
 			//	//keybd_event(16, 0, 0, 0);//按下Shift键
@@ -1105,7 +1202,7 @@ namespace chen {
 			//else
 			{
 				MOUSE_INPUT(childwin);
-				MESSAGE(childwin, WM_KEYUP, KeyCode, 0);
+				MESSAGE(childwin, WM_KEYUP, KeyCode, 3224961025);
 			}
 			
 			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
@@ -1193,7 +1290,7 @@ namespace chen {
 			//else
 			{
 				MOUSE_INPUT(childwin);
-				MESSAGE(childwin, WM_KEYUP, KeyCode, 0);
+				MESSAGE(childwin, WM_KEYUP, KeyCode, 3224961025);
 			}//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
 			//{
 			//	//keybd_event(16, 0, 0, 0);//按下Shift键
@@ -1214,7 +1311,7 @@ namespace chen {
 			//else
 			{
 				MOUSE_INPUT(childwin);
-				MESSAGE(childwin, WM_KEYUP, KeyCode, 0);
+				MESSAGE(childwin, WM_KEYUP, KeyCode, 3224961025);
 			}
 
 			//if (KeyCode == 17 || KeyCode == 77 || KeyCode == 109)
@@ -1273,13 +1370,13 @@ namespace chen {
 		if (childwin)
 		{
 			MOUSE_INPUT(childwin);
-			MESSAGE(childwin, WM_CHAR, Character, 1);
+			MESSAGE(childwin, WM_CHAR, Character, 3224961025);
 		}
 		else if (mwin)
 		{
 			MOUSE_INPUT(mwin);
 			//MESSAGE(mwin, WM_PR, Character, 0);
-			MESSAGE(mwin, WM_CHAR, Character, 1);
+			MESSAGE(mwin, WM_CHAR, Character, 3224961025);
 		}
 		else
 		{

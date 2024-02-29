@@ -92,7 +92,23 @@ namespace chen {
 	{
 		if (m_capturer_ptr)
 		{
-			NORMAL_EX_LOG("");
+			//NORMAL_EX_LOG("");
+			static auto timestamp =
+				std::chrono::duration_cast<std::chrono::milliseconds>(
+					std::chrono::system_clock::now().time_since_epoch())
+				.count();
+			static size_t cnt = 0;
+
+			cnt++;
+			auto timestamp_curr = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::system_clock::now().time_since_epoch())
+				.count();
+			if (timestamp_curr - timestamp > 1000) {
+				//RTC_LOG(LS_INFO) << "FPS: " << cnt;
+				NORMAL_EX_LOG("fps = %u", cnt);
+				cnt = 0;
+				timestamp = timestamp_curr;
+			}
 			s_input_device.set_point(width, height);
 			return m_capturer_ptr->OnFrameTexture(texture, fmt, width, height);
 		}

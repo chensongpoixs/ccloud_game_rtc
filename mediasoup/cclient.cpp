@@ -192,7 +192,7 @@ namespace chen {
 
 		if (g_cfg.get_uint32(ECI_EnableRtcLog))
 		{
-			rtc::register_log_callback(&rtc_log_file);
+			//rtc::register_log_callback(&rtc_log_file);
 		}
 		if (!s_input_device.init())
 		{
@@ -932,7 +932,7 @@ namespace chen {
 	}
 	bool cclient::webrtc_texture(void * texture, uint32 fmt, int32_t width, int32_t height)
 	{
-		NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
+		//NORMAL_EX_LOG("[fmt = %u][width = %u][height = %u]", fmt, width, height);
 		if (!m_webrtc_connect)
 		{
 			//WARNING_EX_LOG("not connect webrtc video wait !!!");

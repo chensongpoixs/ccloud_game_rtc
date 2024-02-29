@@ -104,7 +104,7 @@ namespace cmediasoup
 		{
 			return;
 		}
-		NORMAL_EX_LOG("");
+		//NORMAL_EX_LOG("");
 		//webrtc::VideoFrame frame;
 		s_client.webrtc_texture(texture, fmt, width, height);
 	}
@@ -133,6 +133,8 @@ namespace cmediasoup
 		//return true;
 	}
 
+	 
+
 
 #if defined(_MSC_VER)
 
@@ -140,7 +142,7 @@ namespace cmediasoup
 
 	void cmediasoup_mgr::set_main_window(HWND win)
 	{
-		s_input_device;
+		//s_input_device;
 	}
 //	void set_main_window(HWND win);
 #endif // #if defined(_MSC_VER)

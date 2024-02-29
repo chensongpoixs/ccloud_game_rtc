@@ -71,6 +71,7 @@ namespace chen {
 	void crtc_media_mgr::rtc_resume()
 	{
 	}
+	 
 	void crtc_media_mgr::set_rtc_status_callback(rtc_status_update_cb callback)
 	{
 	}

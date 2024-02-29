@@ -65,8 +65,7 @@ namespace chen
 		void  rtc_pause();
 		void  rtc_resume();
 		//bool  rtc_video_staus() const { return m_webrtc_pause; }
-		//bool  mediasoup_run();
-
+		//bool  mediasoup_run(); 
 #if defined(_MSC_VER)
 
 
