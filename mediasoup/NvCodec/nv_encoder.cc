@@ -677,6 +677,8 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame, cnv_frame_
 
 	int width = input_frame.width();
 	int height = input_frame.height();
+	 
+	//NORMAL_EX_LOG("gpu_index = %u", g_gpu_index);
 	ID3D11Texture2D* texture = nvenc_info.get_texture(nv_encoders_[index]);
 	ID3D11DeviceContext* context = nvenc_info.get_context(nv_encoders_[index]);
 	 if (texture && context  )
@@ -710,7 +712,9 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame, cnv_frame_
 
 			 }
 		 }
-		 else*/ if ( 0 != g_gpu_index  )
+		 else*/ 
+		
+		 if ( 0 != g_gpu_index  )
 		 {
 			// NORMAL_EX_LOG("");
 			 D3D11_MAPPED_SUBRESOURCE dsec = { 0 };
@@ -737,7 +741,7 @@ bool NvEncoder::EncodeFrame(int index, const VideoFrame& input_frame, cnv_frame_
 		 }
 		 else if (input_frame.video_frame_buffer()->ToI420()->get_texture())
 		 {
-
+			// NORMAL_EX_LOG("");
 			 int frame_size = nvenc_info.encode_handle((void*)nv_encoders_[index], (HANDLE)input_frame.video_frame_buffer()->ToI420()->get_texture(), 0, 0, frame_packet.frame.get(), max_buffer_size); ;
 			 frame_packet.use_size = frame_size;
 			 if (frame_packet.use_size < 1)

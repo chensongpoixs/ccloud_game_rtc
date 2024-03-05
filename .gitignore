@@ -40,3 +40,6 @@ WebServers/*
 rtc_player/log/20221123124306_rtc_native.log
 rtc_player/log/20221123124402_rtc_native.log
 rtc_player/log/20221123124619_rtc_native.log
+/mediasoup/chensong_rtc_error.log
+/mediasoup/paced_sender_sequence_number.log
+/mediasoup/test.h264
